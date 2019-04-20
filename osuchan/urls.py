@@ -14,8 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
+from django.conf.urls import include
+from django.http.response import HttpResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("profiles/", include("profiles.urls")),
+    path("osuauth/", include("osuauth.urls")),
+    re_path(r"^.*", lambda r: HttpResponse("React app to be served here"))
 ]

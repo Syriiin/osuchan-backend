@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # NOTE: use django.core.management.utils.get_random_secret_key() to generate a suitable key
-SECRET_KEY = ""
+SECRET_KEY = ''
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -33,3 +33,17 @@ DATABASES = {
         'PORT': ''
     }
 }
+
+
+# osu! API
+
+# v2
+OSU_CLIENT_ID = ''
+OSU_CLIENT_SECRET = ''
+OSU_CLIENT_REDIRECT_URI = ''
+
+# v1
+OSU_API_V1_KEY = ''
+
+# Beatmap cache directory
+BEATMAP_CACHE_PATH = ''

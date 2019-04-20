@@ -16,6 +16,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',   # browsable api
+    'osuauth.apps.OsuauthConfig',   # osu auth and accounts
+    'profiles.apps.ProfilesConfig'
 ]
 
 MIDDLEWARE = [
@@ -47,6 +50,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'osuchan.wsgi.application'
+
+
+# Auth
+# https://docs.djangoproject.com/en/2.2/ref/settings/#auth
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'osuauth.backends.OsuBackend'
+]
+
+AUTH_USER_MODEL = 'osuauth.User'
 
 
 # Password validation
@@ -88,7 +102,30 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
+# Django REST framework
+# https://www.django-rest-framework.org/api-guide/settings/
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
+
+# osu! API
+
+# v2
+OSU_OAUTH_AUTHORISE_URL = 'https://osu.ppy.sh/oauth/authorize'
+OSU_OAUTH_TOKEN_URL = 'https://osu.ppy.sh/oauth/token'
+OSU_OAUTH_SCOPE = 'identify friends.read'
+OSU_API_V2_BASE_URL = 'https://osu.ppy.sh/api/v2/'
+
+# v1
+OSU_API_V1_BASE_URL = 'https://osu.ppy.sh/api/'
+
+# Beatmaps
+BEATMAP_DL_URL = "https://osu.ppy.sh/osu/"
+
 # Environment specific overrides and sensitive settings
-# NOTE: requires atleast SECRET_KEY, DEBUG, ALLOWED_HOSTS and DATABASES to be defined
 
 from local_settings import *
