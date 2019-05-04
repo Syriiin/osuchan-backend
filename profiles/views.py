@@ -1,34 +1,28 @@
 from django.contrib.auth.models import Group
 
-from rest_framework import routers, viewsets
+from rest_framework import viewsets, permissions, mixins
+from rest_framework.response import Response
 
-from profiles.models import OsuUser, UserStats, Beatmap, Score
-from profiles.serialisers import OsuUserSerialiser, UserStatsSerialiser, BeatmapSerialiser, ScoreSerialiser
+from profiles.models import UserStats, Score
+from profiles.serialisers import UserStatsSerialiser, ScoreSerialiser
 
-class OsuUserViewSet(viewsets.ModelViewSet):
+class UserStatsViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows osuusers to be viewed or edited.
+    API endpoint that allows userstats to be viewed.
     """
-    queryset = OsuUser.objects.all()
-    serializer_class = OsuUserSerialiser
-
-class UserStatsViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows userstats to be viewed or edited.
-    """
-    queryset = UserStats.objects.all()
+    queryset = UserStats.objects.non_restricted()
     serializer_class = UserStatsSerialiser
 
-class BeatmapViewSet(viewsets.ModelViewSet):
+class ScoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """
-    API endpoint that allows beatmaps to be viewed or edited.
+    API endpoint that allows scores to be viewed.
     """
-    queryset = Beatmap.objects.all()
-    serializer_class = BeatmapSerialiser
-
-class ScoreViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows scores to be viewed or edited.
-    """
-    queryset = Score.objects.all()
+    queryset = Score.objects.non_restricted()
     serializer_class = ScoreSerialiser
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def create(self, request):
+        data = request.data
+        scores = Score.objects.create_or_update(data["beatmap_id"], data["user_id"], data["gamemode"])
+        serialiser = ScoreSerialiser(scores, many=True)
+        return Response(serialiser.data)

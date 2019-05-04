@@ -131,12 +131,18 @@ class ScoreManager(models.Manager):
     def non_restricted(self):
         return self.get_queryset().filter(user_stats__user__disabled=False)
 
-    def create_or_update(self, beatmap_id, user_id):
+    def create_or_update(self, beatmap_id, user_id, gamemode):
         # fetch scores for player on a beatmap
-        data = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id)
-        return self.create_or_update_from_data(data)
+        user_stats_model = apps.get_model("profiles.UserStats")
+        user_stats = user_stats_model.objects.non_restricted().get(user__id=user_id, gamemode=gamemode)
+        
+        data = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode)
+        scores = self.create_or_update_from_data(data, user_stats.id, beatmap_id=beatmap_id)
 
-    def create_or_update_from_data(self, score_data_list, user_stats_id):
+        user_stats.scores.add(*scores, bulk=True)
+        return scores
+
+    def create_or_update_from_data(self, score_data_list, user_stats_id, beatmap_id=None):
         # add list of scores from passed deserialised osu! api response (dicts)
         scores = []
 
@@ -144,10 +150,11 @@ class ScoreManager(models.Manager):
         beatmap_model = apps.get_model("profiles.Beatmap")
         
         for score_data in score_data_list:
+            beatmap_id = beatmap_id or int(score_data["beatmap_id"])
             # get or create Score model
             try:
                 # TODO: check if this foreign key lookup for user_id has a large impact (probably doesnt because of indexes)
-                score = self.model.objects.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=int(score_data["beatmap_id"]), mods=int(score_data["enabled_mods"]))
+                score = self.model.objects.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=beatmap_id, mods=int(score_data["enabled_mods"]))
             except self.model.DoesNotExist:
                 score = self.model()
             
@@ -167,7 +174,7 @@ class ScoreManager(models.Manager):
             score.date = datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
 
             # foreign keys
-            beatmap = beatmap_model.objects.create_or_update(score_data["beatmap_id"])
+            beatmap = beatmap_model.objects.create_or_update(beatmap_id)
             score.beatmap = beatmap
             score.user_stats_id = user_stats_id
 

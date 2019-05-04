@@ -23,7 +23,7 @@ def get_beatmaps(
     beatmap_id=None,
     beatmap_set_id=None,
     user_id=None,
-    user_id_type=None,
+    user_id_type="id",
     gamemode=None,
     include_converted=None,
     since=None,
@@ -45,7 +45,7 @@ def get_beatmaps(
 # User
 def get_user(
     user_id,
-    user_id_type=None,
+    user_id_type="id",
     gamemode=None,
     event_days=None
 ):
@@ -60,7 +60,7 @@ def get_user(
 def get_scores(
     beatmap_id,
     user_id=None,
-    user_id_type=None,
+    user_id_type="id",
     gamemode=None,
     mods=None,
     limit=None
@@ -77,7 +77,7 @@ def get_scores(
 # Best Performances
 def get_user_best(
     user_id,
-    user_id_type=None,
+    user_id_type="id",
     gamemode=None,
     limit=None
 ):
@@ -91,7 +91,7 @@ def get_user_best(
 # Recently Played
 def get_user_recent(
     user_id,
-    user_id_type=None,
+    user_id_type="id",
     gamemode=None,
     limit=None
 ):
