@@ -49,12 +49,15 @@ def get_user(
     gamemode=None,
     event_days=None
 ):
-    return get_legacy_endpoint("get_user",
-        u=user_id,
-        type=user_id_type,
-        m=gamemode,
-        event_days=event_days
-    )[0]
+    try:
+        return get_legacy_endpoint("get_user",
+            u=user_id,
+            type=user_id_type,
+            m=gamemode,
+            event_days=event_days
+        )[0]
+    except IndexError:
+        return None
 
 # Scores
 def get_scores(

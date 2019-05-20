@@ -1,6 +1,6 @@
 # osu! related enums
 
-from enum import IntEnum, Enum
+from enum import IntEnum
 
 # Mods
 # https://github.com/ppy/osu-api/wiki#mods

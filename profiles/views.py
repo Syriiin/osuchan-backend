@@ -1,17 +1,63 @@
 from django.contrib.auth.models import Group
+from django.http import Http404
 
 from rest_framework import viewsets, permissions, mixins
+from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from profiles.models import UserStats, Score
+from profiles.models import OsuUser, UserStats, Score
 from profiles.serialisers import UserStatsSerialiser, ScoreSerialiser
 
-class UserStatsViewSet(viewsets.ReadOnlyModelViewSet):
+class GetUserStats(APIView):
     """
-    API endpoint that allows userstats to be viewed.
+    API endpoint for getting UserStats
     """
     queryset = UserStats.objects.non_restricted()
-    serializer_class = UserStatsSerialiser
+
+    def get(self, request, user_string, gamemode):
+        """
+        Return UserStats based on a user_string and gamemode
+        """
+        # temp fix for updating users until rewrite of managers
+        try:
+            osu_user = OsuUser.objects.create_or_update(user_string, gamemode)
+        except OsuUser.DoesNotExist:
+            raise Http404
+        user_stats = osu_user.stats.get(gamemode=gamemode)
+
+        # try:
+        #     user_stats = self.queryset.get(gamemode=gamemode, user_id=int(user_string))
+        # except (UserStats.DoesNotExist, ValueError):
+        #     try:
+        #         user_stats = self.queryset.get(gamemode=gamemode, user__username__iexact=user_string)
+        #     except UserStats.DoesNotExist:
+        #         raise Http404
+
+        serialiser = UserStatsSerialiser(user_stats)
+        return Response(serialiser.data)
+
+class GetUserScores(APIView):
+    """
+    API endpoint for getting Scores
+    """
+    queryset = UserStats.objects.non_restricted()
+
+    def get(self, request, user_string, gamemode):
+        """
+        Return UserStats based on a user_string and gamemode
+        """
+        try:
+            user_stats = self.queryset.get(gamemode=gamemode, user_id=int(user_string))
+        except (UserStats.DoesNotExist, ValueError):
+            try:
+                user_stats = self.queryset.get(gamemode=gamemode, user__username__iexact=user_string)
+            except UserStats.DoesNotExist:
+                raise Http404
+            
+        scores = user_stats.scores.order_by("-pp")[:100]
+
+        serialiser = ScoreSerialiser(scores, many=True)
+        return Response(serialiser.data)
 
 class ScoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     """

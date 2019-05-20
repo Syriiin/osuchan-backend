@@ -56,23 +56,43 @@ class UserStats(models.Model):
     # null=True because currently these fields are set after the scores are added (and adding scores requires the model to be saved (chicken and egg :<))
     extra_pp = models.FloatField(null=True)
     nochoke_pp = models.FloatField(null=True)
+    score_style_accuracy = models.FloatField(null=True)
+    score_style_bpm = models.FloatField(null=True)
+    score_style_cs = models.FloatField(null=True)
+    score_style_ar = models.FloatField(null=True)
+    score_style_od = models.FloatField(null=True)
+    score_style_length = models.FloatField(null=True)
 
     # Relations
     user = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="stats")
 
     objects = UserStatsManager()
 
-    def process_pp_totals(self):
+    def process_scores(self):
+        """
+        Calculates pp totals (extra pp, nochoke pp) and scores style
+        """
         # calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - self.calculate_pp_total(score.pp for score in self.scores.order_by("-pp"))
 
         # calculate nochoke pp and mod pp
-        self.nochoke_pp = self.calculate_pp_total(score.nochoke_pp for score in self.scores.order_by("-nochoke_pp")) + self.extra_pp
+        if self.gamemode == Gamemode.STANDARD:
+            self.nochoke_pp = self.calculate_pp_total(score.nochoke_pp for score in self.scores.order_by("-nochoke_pp")) + self.extra_pp
+        
         # TODO: modpp
+
+        # score style
+        top_100_scores = self.scores.order_by("-pp")[:100]  # score style limited to top 100 scores
+        weighting_value = sum(0.95 ** i for i in range(100))
+        self.score_style_accuracy = sum(score.accuracy * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+        self.score_style_bpm = sum(score.bpm * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+        self.score_style_length = sum(score.length * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+        self.score_style_cs = sum(score.circle_size * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+        self.score_style_ar = sum(score.approach_rate * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+        self.score_style_od = sum(score.overall_difficulty * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
 
     def calculate_pp_total(self, sorted_pps):
         # sorted_pps should be a sorted generator but can be any iterable of floats
-        print(len(list(sorted_pps)))
         return sum(pp * (0.95 ** i) for i, pp in enumerate(sorted_pps))
 
     def __str__(self):
@@ -149,9 +169,18 @@ class Score(models.Model):
     beatmap = models.ForeignKey(Beatmap, on_delete=models.CASCADE, related_name="scores")
     user_stats = models.ForeignKey(UserStats, on_delete=models.CASCADE, related_name="scores")
 
+    # Convenience fields (derived from above fields)
+    accuracy = models.FloatField()
+    bpm = models.FloatField()
+    length = models.FloatField()
+    circle_size = models.FloatField()
+    approach_rate = models.FloatField()
+    overall_difficulty = models.FloatField()
+
     # osu!chan calculated data
-    # null=True because currently only osu standard supports nochoke (since oppai only does)
+    # null=True because currently only osu standard supports nochoke/stars (since oppai only does)
     nochoke_pp = models.FloatField(null=True)
+    star_rating = models.FloatField(null=True)
     result = models.IntegerField(null=True)
 
     objects = ScoreManager()
@@ -185,6 +214,7 @@ class Score(models.Model):
                 calc.set_mods(self.mods)
                 calc.calculate()
                 self.nochoke_pp = calc.pp
+                self.star_rating = calc.stars
         super().save(*args, **kwargs)
 
     def __str__(self):

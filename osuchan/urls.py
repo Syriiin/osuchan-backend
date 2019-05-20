@@ -20,7 +20,7 @@ from django.http.response import HttpResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("profiles/", include("profiles.urls")),
+    path("api/profiles/", include("profiles.urls")),
     path("osuauth/", include("osuauth.urls")),
     re_path(r"^.*", lambda r: HttpResponse("React app to be served here"))
 ]

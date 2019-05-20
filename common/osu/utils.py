@@ -1,16 +1,16 @@
 # osu! related utils
 
-from common.osu.enums import Mode. Mod
+from common.osu.enums import Gamemode, Mod
 
-def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, count_geki=None, mode=Mode.STANDARD):
+def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, count_geki=None, mode=Gamemode.STANDARD):
     #---------------Acc calculations
     # Accuracy = (Total points of hits / (Total number of hits * 300) * 100)
     # Total points of hits = (Number of 50s * 50 + Number of 100s * 100 + Number of 300s * 300)
     # Total number of hits = (Number of misses + Number of 50's + Number of 100's + Number of 300's)
 
-    mode = Mode(mode)
+    mode = Gamemode(mode)
 
-    if mode == Mode.STANDARD:
+    if mode == Gamemode.STANDARD:
         #standard acc
         no_300 = int(count_300)
         no_100 = int(count_100)
@@ -22,7 +22,7 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 
         accuracy = (points / (total_hits * 300)) * 100
 
-    elif mode == Mode.TAIKO:
+    elif mode == Gamemode.TAIKO:
         #taiko acc
         no_300 = int(count_300)
         no_100 = int(count_100)
@@ -33,7 +33,7 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 
         accuracy = (points / (total_hits * 300)) * 100
 
-    elif mode == Mode.CATCH:
+    elif mode == Gamemode.CATCH:
         #ctb acc
         no_300 = int(count_300)
         no_100 = int(count_100)
@@ -46,7 +46,7 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 
         accuracy = (caught / total_hits) * 100
 
-    elif mode == Mode.MANIA:
+    elif mode == Gamemode.MANIA:
         #mania acc
         no_MAX = int(count_geki)
         no_300 = int(count_300)
@@ -65,9 +65,9 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 def get_bpm(bpm, mods):
     bpm = float(bpm)
     mods = int(mods)
-    if mods & Mod.DT:
+    if mods & Mod.DOUBLETIME:
         return bpm * 1.5
-    elif mods & Mod.HT:
+    elif mods & Mod.HALFTIME:
         return bpm * (3/4)
     else:
         return bpm
@@ -75,9 +75,9 @@ def get_bpm(bpm, mods):
 def get_length(length, mods):
     length = float(length)
     mods = int(mods)
-    if mods & Mod.DT:
+    if mods & Mod.DOUBLETIME:
         return length / 1.5
-    elif mods & Mod.HT:
+    elif mods & Mod.HALFTIME:
         return length / (3 / 4)
     else:
         return length
@@ -86,9 +86,9 @@ def get_cs(cs, mods):
     cs = float(cs)
     mods = int(mods)
     
-    if mods & Mod.HR:
+    if mods & Mod.HARDROCK:
         cs *= 1.3
-    if mods & Mod.EZ:
+    if mods & Mod.EASY:
         cs *= 0.5
 
     return cs
@@ -113,18 +113,18 @@ def get_ar(ar, mods):
     ar = float(ar)
     mods = int(mods)
 
-    if mods & Mod.HR:
+    if mods & Mod.HARDROCK:
         ar *= 1.4
-    if mods & Mod.EZ:
+    if mods & Mod.EASY:
         ar *= 0.5
 
     if ar > 10:
         ar = 10
 
-    if mods & Mod.DT:
+    if mods & Mod.DOUBLETIME:
         ms = ar_to_ms(ar) / 1.5
         ar = ms_to_ar(ms)
-    if mods & Mod.HT:
+    if mods & Mod.HALFTIME:
         ms = ar_to_ms(ar) / (3 / 4)
         ar = ms_to_ar(ms)
 
@@ -144,18 +144,18 @@ def get_od(od, mods):
     od = float(od)
     mods = int(mods)
 
-    if mods & Mod.HR:
+    if mods & Mod.HARDROCK:
         od *= 1.4
-    elif mods & Mod.EZ:
+    elif mods & Mod.EASY:
         od *= 0.5
 
     if od > 10:
         od = 10
     
-    if mods & Mod.DT:
+    if mods & Mod.DOUBLETIME:
         ms = od_to_ms(od) / 1.5
         od = ms_to_od(ms)
-    if mods & Mod.HT:
+    if mods & Mod.HALFTIME:
         ms = od_to_ms(od) / (3 / 4)
         od = ms_to_od(ms)
 

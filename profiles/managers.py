@@ -4,27 +4,32 @@ from django.apps import apps
 from datetime import datetime
 import pytz
 
-from common.osu import apiv1
+from common.osu import apiv1, utils
 from common.osu.enums import BeatmapStatus
 
 class OsuUserManager(models.Manager):
     def non_restricted(self):
         return self.get_queryset().filter(disabled=False)
 
-    def create_or_update(self, user_id, gamemode):
+    def create_or_update(self, user_string, gamemode):
         # fetch user data
-        data = apiv1.get_user(user_id, gamemode)
+        data = apiv1.get_user(user_string, user_id_type="string", gamemode=gamemode)
+        if not data:
+            data = apiv1.get_user(user_string, user_id_type="id", gamemode=gamemode)
+
+        if not data:
+            return None  # TODO: replace these type of "return None"s with exception raising
 
         # get or create OsuUser model
         try:
-            osu_user = self.model.objects.get(id=user_id)
+            osu_user = self.model.objects.get(id=data["user_id"])
             if not data:
                 # user restricted probably
                 osu_user.disabled = True
                 osu_user.save()
                 return None
         except self.model.DoesNotExist:
-            osu_user = self.model(id=user_id)
+            osu_user = self.model(id=data["user_id"])
 
         # update fields
         osu_user.username = data["username"]
@@ -84,7 +89,7 @@ class UserStatsManager(models.Manager):
         user_stats.scores.add(*scores, bulk=True)
 
         # kinda annoying and inefficient that we need to resave the model once we get to this point but we need to unless we want to remove the db constrain on scores requiring a user_stats since insertion
-        user_stats.process_pp_totals()
+        user_stats.process_scores()
         user_stats.save()
 
         return user_stats
@@ -150,11 +155,11 @@ class ScoreManager(models.Manager):
         beatmap_model = apps.get_model("profiles.Beatmap")
         
         for score_data in score_data_list:
-            beatmap_id = beatmap_id or int(score_data["beatmap_id"])
+            score_beatmap_id = beatmap_id or int(score_data["beatmap_id"])
             # get or create Score model
             try:
                 # TODO: check if this foreign key lookup for user_id has a large impact (probably doesnt because of indexes)
-                score = self.model.objects.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=beatmap_id, mods=int(score_data["enabled_mods"]))
+                score = self.model.objects.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=score_beatmap_id, mods=int(score_data["enabled_mods"]))
             except self.model.DoesNotExist:
                 score = self.model()
             
@@ -174,9 +179,17 @@ class ScoreManager(models.Manager):
             score.date = datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
 
             # foreign keys
-            beatmap = beatmap_model.objects.create_or_update(beatmap_id)
+            beatmap = beatmap_model.objects.create_or_update(score_beatmap_id)
             score.beatmap = beatmap
             score.user_stats_id = user_stats_id
+            
+            # convenience fields
+            score.accuracy = utils.get_accuracy(score.count_300, score.count_100, score.count_50, score.count_miss, score.count_katu, score.count_geki)
+            score.bpm = utils.get_bpm(beatmap.bpm, score.mods)
+            score.length = utils.get_length(beatmap.drain_time, score.mods)
+            score.circle_size = utils.get_cs(beatmap.circle_size, score.mods)
+            score.approach_rate = utils.get_ar(beatmap.approach_rate, score.mods)
+            score.overall_difficulty = utils.get_od(beatmap.overall_difficulty, score.mods)
 
             # not using bulk queries because they dont call .save() and we need that for oppai calcs
             score.save()
