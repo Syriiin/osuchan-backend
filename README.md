@@ -17,12 +17,14 @@
     $ pip install -r requirements.txt
     ```
 3. Setup new PostgreSQL database
-4. Make a copy of `local_settings.template.py` named `local_settings.py` and modify contents for sensitive/environment-specific info (and ensure it isn't being committed)
-5. Run migrations
+4. Add a custom domain to your hosts file that resolves to localhost
+5. Create an [osu apiv2 oauth client](https://github.com/int-and-his-friends/osu-api-v2/wiki/Oauth-clients) for your development environment with the redirect uri as `<custom host>/osuauth/callback` where `<custom host>` is the host you defined in the previous step
+6. Make a copy of `local_settings.template.py` named `local_settings.py` and modify contents for sensitive/environment-specific info (and ensure it isn't being committed)
+7. Run migrations
     ```
     $ python manage.py migrate
     ```
-6. Start development server
+8. Start development server
     ```
     $ python manage.py runserver
     ```
