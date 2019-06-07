@@ -31,7 +31,7 @@ class OsuBackend:
         data = response.json()
 
         # create/update osu user object
-        osu_user = OsuUser.objects.create_or_update(user_id=data["id"], gamemode=Gamemode.STANDARD)
+        osu_user = OsuUser.objects.create_or_update(user_string=data["id"], gamemode=Gamemode.STANDARD)
 
         # create/find (auth) user, update and return
         try:
