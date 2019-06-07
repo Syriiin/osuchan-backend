@@ -53,36 +53,40 @@ class UserStats(models.Model):
     count_rank_a = models.IntegerField()
 
     # osu!chan calculated data
-    # null=True because currently these fields are set after the scores are added (and adding scores requires the model to be saved (chicken and egg :<))
-    extra_pp = models.FloatField(null=True)
-    nochoke_pp = models.FloatField(null=True)
-    score_style_accuracy = models.FloatField(null=True)
-    score_style_bpm = models.FloatField(null=True)
-    score_style_cs = models.FloatField(null=True)
-    score_style_ar = models.FloatField(null=True)
-    score_style_od = models.FloatField(null=True)
-    score_style_length = models.FloatField(null=True)
+    extra_pp = models.FloatField()
+    nochoke_pp = models.FloatField(null=True)   # null=True because at the moment only standard supports nochoke
+    score_style_accuracy = models.FloatField()
+    score_style_bpm = models.FloatField()
+    score_style_cs = models.FloatField()
+    score_style_ar = models.FloatField()
+    score_style_od = models.FloatField()
+    score_style_length = models.FloatField()
 
     # Relations
     user = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="stats")
 
     objects = UserStatsManager()
 
-    def process_scores(self):
+    def process_and_add_scores(self, new_scores=[]):
         """
-        Calculates pp totals (extra pp, nochoke pp) and scores style
+        Calculates pp totals (extra pp, nochoke pp), scores style, adds new scores, and saves the model
         """
+        
+        # need to get list of scores except the ones we already have (pk will only be set if we originally fetched this model rather than creating it)
+        scores = new_scores + list(self.scores.exclude(pk__in=[score.pk for score in new_scores if score.pk]))
+        scores.sort(key=lambda s: s.pp, reverse=True)
+
         # calculate bonus pp (+ pp from non-top100 scores)
-        self.extra_pp = self.pp - self.calculate_pp_total(score.pp for score in self.scores.order_by("-pp"))
+        self.extra_pp = self.pp - self.calculate_pp_total(score.pp for score in scores[:100])
 
         # calculate nochoke pp and mod pp
         if self.gamemode == Gamemode.STANDARD:
-            self.nochoke_pp = self.calculate_pp_total(score.nochoke_pp for score in self.scores.order_by("-nochoke_pp")) + self.extra_pp
+            self.nochoke_pp = self.calculate_pp_total(score.nochoke_pp for score in sorted(scores, key=lambda s: s.nochoke_pp, reverse=True)) + self.extra_pp
         
         # TODO: modpp
 
         # score style
-        top_100_scores = self.scores.order_by("-pp")[:100]  # score style limited to top 100 scores
+        top_100_scores = scores[:100]  # score style limited to top 100 scores
         weighting_value = sum(0.95 ** i for i in range(100))
         self.score_style_accuracy = sum(score.accuracy * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
         self.score_style_bpm = sum(score.bpm * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
@@ -90,6 +94,9 @@ class UserStats(models.Model):
         self.score_style_cs = sum(score.circle_size * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
         self.score_style_ar = sum(score.approach_rate * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
         self.score_style_od = sum(score.overall_difficulty * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+        
+        self.save()
+        self.scores.add(*scores, bulk=False)
 
     def calculate_pp_total(self, sorted_pps):
         # sorted_pps should be a sorted generator but can be any iterable of floats
@@ -137,6 +144,7 @@ class Beatmap(models.Model):
     
     # Relations
     # db_constraint=False because the creator might be restricted or otherwise not in the database
+    # not using nullable, because we still want to have the creator_id field
     creator = models.ForeignKey(OsuUser, on_delete=models.DO_NOTHING, db_constraint=False, related_name="beatmaps")
 
     objects = BeatmapManager()
@@ -185,7 +193,7 @@ class Score(models.Model):
 
     objects = ScoreManager()
 
-    def process_score_result(self):
+    def __process_score_result(self):
         if self.count_miss == 1:
             self.result = ScoreResult.ONEMISS
             return
@@ -203,11 +211,11 @@ class Score(models.Model):
         else:
             self.result = ScoreResult.CLEAR
 
-    def save(self, *args, **kwargs):
-        # calculate nochoke pp before saving score
+    def process(self):
+        # calculate nochoke pp and result before saving score
         if self.beatmap.gamemode == Gamemode.STANDARD:
             # determine score result
-            self.process_score_result()
+            self.__process_score_result()
             # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
             with oppaipy.Calculator(utils.get_beatmap_path(self.beatmap_id)) as calc:
                 calc.set_accuracy(count_100=self.count_100, count_50=self.count_50)
@@ -215,7 +223,6 @@ class Score(models.Model):
                 calc.calculate()
                 self.nochoke_pp = calc.pp
                 self.star_rating = calc.stars
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return "{}: {:.0f}pp".format(self.beatmap_id, self.pp)

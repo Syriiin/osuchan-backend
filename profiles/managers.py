@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.apps import apps
 
 from datetime import datetime
@@ -11,6 +11,7 @@ class OsuUserManager(models.Manager):
     def non_restricted(self):
         return self.get_queryset().filter(disabled=False)
 
+    @transaction.atomic
     def create_or_update(self, user_string, gamemode):
         # fetch user data
         data = apiv1.get_user(user_string, user_id_type="string", gamemode=gamemode)
@@ -52,6 +53,7 @@ class UserStatsManager(models.Manager):
     def non_restricted(self):
         return self.get_queryset().filter(user__disabled=False)
 
+    @transaction.atomic
     def create_or_update_from_data(self, user_data, gamemode):
         # add user_data from passed deserialised osu! api response dict
         # gamemode required as parameter because osu! api doesn't return the mode you queried for
@@ -81,20 +83,17 @@ class UserStatsManager(models.Manager):
         user_stats.count_rank_sh = int(user_data["count_rank_sh"])
         user_stats.count_rank_a = int(user_data["count_rank_a"])
 
-        user_stats.save()
-
         # need to get model via apps to avoid circular import
         score_model = apps.get_model("profiles.Score")
         scores = score_model.objects.create_or_update_from_data(apiv1.get_user_best(user_stats.user_id, gamemode=gamemode, limit=100), user_stats.id)
-        user_stats.scores.add(*scores, bulk=True)
-
-        # kinda annoying and inefficient that we need to resave the model once we get to this point but we need to unless we want to remove the db constrain on scores requiring a user_stats since insertion
-        user_stats.process_scores()
-        user_stats.save()
+        
+        # calculate osuchan data, add scores, and save
+        user_stats.process_and_add_scores(scores)
 
         return user_stats
 
 class BeatmapManager(models.Manager):
+    @transaction.atomic
     def create_or_update(self, beatmap_id):
         # get or create Beatmap model
         try:
@@ -136,6 +135,7 @@ class ScoreManager(models.Manager):
     def non_restricted(self):
         return self.get_queryset().filter(user_stats__user__disabled=False)
 
+    @transaction.atomic
     def create_or_update(self, beatmap_id, user_id, gamemode):
         # fetch scores for player on a beatmap
         user_stats_model = apps.get_model("profiles.UserStats")
@@ -144,9 +144,10 @@ class ScoreManager(models.Manager):
         data = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode)
         scores = self.create_or_update_from_data(data, user_stats.id, beatmap_id=beatmap_id)
 
-        user_stats.scores.add(*scores, bulk=True)
+        user_stats.process_and_add_scores(*scores)
         return scores
 
+    @transaction.atomic
     def create_or_update_from_data(self, score_data_list, user_stats_id, beatmap_id=None):
         # add list of scores from passed deserialised osu! api response (dicts)
         scores = []
@@ -192,7 +193,7 @@ class ScoreManager(models.Manager):
             score.overall_difficulty = utils.get_od(beatmap.overall_difficulty, score.mods)
 
             # not using bulk queries because they dont call .save() and we need that for oppai calcs
-            score.save()
+            score.process()
             scores.append(score)
 
         return scores
