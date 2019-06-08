@@ -7,10 +7,7 @@ import pytz
 from common.osu import apiv1, utils
 from common.osu.enums import BeatmapStatus
 
-class OsuUserManager(models.Manager):
-    def non_restricted(self):
-        return self.get_queryset().filter(disabled=False)
-
+class BaseOsuUserManager(models.Manager):
     @transaction.atomic
     def create_or_update(self, user_string, gamemode):
         # fetch user data
@@ -49,10 +46,13 @@ class OsuUserManager(models.Manager):
 
         return osu_user
 
-class UserStatsManager(models.Manager):
+class OsuUserQuerySet(models.QuerySet):
     def non_restricted(self):
-        return self.get_queryset().filter(user__disabled=False)
+        return self.filter(disabled=False)
 
+OsuUserManager = BaseOsuUserManager.from_queryset(OsuUserQuerySet)
+
+class BaseUserStatsManager(models.Manager):
     @transaction.atomic
     def create_or_update_from_data(self, user_data, gamemode):
         # add user_data from passed deserialised osu! api response dict
@@ -88,9 +88,15 @@ class UserStatsManager(models.Manager):
         scores = score_model.objects.create_or_update_from_data(apiv1.get_user_best(user_stats.user_id, gamemode=gamemode, limit=100), user_stats.id)
         
         # calculate osuchan data, add scores, and save
-        user_stats.process_and_add_scores(scores)
+        user_stats.process_and_add_scores(*scores)
 
         return user_stats
+
+class UserStatsQuerySet(models.QuerySet):
+    def non_restricted(self):
+        return self.filter(user__disabled=False)
+
+UserStatsManager = BaseUserStatsManager.from_queryset(UserStatsQuerySet)
 
 class BeatmapManager(models.Manager):
     @transaction.atomic
@@ -131,10 +137,7 @@ class BeatmapManager(models.Manager):
         beatmap.save()
         return beatmap
 
-class ScoreManager(models.Manager):
-    def non_restricted(self):
-        return self.get_queryset().filter(user_stats__user__disabled=False)
-
+class BaseScoreManager(models.Manager):
     @transaction.atomic
     def create_or_update(self, beatmap_id, user_id, gamemode):
         # fetch scores for player on a beatmap
@@ -197,3 +200,22 @@ class ScoreManager(models.Manager):
             scores.append(score)
 
         return scores
+
+class ScoreQuerySet(models.QuerySet):
+    def non_restricted(self):
+        return self.filter(user_stats__user__disabled=False)
+
+    def unique_maps(self):
+        """
+        Queryset that returns distinct on beatmap_id prioritising highest pp.
+        Remember to use at end of query to not unintentially filter out scores before primary filtering.
+        """
+        # I do not like this query, but i cannot for the life of me figure out how to get django to SELECT FROM (...subquery...)
+        # It seems after testing, the raw sql of these two queries (current one vs select from subquery), they were generally the same speed (on a tiny dataset)
+        # I simply want to `return self.order_by("beatmap_id", "-pp").distinct("beatmap_id").order_by("-pp")`, but this doesnt translate to a subquery
+        # TODO: figure this out
+        return self.filter(
+            id__in=models.Subquery(self.all().order_by("beatmap_id", "-pp").distinct("beatmap_id").values("id"))
+        ).order_by("-pp")
+
+ScoreManager = BaseScoreManager.from_queryset(ScoreQuerySet)

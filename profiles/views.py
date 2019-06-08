@@ -54,7 +54,7 @@ class GetUserScores(APIView):
             except UserStats.DoesNotExist:
                 raise Http404
             
-        scores = user_stats.scores.order_by("-pp")[:100]
+        scores = user_stats.scores.unique_maps()[:100]
 
         serialiser = ScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
