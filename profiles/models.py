@@ -67,14 +67,16 @@ class UserStats(models.Model):
 
     objects = UserStatsManager()
 
-    def process_and_add_scores(self, new_scores=[]):
+    def process_and_add_scores(self, *new_scores):
         """
         Calculates pp totals (extra pp, nochoke pp), scores style, adds new scores, and saves the model
         """
         
-        # need to get list of scores except the ones we already have (pk will only be set if we originally fetched this model rather than creating it)
-        scores = new_scores + list(self.scores.exclude(pk__in=[score.pk for score in new_scores if score.pk]))
+        # need to get list of unique map scores except the ones we already have (pk will only be set if we originally fetched this model rather than creating it)
+        scores = [*new_scores, *self.scores.exclude(pk__in=[score.pk for score in new_scores if score.pk])]
         scores.sort(key=lambda s: s.pp, reverse=True)
+        # need to filter to be unique on maps (cant use .unique_maps() because duplicate maps might come from new scores)
+        scores = [score for score in scores if score == next(s for s in scores if s.beatmap_id == score.beatmap_id)]
 
         # calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - self.calculate_pp_total(score.pp for score in scores[:100])
@@ -96,7 +98,7 @@ class UserStats(models.Model):
         self.score_style_od = sum(score.overall_difficulty * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
         
         self.save()
-        self.scores.add(*scores, bulk=False)
+        self.scores.add(*new_scores, bulk=False)
 
     def calculate_pp_total(self, sorted_pps):
         # sorted_pps should be a sorted generator but can be any iterable of floats
