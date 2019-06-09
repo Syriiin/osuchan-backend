@@ -164,6 +164,10 @@ class BaseScoreManager(models.Manager):
             try:
                 # TODO: check if this foreign key lookup for user_id has a large impact (probably doesnt because of indexes)
                 score = self.model.objects.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=score_beatmap_id, mods=int(score_data["enabled_mods"]))
+                # check if we actually need to update this score
+                if score.date == datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC):
+                    scores.append(score)
+                    continue
             except self.model.DoesNotExist:
                 score = self.model()
             
