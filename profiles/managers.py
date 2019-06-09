@@ -20,7 +20,7 @@ class BaseOsuUserManager(models.Manager):
 
         # get or create OsuUser model
         try:
-            osu_user = self.get(id=data["user_id"])
+            osu_user = self.select_for_update().get(id=data["user_id"])
             if not data:
                 # user restricted probably
                 osu_user.disabled = True
@@ -60,7 +60,7 @@ class BaseUserStatsManager(models.Manager):
         # gamemode required as parameter because osu! api doesn't return the mode you queried for
         # get or create UserStats model
         try:
-            user_stats = self.get(user_id=user_data["user_id"], gamemode=gamemode)
+            user_stats = self.select_for_update().get(user_id=user_data["user_id"], gamemode=gamemode)
         except self.model.DoesNotExist:
             user_stats = self.model(user_id=user_data["user_id"])
             user_stats.gamemode = gamemode
@@ -105,7 +105,7 @@ class BeatmapManager(models.Manager):
     def create_or_update(self, beatmap_id):
         # get or create Beatmap model
         try:
-            beatmap = self.get(id=beatmap_id)
+            beatmap = self.select_for_update().get(id=beatmap_id)
         except self.model.DoesNotExist:
             beatmap = self.model(id=beatmap_id)
         
@@ -144,7 +144,7 @@ class BaseScoreManager(models.Manager):
     def create_or_update(self, beatmap_id, user_id, gamemode):
         # fetch scores for player on a beatmap
         user_stats_model = apps.get_model("profiles.UserStats")
-        user_stats = user_stats_model.objects.non_restricted().get(user__id=user_id, gamemode=gamemode)
+        user_stats = user_stats_model.objects.select_for_update().get(user__id=user_id, gamemode=gamemode)
         
         data = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode)
         scores = self.create_or_update_from_data(data, user_stats.id, beatmap_id=beatmap_id)
@@ -165,7 +165,7 @@ class BaseScoreManager(models.Manager):
             # get or create Score model
             try:
                 # TODO: check if this foreign key lookup for user_id has a large impact (probably doesnt because of indexes)
-                score = self.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=score_beatmap_id, mods=int(score_data["enabled_mods"]))
+                score = self.select_for_update().get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=score_beatmap_id, mods=int(score_data["enabled_mods"]))
                 # check if we actually need to update this score
                 if score.date == datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC):
                     scores.append(score)
