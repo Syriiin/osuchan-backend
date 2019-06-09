@@ -20,7 +20,7 @@ class BaseOsuUserManager(models.Manager):
 
         # get or create OsuUser model
         try:
-            osu_user = self.model.objects.get(id=data["user_id"])
+            osu_user = self.get(id=data["user_id"])
             if not data:
                 # user restricted probably
                 osu_user.disabled = True
@@ -50,7 +50,8 @@ class OsuUserQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(disabled=False)
 
-OsuUserManager = BaseOsuUserManager.from_queryset(OsuUserQuerySet)
+class OsuUserManager(BaseOsuUserManager.from_queryset(OsuUserQuerySet)):
+    pass
 
 class BaseUserStatsManager(models.Manager):
     @transaction.atomic
@@ -59,7 +60,7 @@ class BaseUserStatsManager(models.Manager):
         # gamemode required as parameter because osu! api doesn't return the mode you queried for
         # get or create UserStats model
         try:
-            user_stats = self.model.objects.get(user_id=user_data["user_id"], gamemode=gamemode)
+            user_stats = self.get(user_id=user_data["user_id"], gamemode=gamemode)
         except self.model.DoesNotExist:
             user_stats = self.model(user_id=user_data["user_id"])
             user_stats.gamemode = gamemode
@@ -96,14 +97,15 @@ class UserStatsQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user__disabled=False)
 
-UserStatsManager = BaseUserStatsManager.from_queryset(UserStatsQuerySet)
+class UserStatsManager(BaseUserStatsManager.from_queryset(UserStatsQuerySet)):
+    pass
 
 class BeatmapManager(models.Manager):
     @transaction.atomic
     def create_or_update(self, beatmap_id):
         # get or create Beatmap model
         try:
-            beatmap = self.model.objects.get(id=beatmap_id)
+            beatmap = self.get(id=beatmap_id)
         except self.model.DoesNotExist:
             beatmap = self.model(id=beatmap_id)
         
@@ -163,7 +165,7 @@ class BaseScoreManager(models.Manager):
             # get or create Score model
             try:
                 # TODO: check if this foreign key lookup for user_id has a large impact (probably doesnt because of indexes)
-                score = self.model.objects.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=score_beatmap_id, mods=int(score_data["enabled_mods"]))
+                score = self.get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=score_beatmap_id, mods=int(score_data["enabled_mods"]))
                 # check if we actually need to update this score
                 if score.date == datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC):
                     scores.append(score)
@@ -222,4 +224,5 @@ class ScoreQuerySet(models.QuerySet):
             id__in=models.Subquery(self.all().order_by("beatmap_id", "-pp").distinct("beatmap_id").values("id"))
         ).order_by("-pp")
 
-ScoreManager = BaseScoreManager.from_queryset(ScoreQuerySet)
+class ScoreManager(BaseScoreManager.from_queryset(ScoreQuerySet)):
+    pass
