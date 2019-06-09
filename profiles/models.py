@@ -83,7 +83,7 @@ class UserStats(models.Model):
 
         # calculate nochoke pp and mod pp
         if self.gamemode == Gamemode.STANDARD:
-            self.nochoke_pp = self.calculate_pp_total(score.nochoke_pp for score in sorted(scores, key=lambda s: s.nochoke_pp, reverse=True)) + self.extra_pp
+            self.nochoke_pp = self.calculate_pp_total(sorted((score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp for score in scores), reverse=True)) + self.extra_pp
         
         # TODO: modpp
 
