@@ -4,7 +4,7 @@ import requests
 
 from common.osu.enums import Gamemode
 from osuauth.models import User
-from profiles.models import OsuUser
+from profiles.models import UserStats
 
 class OsuBackend:
     """
@@ -31,7 +31,8 @@ class OsuBackend:
         data = response.json()
 
         # create/update osu user object
-        osu_user = OsuUser.objects.create_or_update(user_string=data["id"], gamemode=Gamemode.STANDARD)
+        user_stats = UserStats.objects.create_or_update(user_string=data["id"], gamemode=Gamemode.STANDARD)
+        osu_user = user_stats.user
 
         # create/find (auth) user, update and return
         try:

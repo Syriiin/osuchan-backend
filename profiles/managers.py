@@ -9,41 +9,21 @@ from common.osu.enums import BeatmapStatus
 
 class BaseOsuUserManager(models.Manager):
     @transaction.atomic
-    def create_or_update(self, user_string, gamemode):
-        # fetch user data
-        data = apiv1.get_user(user_string, user_id_type="string", gamemode=gamemode)
-        if not data:
-            data = apiv1.get_user(user_string, user_id_type="id", gamemode=gamemode)
-
-        if not data:
-            return None  # TODO: replace these type of "return None"s with exception raising
-
+    def create_or_update_from_data(self, user_data):
         # get or create OsuUser model
         try:
-            osu_user = self.select_for_update().get(id=data["user_id"])
-            if not data:
-                # user restricted probably
-                osu_user.disabled = True
-                osu_user.save()
-                return None
+            osu_user = self.select_for_update().get(id=user_data["user_id"])
         except self.model.DoesNotExist:
-            osu_user = self.model(id=data["user_id"])
+            osu_user = self.model(id=user_data["user_id"])
 
         # update fields
-        osu_user.username = data["username"]
-        osu_user.country = data["country"]
-        osu_user.join_date = datetime.strptime(data["join_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
+        osu_user.username = user_data["username"]
+        osu_user.country = user_data["country"]
+        osu_user.join_date = datetime.strptime(user_data["join_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
         osu_user.disabled = False
 
         # save and return OsuUser model
         osu_user.save()
-
-        # need to get model via apps to avoid circular import
-        user_stats_model = apps.get_model("profiles.UserStats")
-        user_stats = user_stats_model.objects.create_or_update_from_data(data, gamemode)
-        # osu_user is saved before stats so it can be referenced as a foreign key
-        osu_user.stats.add(user_stats, bulk=True)
-
         return osu_user
 
 class OsuUserQuerySet(models.QuerySet):
@@ -55,9 +35,21 @@ class OsuUserManager(BaseOsuUserManager.from_queryset(OsuUserQuerySet)):
 
 class BaseUserStatsManager(models.Manager):
     @transaction.atomic
-    def create_or_update_from_data(self, user_data, gamemode):
-        # add user_data from passed deserialised osu! api response dict
-        # gamemode required as parameter because osu! api doesn't return the mode you queried for
+    def create_or_update(self, user_string, gamemode):
+        # fetch user data
+        user_data = apiv1.get_user(user_string, user_id_type="string", gamemode=gamemode)
+        if not user_data:
+            user_data = apiv1.get_user(user_string, user_id_type="id", gamemode=gamemode)
+
+        if not user_data:
+            # user either doesnt exist, or is restricted
+            # TODO: somehow determine if user was restricted and set their OsuUser to disabled
+            return None  # TODO: replace these type of "return None"s with exception raising
+
+        # need to get model via apps to avoid circular import
+        osu_user_model = apps.get_model("profiles.OsuUser")
+        osu_user = osu_user_model.objects.create_or_update_from_data(user_data)
+
         # get or create UserStats model
         try:
             user_stats = self.select_for_update().get(user_id=user_data["user_id"], gamemode=gamemode)

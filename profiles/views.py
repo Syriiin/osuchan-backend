@@ -5,7 +5,7 @@ from rest_framework import viewsets, permissions, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from profiles.models import OsuUser, UserStats, Score
+from profiles.models import UserStats, Score
 from profiles.serialisers import UserStatsSerialiser, ScoreSerialiser
 
 class GetUserStats(APIView):
@@ -20,10 +20,9 @@ class GetUserStats(APIView):
         """
         # temp fix for updating users until rewrite of managers
         try:
-            osu_user = OsuUser.objects.create_or_update(user_string, gamemode)
-        except OsuUser.DoesNotExist:
+            user_stats = UserStats.objects.create_or_update(user_string, gamemode)
+        except UserStats.DoesNotExist:
             raise Http404
-        user_stats = osu_user.stats.get(gamemode=gamemode)
 
         # try:
         #     user_stats = self.queryset.get(gamemode=gamemode, user_id=int(user_string))
