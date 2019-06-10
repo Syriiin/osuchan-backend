@@ -49,7 +49,7 @@ class ListUserScores(APIView):
         if user_id and gamemode:
             scores = self.queryset.filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).unique_maps()[:100]
         else:
-            scores = self.queryset[:100]
+            scores = self.queryset.unique_maps()[:100]
 
         serialiser = ScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
