@@ -1,11 +1,12 @@
 from django.db import models, transaction
+from django.db.models import Subquery
 from django.apps import apps
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 from common.osu import apiv1, utils
-from common.osu.enums import BeatmapStatus
+from common.osu.enums import BeatmapStatus, Gamemode
 
 class BaseOsuUserManager(models.Manager):
     @transaction.atomic
@@ -35,11 +36,26 @@ class OsuUserManager(BaseOsuUserManager.from_queryset(OsuUserQuerySet)):
 
 class BaseUserStatsManager(models.Manager):
     @transaction.atomic
-    def create_or_update(self, user_string, gamemode):
+    def create_or_update(self, user_id=None, username=None, gamemode=Gamemode.STANDARD):
+        # get or create UserStats model
+        if user_id:
+            user_stats = self.select_for_update().get(user_id=user_id, gamemode=gamemode)
+        elif username:
+            user_stats = self.select_for_update().get(user__username__iexact=username, gamemode=gamemode)
+        else:
+            raise ValueError("Must pass either username or user_id")
+        
+        if not user_stats:
+            user_stats = self.model(user_id=user_data["user_id"])
+            user_stats.gamemode = gamemode
+        elif user_stats.last_updated > (datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)):
+            # user stats updated less than 5 minutes ago, so we wont update it again yet
+            return user_stats
+
         # fetch user data
-        user_data = apiv1.get_user(user_string, user_id_type="string", gamemode=gamemode)
+        user_data = apiv1.get_user(user_stats.user_id, user_id_type="string", gamemode=gamemode)
         if not user_data:
-            user_data = apiv1.get_user(user_string, user_id_type="id", gamemode=gamemode)
+            user_data = apiv1.get_user(user_stats.user_id, user_id_type="id", gamemode=gamemode)
 
         if not user_data:
             # user either doesnt exist, or is restricted
@@ -49,13 +65,6 @@ class BaseUserStatsManager(models.Manager):
         # need to get model via apps to avoid circular import
         osu_user_model = apps.get_model("profiles.OsuUser")
         osu_user = osu_user_model.objects.create_or_update_from_data(user_data)
-
-        # get or create UserStats model
-        try:
-            user_stats = self.select_for_update().get(user_id=user_data["user_id"], gamemode=gamemode)
-        except self.model.DoesNotExist:
-            user_stats = self.model(user_id=user_data["user_id"])
-            user_stats.gamemode = gamemode
 
         # update fields
         user_stats.playcount = int(user_data["playcount"])
@@ -213,7 +222,7 @@ class ScoreQuerySet(models.QuerySet):
         # I simply want to `return self.order_by("beatmap_id", "-pp").distinct("beatmap_id").order_by("-pp")`, but this doesnt translate to a subquery
         # TODO: figure this out
         return self.filter(
-            id__in=models.Subquery(self.all().order_by("beatmap_id", "-pp").distinct("beatmap_id").values("id"))
+            id__in=Subquery(self.all().order_by("beatmap_id", "-pp").distinct("beatmap_id").values("id"))
         ).order_by("-pp")
 
 class ScoreManager(BaseScoreManager.from_queryset(ScoreQuerySet)):

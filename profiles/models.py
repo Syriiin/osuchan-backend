@@ -65,6 +65,9 @@ class UserStats(models.Model):
     # Relations
     user = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="stats")
 
+    # Dates
+    last_updated = models.DateTimeField(auto_now=True)
+
     objects = UserStatsManager()
 
     def process_and_add_scores(self, *new_scores):

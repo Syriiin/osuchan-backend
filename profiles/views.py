@@ -18,9 +18,11 @@ class GetUserStats(APIView):
         """
         Return UserStats based on a user_string and gamemode
         """
+        # TODO: support either user_id or username as search value (frontend should send username if search or non-number url, else id)
         # temp fix for updating users until rewrite of managers
         try:
-            user_stats = UserStats.objects.create_or_update(user_string, gamemode)
+            # temp only allow username
+            user_stats = UserStats.objects.create_or_update(username=user_string, gamemode=gamemode)
         except UserStats.DoesNotExist:
             raise Http404
 
