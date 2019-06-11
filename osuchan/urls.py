@@ -15,12 +15,24 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path
+from django.conf import settings
 from django.conf.urls import include
 from django.http.response import HttpResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/profiles/", include("profiles.urls")),
-    path("osuauth/", include("osuauth.urls")),
-    re_path(r"^.*", lambda r: HttpResponse("React app to be served here"))
+    path("osuauth/", include("osuauth.urls"))
 ]
+
+# Enable debug toolbar in debug mode
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns.append(
+        path('__debug__/', include(debug_toolbar.urls))
+    )
+
+# Add catchall for serving react app
+urlpatterns.append(
+    re_path(r"^.*", lambda r: HttpResponse("React app to be served here"))
+)

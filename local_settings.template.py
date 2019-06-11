@@ -19,6 +19,9 @@ DEBUG = True
 # NOTE: must not be empty when DEBUG is False
 ALLOWED_HOSTS = []
 
+# IPs allowed to use debug toolbar
+INTERNAL_IPS = ['127.0.0.1']
+
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases

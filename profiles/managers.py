@@ -37,25 +37,28 @@ class OsuUserManager(BaseOsuUserManager.from_queryset(OsuUserQuerySet)):
 class BaseUserStatsManager(models.Manager):
     @transaction.atomic
     def create_or_update(self, user_id=None, username=None, gamemode=Gamemode.STANDARD):
-        # get or create UserStats model
-        if user_id:
-            user_stats = self.select_for_update().get(user_id=user_id, gamemode=gamemode)
-        elif username:
-            user_stats = self.select_for_update().get(user__username__iexact=username, gamemode=gamemode)
-        else:
+        if not user_id and not username:
             raise ValueError("Must pass either username or user_id")
-        
-        if not user_stats:
-            user_stats = self.model(user_id=user_data["user_id"])
+
+        # get or create UserStats model
+        try:
+            if user_id:
+                user_stats = self.select_for_update().get(user_id=user_id, gamemode=gamemode)
+            else:
+                user_stats = self.select_for_update().get(user__username__iexact=username, gamemode=gamemode)
+            
+            if user_stats.last_updated > (datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)):
+                # user stats updated less than 5 minutes ago, so we wont update it again yet
+                return user_stats
+        except self.model.DoesNotExist:
+            user_stats = self.model()
             user_stats.gamemode = gamemode
-        elif user_stats.last_updated > (datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)):
-            # user stats updated less than 5 minutes ago, so we wont update it again yet
-            return user_stats
 
         # fetch user data
-        user_data = apiv1.get_user(user_stats.user_id, user_id_type="string", gamemode=gamemode)
-        if not user_data:
-            user_data = apiv1.get_user(user_stats.user_id, user_id_type="id", gamemode=gamemode)
+        if user_id:
+            user_data = apiv1.get_user(user_id, user_id_type="id", gamemode=gamemode)
+        else:
+            user_data = apiv1.get_user(username, user_id_type="string", gamemode=gamemode)
 
         if not user_data:
             # user either doesnt exist, or is restricted
@@ -65,6 +68,9 @@ class BaseUserStatsManager(models.Manager):
         # need to get model via apps to avoid circular import
         osu_user_model = apps.get_model("profiles.OsuUser")
         osu_user = osu_user_model.objects.create_or_update_from_data(user_data)
+
+        # set relation
+        user_stats.user_id = int(user_data["user_id"])
 
         # update fields
         user_stats.playcount = int(user_data["playcount"])
@@ -160,18 +166,23 @@ class BaseScoreManager(models.Manager):
 
         # need to get model via apps to avoid circular import
         beatmap_model = apps.get_model("profiles.Beatmap")
+
+        # fetch all scores we need in bulk
+        # kinda inefficient, since we wont need all scores per beatmap (only ones with specific mods, but i dont know how to do that without raw sql)
+        # TODO: maybe optimise this?
+        user_scores = self.select_for_update().filter(user_stats_id=user_stats_id, beatmap_id__in=(beatmap_id or int(s["beatmap_id"]) for s in score_data_list))
         
         for score_data in score_data_list:
             score_beatmap_id = beatmap_id or int(score_data["beatmap_id"])
+            
             # get or create Score model
             try:
-                # TODO: check if this foreign key lookup for user_id has a large impact (probably doesnt because of indexes)
-                score = self.select_for_update().get(user_stats__user_id=int(score_data["user_id"]), beatmap_id=score_beatmap_id, mods=int(score_data["enabled_mods"]))
+                score = next(score for score in user_scores if score.beatmap_id == score_beatmap_id and score.mods == int(score_data["enabled_mods"]))
                 # check if we actually need to update this score
                 if score.date == datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC):
                     scores.append(score)
                     continue
-            except self.model.DoesNotExist:
+            except StopIteration:
                 score = self.model()
             
             # update fields
