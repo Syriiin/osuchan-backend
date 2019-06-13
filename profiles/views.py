@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from profiles.models import UserStats, Score
 from profiles.serialisers import UserStatsSerialiser, ScoreSerialiser
+from profiles.services import fetch_user, fetch_scores
 
 class GetUserStats(APIView):
     """
@@ -22,9 +23,9 @@ class GetUserStats(APIView):
 
         try:
             if user_id_type == "id":
-                user_stats = UserStats.objects.create_or_update(user_id=user_string, gamemode=gamemode)
+                user_stats = fetch_user(user_id=user_string, gamemode=gamemode)
             elif user_id_type == "username":
-                user_stats = UserStats.objects.create_or_update(username=user_string, gamemode=gamemode)
+                user_stats = fetch_user(username=user_string, gamemode=gamemode)
             else:
                 raise Http404
         except UserStats.DoesNotExist:
@@ -37,7 +38,7 @@ class ListUserScores(APIView):
     """
     API endpoint for Scores
     """
-    queryset = Score.objects.non_restricted()
+    queryset = Score.objects.select_related("beatmap").non_restricted()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
@@ -59,6 +60,6 @@ class ListUserScores(APIView):
         Add new Scores based on passes user_id, gamemode, beatmap_id
         """
         data = request.data
-        scores = self.queryset.model.objects.create_or_update(data["beatmap_id"], data["user_id"], data["gamemode"])
+        scores = fetch_scores(data["user_id"], data["beatmap_id"], data["gamemode"])
         serialiser = ScoreSerialiser(scores, many=True)
         return Response(serialiser.data)

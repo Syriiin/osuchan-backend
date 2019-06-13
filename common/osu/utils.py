@@ -2,6 +2,10 @@
 
 from common.osu.enums import Gamemode, Mod
 
+def calculate_pp_total(sorted_pps):
+    # sorted_pps should be a sorted generator but can be any iterable of floats
+    return sum(pp * (0.95 ** i) for i, pp in enumerate(sorted_pps))
+
 def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, count_geki=None, mode=Gamemode.STANDARD):
     #---------------Acc calculations
     # Accuracy = (Total points of hits / (Total number of hits * 300) * 100)
