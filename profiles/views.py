@@ -1,7 +1,5 @@
-from django.contrib.auth.models import Group
-from django.http import Http404
-
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import permissions
+from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -27,9 +25,9 @@ class GetUserStats(APIView):
             elif user_id_type == "username":
                 user_stats = fetch_user(username=user_string, gamemode=gamemode)
             else:
-                raise Http404
+                raise NotFound("User not found.")
         except UserStats.DoesNotExist:
-            raise Http404
+            raise NotFound("User not found.")
 
         serialiser = UserStatsSerialiser(user_stats)
         return Response(serialiser.data)

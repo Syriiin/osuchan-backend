@@ -1,5 +1,3 @@
-from django.contrib.auth.models import Group
-
 from rest_framework import serializers
 
 from profiles.models import OsuUser, UserStats, Beatmap, Score

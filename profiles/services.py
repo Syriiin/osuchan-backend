@@ -7,7 +7,6 @@ from common.osu import apiv1
 from common.osu.enums import Gamemode
 from profiles.models import OsuUser, UserStats
 
-# COMMAND: UPDATE PROFILE
 @transaction.atomic
 def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     """
