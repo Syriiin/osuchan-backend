@@ -19,7 +19,8 @@ INSTALLED_APPS = [
     'rest_framework',   # browsable api
     'debug_toolbar',    # django debug toolbar
     'osuauth.apps.OsuauthConfig',   # osu auth and accounts
-    'profiles.apps.ProfilesConfig'
+    'profiles.apps.ProfilesConfig',
+    'leaderboards.apps.LeaderboardsConfig'
 ]
 
 MIDDLEWARE = [

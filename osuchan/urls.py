@@ -22,6 +22,7 @@ from django.http.response import HttpResponse
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/profiles/", include("profiles.urls")),
+    path("api/leaderboards/", include("leaderboards.urls")),
     path("osuauth/", include("osuauth.urls"))
 ]
 

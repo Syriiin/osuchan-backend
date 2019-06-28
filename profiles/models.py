@@ -99,7 +99,7 @@ class UserStats(models.Model):
             # NOTE: kinda inefficient, since we wont need all scores per beatmap (only ones with specific mods, but i dont know how to do that without raw sql)
             # TODO: maybe optimise this with raw sql?
             beatmap_ids = [int(s["beatmap_id"]) for s in score_data_list]
-            user_scores = self.scores.select_for_update().filter(beatmap_id__in=beatmap_ids)
+            user_scores = self.scores.select_for_update().select_related("beatmap").filter(beatmap_id__in=beatmap_ids)
             beatmaps = Beatmap.objects.filter(id__in=beatmap_ids)
 
         # Iterate all scores fetched from osu api, setting fields and adding each to one of the following lists for bulk insertion/updating
@@ -169,7 +169,7 @@ class UserStats(models.Model):
             score.user_stats_id = self.id
         
         # Bulk add and update beatmaps and scores
-        Score.objects.bulk_update(scores_to_update, [field.name for field in Score._meta.get_fields() if field.name != "id"])   # wish we didnt have to pass a field list to update all
+        Score.objects.bulk_update(scores_to_update, [field.name for field in Score._meta.get_fields() if field.name != "id" and field.concrete])   # wish we didnt have to pass a field list to update all
         Beatmap.objects.bulk_create(beatmaps_to_create)
         Score.objects.bulk_create(scores_to_create)
 
@@ -182,7 +182,7 @@ class UserStats(models.Model):
         """
         
         # need to get list of unique map scores except the ones we already have (pk will only be set if we originally fetched this model rather than creating it)
-        scores = [*new_scores, *self.scores.exclude(pk__in=[score.pk for score in new_scores if score.pk])]
+        scores = [*new_scores, *self.scores.select_related("beatmap").exclude(pk__in=[score.pk for score in new_scores if score.pk])]
         scores.sort(key=lambda s: s.pp, reverse=True)
         # need to filter to be unique on maps (cant use .unique_maps() because duplicate maps might come from new scores)
         scores = [score for score in scores if score == next(s for s in scores if s.beatmap_id == score.beatmap_id)]
@@ -194,8 +194,6 @@ class UserStats(models.Model):
         if self.gamemode == Gamemode.STANDARD:
             self.nochoke_pp = utils.calculate_pp_total(sorted((score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp for score in scores), reverse=True)) + self.extra_pp
         
-        # TODO: modpp
-
         # score style
         top_100_scores = scores[:100]  # score style limited to top 100 scores
         weighting_value = sum(0.95 ** i for i in range(100))
@@ -205,6 +203,30 @@ class UserStats(models.Model):
         self.score_style_cs = sum(score.circle_size * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
         self.score_style_ar = sum(score.approach_rate * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
         self.score_style_od = sum(score.overall_difficulty * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+
+        # update leaderboard memberships with all scores
+        self.__update_memberships(*scores)
+
+    def __update_memberships(self, *scores):
+        """
+        Updates memberships this UserStats has with Leaderboards with the scores passed
+        """
+        memberships = self.user.memberships.select_for_update().select_related("leaderboard").filter(leaderboard__gamemode=self.gamemode)
+        
+        # using through model so we can bulk add all scores for all memberships at once
+        membership_score_model = Score.membership_set.through
+        membership_scores_to_add = []
+
+        for membership in memberships:
+            # add all scores matching criteria
+            membership_scores = [membership_score_model(score=score, membership=membership) for score in scores if membership.leaderboard.score_is_allowed(score)]
+            membership_scores_to_add.extend(membership_scores)
+            membership.pp = utils.calculate_pp_total(ms.score.pp for ms in membership_scores)
+        
+        # bulk add scores to memberships and update memberships pp
+        membership_score_model.objects.bulk_create(membership_scores_to_add, ignore_conflicts=True)
+        self.user.memberships.bulk_update(memberships, ["pp"])
+
 
     def __str__(self):
         return "{}: {}".format(self.gamemode, self.user_id)
