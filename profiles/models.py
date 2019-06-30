@@ -97,10 +97,10 @@ class UserStats(models.Model):
         else:
             # Fetch all scores and beatmaps we need from database in bulk
             # NOTE: kinda inefficient, since we wont need all scores per beatmap (only ones with specific mods, but i dont know how to do that without raw sql)
-            # TODO: maybe optimise this with raw sql?
+            # TODO: maybe optimise this with raw sql or a custom lookup?
             beatmap_ids = [int(s["beatmap_id"]) for s in score_data_list]
             user_scores = self.scores.select_for_update().select_related("beatmap").filter(beatmap_id__in=beatmap_ids)
-            beatmaps = Beatmap.objects.filter(id__in=beatmap_ids)
+            beatmaps = [score.beatmap for score in user_scores]
 
         # Iterate all scores fetched from osu api, setting fields and adding each to one of the following lists for bulk insertion/updating
         beatmaps_to_create = []
@@ -161,7 +161,7 @@ class UserStats(models.Model):
             score.process()
 
         # Process scores for user stats values
-        self.__process_scores(*[*unchanged_scores, *scores_to_update, *scores_to_create])
+        all_scores = self.__process_scores(*[*unchanged_scores, *scores_to_update, *scores_to_create])
         self.save()
         
         # Update new scores with newly saved UserStats id
@@ -173,12 +173,15 @@ class UserStats(models.Model):
         Beatmap.objects.bulk_create(beatmaps_to_create)
         Score.objects.bulk_create(scores_to_create)
 
+        # Update leaderboard memberships with all scores
+        self.__update_memberships(*all_scores)
+
         # Return new scores
         return unchanged_scores, scores_to_update, scores_to_create
 
     def __process_scores(self, *new_scores):
         """
-        Calculates pp totals (extra pp, nochoke pp), scores style, adds new scores, and saves the model
+        Calculates pp totals (extra pp, nochoke pp), scores style, adds new scores, and saves the model, and returns all scores for UserStats
         """
         
         # need to get list of unique map scores except the ones we already have (pk will only be set if we originally fetched this model rather than creating it)
@@ -204,8 +207,7 @@ class UserStats(models.Model):
         self.score_style_ar = sum(score.approach_rate * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
         self.score_style_od = sum(score.overall_difficulty * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
 
-        # update leaderboard memberships with all scores
-        self.__update_memberships(*scores)
+        return scores
 
     def __update_memberships(self, *scores):
         """

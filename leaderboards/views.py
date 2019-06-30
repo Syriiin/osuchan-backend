@@ -18,7 +18,11 @@ class ListLeaderboards(APIView):
     queryset = Leaderboard.objects.all()
 
     def get(self, request):
-        leaderboards = self.queryset.all()
+        if request.user is not None:
+            osu_user = request.user.osu_user
+        else:
+            osu_user = None
+        leaderboards = self.queryset.visible_to(osu_user)
         serialiser = LeaderboardSerialiser(leaderboards, many=True)
         return Response(serialiser.data)
 
@@ -78,7 +82,11 @@ class GetLeaderboard(APIView):
     queryset = Leaderboard.objects.all()
 
     def get(self, request, leaderboard_id):
-        leaderboard = self.queryset.get(id=leaderboard_id)
+        if request.user is not None:
+            osu_user = request.user.osu_user
+        else:
+            osu_user = None
+        leaderboard = self.queryset.visible_to(osu_user).get(id=leaderboard_id)
         serialiser = LeaderboardSerialiser(leaderboard)
         return Response(serialiser.data)
 

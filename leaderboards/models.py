@@ -1,9 +1,15 @@
 from django.db import models
+from django.db.models import Q
 
 from common.osu.utils import calculate_pp_total
 from common.osu.enums import BeatmapStatus
 from profiles.models import OsuUser, Score
-from leaderboards.enums import AllowedBeatmapStatus
+from leaderboards.enums import AllowedBeatmapStatus, LeaderboardVisibility
+
+class LeaderboardQuerySet(models.QuerySet):
+    def visible_to(self, osu_user):
+        # return leaderboards that are not private or that the user is a member of
+        return self.distinct().filter(~Q(visibility=LeaderboardVisibility.PRIVATE) | Q(members=osu_user))
 
 class Leaderboard(models.Model):
     """
@@ -37,6 +43,8 @@ class Leaderboard(models.Model):
     # Dates
     creation_time = models.DateTimeField(auto_now_add=True)
 
+    objects = LeaderboardQuerySet.as_manager()
+
     def score_is_allowed(self, score):
         # Check against all criteria
         # this has got to be one of the ugliest functions iv ever written
@@ -58,43 +66,6 @@ class Leaderboard(models.Model):
                 (self.highest_cs is None or self.highest_cs > score.circle_size) and
                 (self.lowest_accuracy is None or self.lowest_accuracy < score.accuracy) and
                 (self.highest_accuracy is None or self.highest_accuracy > score.accuracy))
-        
-        
-        # # Check against all criteria
-        # if score.mods & self.required_mods != self.required_mods:
-        #     return False
-        # if score.mods & self.disqualified_mods != 0:
-        #     return False
-
-        # if self.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY and score.beatmap.status in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED]:
-        #     return False
-        # elif self.allowed_beatmap_status == AllowedBeatmapStatus.RANKED_ONLY and score.beatmap.status == BeatmapStatus.LOVED:
-        #     return False
-
-        # # optional filters
-        # if self.oldest_beatmap_date is not None and self.oldest_beatmap_date > score.beatmap.last_updated:
-        #     return False
-        # if self.newest_beatmap_date is not None and self.newest_beatmap_date < score.beatmap.last_updated:
-        #     return False
-        # if self.lowest_ar is not None and self.lowest_ar > score.approach_rate:
-        #     return False
-        # if self.highest_ar is not None and self.highest_ar < score.approach_rate:
-        #     return False
-        # if self.lowest_od is not None and self.lowest_od > score.overall_difficulty:
-        #     return False
-        # if self.highest_od is not None and self.highest_od < score.overall_difficulty:
-        #     return False
-        # if self.lowest_cs is not None and self.lowest_cs > score.circle_size:
-        #     return False
-        # if self.highest_cs is not None and self.highest_cs < score.circle_size:
-        #     return False
-        # if self.lowest_accuracy is not None and self.lowest_accuracy > score.accuracy:
-        #     return False
-        # if self.highest_accuracy is not None and self.highest_accuracy < score.accuracy:
-        #     return False
-
-        # # All criteria passed, return True
-        # return True
 
     def update_membership(self, user_id):
         """
@@ -167,7 +138,6 @@ class Membership(models.Model):
     join_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return "temp"
         return f"{self.leaderboard.name}: {self.user_id}"
 
 # Custom lookups
