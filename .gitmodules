@@ -1,0 +1,3 @@
+[submodule "osuchan-frontend"]
+	path = osuchan-frontend
+	url = https://github.com/Syriiin/osuchan-frontend

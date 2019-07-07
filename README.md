@@ -7,6 +7,12 @@
 
 ## Setup (bash)
 
+0. Setup and build osuchan-frontend submodule
+    ```shell
+    $ cd osuchan-frontend
+    $ npm install
+    $ npm run build
+    ```
 1. Create and enter a virtual environment (recommended)
     ```shell
     $ python3 -m venv env
