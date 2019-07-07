@@ -4,7 +4,6 @@ from django.conf.urls import url, include
 from osuauth import views
 
 urlpatterns = [
-    path("test", views.test_view, name="test"),
     path("login", views.login_redirect, name="login_redirect"),
     path("logout", views.logout_view, name="logout"),
     path("callback", views.callback, name="callback"),

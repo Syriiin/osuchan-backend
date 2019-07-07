@@ -8,6 +8,9 @@ class User(AbstractUser):
     Custom user model
     """
     
+    is_beta_tester = models.BooleanField(default=False)
+
+    # Relations
     osu_user = models.OneToOneField(OsuUser, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):

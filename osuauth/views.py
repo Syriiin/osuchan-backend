@@ -12,9 +12,6 @@ import requests
 
 from profiles.serialisers import OsuUserSerialiser
 
-def test_view(request):
-    return render(request, "test.html")
-
 def login_redirect(request):
     """
     Endpoint for initiating osu authentication

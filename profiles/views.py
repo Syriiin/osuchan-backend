@@ -3,6 +3,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from osuauth.permissions import BetaPermission
 from profiles.models import UserStats, Beatmap, Score
 from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, ScoreSerialiser
 from profiles.services import fetch_user, fetch_scores
@@ -12,6 +13,7 @@ class GetUserStats(APIView):
     API endpoint for getting UserStats
     """
     queryset = UserStats.objects.non_restricted()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, user_string, gamemode):
         """
@@ -37,6 +39,7 @@ class GetBeatmaps(APIView):
     API endpoint for getting Beatmaps
     """
     queryset = Beatmap.objects.all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, beatmap_id):
         """
@@ -56,7 +59,7 @@ class ListUserScores(APIView):
     API endpoint for Scores
     """
     queryset = Score.objects.select_related("beatmap").non_restricted()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):
         """

@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from common.osu.enums import Mod
+from osuauth.permissions import BetaPermission
 from profiles.models import Score
 from profiles.serialisers import ScoreSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
@@ -16,7 +17,7 @@ class ListLeaderboards(APIView):
     API endpoint for listing Leaderboards
     """    
     queryset = Leaderboard.objects.select_related("owner").all()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):
         osu_user = None if request.user.is_anonymous else request.user.osu_user
@@ -88,7 +89,7 @@ class GetLeaderboard(APIView):
     API endpoint for specific Leaderboards
     """
     queryset = Leaderboard.objects.all()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id):
         osu_user = None if request.user.is_anonymous else request.user.osu_user
@@ -117,7 +118,7 @@ class ListMembers(APIView):
     API endpoint for listing Memberships
     """
     queryset = Membership.objects.select_related("user").order_by("-pp").all()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):
         leaderboard_id = request.query_params.get("leaderboard_id")
@@ -151,7 +152,7 @@ class GetMember(APIView):
     API endpoint for specific Members
     """
     queryset = Membership.objects.select_related("user").all()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, user_id):
         leaderboard_id = request.query_params.get("leaderboard_id")
@@ -179,7 +180,7 @@ class ListInvites(APIView):
     API endpoint for listing Invites
     """
     queryset = Invite.objects.all()
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):
         leaderboard_id = request.query_params.get("leaderboard_id")

@@ -19,6 +19,8 @@ from django.conf import settings
 from django.conf.urls import include
 from django.http.response import HttpResponse
 
+from main.views import main
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/profiles/", include("profiles.urls")),
@@ -33,7 +35,6 @@ if settings.DEBUG:
         path('__debug__/', include(debug_toolbar.urls))
     )
 
-# Add catchall for serving react app
 urlpatterns.append(
-    re_path(r"^.*", lambda r: HttpResponse("React app to be served here"))
+    re_path(r"^.*", main)
 )

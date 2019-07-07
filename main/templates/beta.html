@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>osu!chan beta</title>
+</head>
+<body>
+    <h1>osu!chan beta</h1>
+    <br />
+    {% if not user.is_authenticated %}
+    <a href="{% url 'login_redirect' %}">Click here to log in with osu! and request to join the beta!</a>
+    {% else %}
+    <p>Logged in as: {{ user.osu_user.username }}</p>
+    <p>Your request to join the beta has been sent.</p>
+    {% endif %}
+</body>
+</html>

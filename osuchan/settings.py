@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',   # browsable api
     'debug_toolbar',    # django debug toolbar
+    'main.apps.MainConfig', # entry point to react app
     'osuauth.apps.OsuauthConfig',   # osu auth and accounts
     'profiles.apps.ProfilesConfig',
     'leaderboards.apps.LeaderboardsConfig'
@@ -39,7 +40,7 @@ ROOT_URLCONF = 'osuchan.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'osuchan-frontend')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -103,6 +104,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'osuchan-frontend', "build", "static")
+]
 
 
 # Django REST framework
