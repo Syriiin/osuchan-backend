@@ -86,6 +86,8 @@ class UserStats(models.Model):
         """
         Efficiently adds a list of scores and their beatmaps from a passed list of scores
         """
+        # This method is super messy but its hard to be clean when accounting for the osu api returning multiple formats and trying to be efficient with queries
+        # TODO: rewrite this
         # If beatmap_id parameter passed, scores are all for the same beatmap
         if override_beatmap_id:
             user_scores = self.scores.select_for_update().filter(beatmap_id=override_beatmap_id)
@@ -100,7 +102,8 @@ class UserStats(models.Model):
             # TODO: maybe optimise this with raw sql or a custom lookup?
             beatmap_ids = [int(s["beatmap_id"]) for s in score_data_list]
             user_scores = self.scores.select_for_update().select_related("beatmap").filter(beatmap_id__in=beatmap_ids)
-            beatmaps = [score.beatmap for score in user_scores]
+            beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
+            # ^ list because we are going to add beatmaps to it as we iterate scores
 
         # Iterate all scores fetched from osu api, setting fields and adding each to one of the following lists for bulk insertion/updating
         beatmaps_to_create = []
@@ -136,18 +139,55 @@ class UserStats(models.Model):
             score.perfect = bool(int(score_data["perfect"]))
             score.mods = int(score_data["enabled_mods"])
             score.rank = score_data["rank"]
-            score.pp = float(score_data["pp"])
             score.date = datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
 
             # Update foreign keys
             if not override_beatmap_id:
                 # If not overriding beatmap, search for beatmap in fetched, else create it
                 beatmap = next((beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None)
-                if not beatmap:
+                if beatmap is None:
                     beatmap = Beatmap.from_data(apiv1.get_beatmaps(beatmap_id=beatmap_id)[0])
+                    beatmaps.append(beatmap)    # add to beatmaps incase another score is on this map
                     beatmaps_to_create.append(beatmap)
             score.beatmap = beatmap
             score.user_stats_id = self.id
+
+            # Update pp (scores from get_user_recent don't include pp)
+            if "pp" in score_data:
+                score.pp = float(score_data["pp"])
+            else:
+                if score.beatmap.gamemode == Gamemode.STANDARD:
+                    with oppaipy.Calculator(get_beatmap_path(score.beatmap.id)) as calc:
+                        calc.set_accuracy(count_100=score.count_100, count_50=score.count_50)
+                        calc.set_misses(score.count_miss)
+                        calc.set_combo(score.best_combo)
+                        calc.set_mods(score.mods)
+                        calc.calculate()
+                        score.pp = calc.pp
+                else:
+                    # we have no method of calculating pp for this score so we have to disregard it
+                    if score in scores_to_create:
+                        scores_to_create.remove(score)
+                    elif score in scores_to_update:
+                        scores_to_update.remove(score)
+                    continue
+
+            # Check if we have already added a score of this map+mods, if so, keep higher pp
+            duplicate_score = next((s for s in scores_to_create + scores_to_update if s != score and s.beatmap == score.beatmap and s.mods == score.mods), None)
+            if duplicate_score is not None:
+                if score.pp > duplicate_score.pp:
+                    # replace duplicate
+                    if duplicate_score in scores_to_create:
+                        scores_to_create.remove(duplicate_score)
+                    elif duplicate_score in scores_to_update:
+                        scores_to_update.remove(duplicate_score)
+                else:
+                    # remove score and continue
+                    if score in scores_to_create:
+                        scores_to_create.remove(score)
+                    elif score in scores_to_update:
+                        scores_to_update.remove(score)
+                    continue
             
             # Update convenience fields
             score.accuracy = utils.get_accuracy(score.count_300, score.count_100, score.count_50, score.count_miss, score.count_katu, score.count_geki)
@@ -221,14 +261,13 @@ class UserStats(models.Model):
 
         for membership in memberships:
             # add all scores matching criteria
-            membership_scores = [membership_score_model(score=score, membership=membership) for score in scores if membership.leaderboard.score_is_allowed(score)]
+            membership_scores = [membership_score_model(score=score, membership=membership) for score in scores if membership.leaderboard.score_is_allowed(score, membership)]
             membership_scores_to_add.extend(membership_scores)
             membership.pp = utils.calculate_pp_total(ms.score.pp for ms in membership_scores)
         
         # bulk add scores to memberships and update memberships pp
         membership_score_model.objects.bulk_create(membership_scores_to_add, ignore_conflicts=True)
         self.user.memberships.bulk_update(memberships, ["pp"])
-
 
     def __str__(self):
         return "{}: {}".format(self.gamemode, self.user_id)
@@ -277,7 +316,7 @@ class Beatmap(models.Model):
 
     @classmethod
     def from_data(cls, beatmap_data):
-        beatmap = cls(id=beatmap_data["beatmap_id"])
+        beatmap = cls(id=int(beatmap_data["beatmap_id"]))
 
         # Update fields
         beatmap.set_id = int(beatmap_data["beatmapset_id"])

@@ -1,20 +1,22 @@
 from rest_framework import serializers
 
 from profiles.serialisers import OsuUserSerialiser
-from leaderboards.models import Leaderboard, Membership
+from leaderboards.models import Leaderboard, Membership, Invite
 
 class LeaderboardSerialiser(serializers.ModelSerializer):
     owner = OsuUserSerialiser()
-    member_count = serializers.SerializerMethodField()
+    member_count = serializers.IntegerField(source="members.count")
 
     class Meta:
         model = Leaderboard
         fields = (
             "id",
             "gamemode",
-            "visibility",
+            "access_type",
             "name",
+            "description",
             # score criteria
+            "allow_past_scores",
             "allowed_beatmap_status",
             "oldest_beatmap_date",
             "newest_beatmap_date",
@@ -35,20 +37,37 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             # methods
             "member_count"
         )
-        
-    def get_member_count(self, obj):
-        return obj.members.count()
 
 class MembershipSerialiser(serializers.ModelSerializer):
     user = OsuUserSerialiser()
+    score_count = serializers.IntegerField(source="scores.count")
 
     class Meta:
         model = Membership
         fields = (
+            "id",
             "pp",
             # relations
             "leaderboard",
             "user",
             # dates
-            "join_date"
+            "join_date",
+            # methods
+            "score_count"
+        )
+
+class InviteSerialiser(serializers.ModelSerializer):
+    user = OsuUserSerialiser()
+    leaderboard = LeaderboardSerialiser()
+
+    class Meta:
+        model = Invite
+        fields = (
+            "id",
+            "message",
+            # relations
+            "leaderboard",
+            "user",
+            # dates
+            "invite_date"
         )

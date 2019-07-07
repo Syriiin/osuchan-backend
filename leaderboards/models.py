@@ -1,15 +1,22 @@
 from django.db import models
 from django.db.models import Q
 
+from rest_framework.exceptions import PermissionDenied
+
+from datetime import datetime
+
 from common.osu.utils import calculate_pp_total
 from common.osu.enums import BeatmapStatus
 from profiles.models import OsuUser, Score
-from leaderboards.enums import AllowedBeatmapStatus, LeaderboardVisibility
+from leaderboards.enums import AllowedBeatmapStatus, LeaderboardAccessType
 
 class LeaderboardQuerySet(models.QuerySet):
     def visible_to(self, osu_user):
-        # return leaderboards that are not private or that the user is a member of
-        return self.distinct().filter(~Q(visibility=LeaderboardVisibility.PRIVATE) | Q(members=osu_user))
+        # return leaderboards that are not private or that the user is a member/invitee of
+        if osu_user is None:
+            return self.distinct().filter(~Q(access_type=LeaderboardAccessType.PRIVATE))
+        else:
+            return self.distinct().filter(~Q(access_type=LeaderboardAccessType.PRIVATE) | Q(members=osu_user) | Q(invitees=osu_user))
 
 class Leaderboard(models.Model):
     """
@@ -17,8 +24,9 @@ class Leaderboard(models.Model):
     """
 
     gamemode = models.IntegerField()
-    visibility = models.IntegerField()
+    access_type = models.IntegerField()
     name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
 
     # score criteria
     allow_past_scores = models.BooleanField()   # allow scores set before membership started
@@ -39,18 +47,21 @@ class Leaderboard(models.Model):
     # Relations
     owner = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="owned_leaderboards", null=True, blank=True)
     members = models.ManyToManyField(OsuUser, through="Membership", related_name="leaderboards")
+    invitees = models.ManyToManyField(OsuUser, through="Invite", related_name="invited_leaderboards")
 
     # Dates
     creation_time = models.DateTimeField(auto_now_add=True)
 
     objects = LeaderboardQuerySet.as_manager()
 
-    def score_is_allowed(self, score):
+    def score_is_allowed(self, score, membership):
         # Check against all criteria
         # this has got to be one of the ugliest functions iv ever written
         # TODO: clean this up by making it dynamic or something... (ie. all(self.passes_criterion(criterion, score) for criterion in criteria))
         return ((score.mods & self.required_mods == self.required_mods) and
                 (score.mods & self.disqualified_mods == 0) and
+                # past scores
+                (self.allow_past_scores or score.date > membership.join_date) and
                 # beatmap status
                 ((self.allowed_beatmap_status == AllowedBeatmapStatus.ANY) or
                     (self.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY and score.beatmap.status == BeatmapStatus.LOVED) or
@@ -73,10 +84,25 @@ class Leaderboard(models.Model):
         """
         # Get or create Membership model
         try:
-            membership = self.members.select_for_update().get(id=user_id)
-        except OsuUser.DoesNotExist:
+            membership = self.memberships.select_for_update().get(user_id=user_id)
+            # Clear all currently added scores
+            membership.scores.clear()
+            join_date = membership.join_date
+        except Membership.DoesNotExist:
+            if self.access_type in (LeaderboardAccessType.PUBLIC_INVITE_ONLY, LeaderboardAccessType.PRIVATE) and self.owner_id != user_id:
+                # Check if user has been invited
+                try:
+                    invite = self.invitees.get(id=user_id)
+                except OsuUser.DoesNotExist:
+                    raise PermissionDenied("You must be invited to join this leaderboard.")
+                
+                # Invite is being accepted
+                self.invitees.remove(invite)
+
+            # Create new membership
             membership = Membership(user_id=user_id, leaderboard=self)
-        
+            join_date = datetime.now()
+
         # Get scores
         scores = Score.objects.filter(
             user_stats__user_id=user_id,
@@ -84,6 +110,9 @@ class Leaderboard(models.Model):
             mods__allbits=self.required_mods,
             mods__nobits=self.disqualified_mods
         )
+
+        if not self.allow_past_scores:
+            scores = scores.filter(date__gt=join_date)
 
         if self.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY:
             scores = scores.filter(beatmap__status=BeatmapStatus.LOVED)
@@ -112,6 +141,8 @@ class Leaderboard(models.Model):
         if self.highest_accuracy:
             scores = scores.filter(accuracy__lt=self.highest_accuracy)
 
+        scores = scores.unique_maps()
+
         # Add scores to membership
         membership.pp = calculate_pp_total(score.pp for score in scores.order_by("-pp"))
         membership.save()
@@ -138,7 +169,24 @@ class Membership(models.Model):
     join_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.leaderboard.name}: {self.user_id}"
+        return f"{self.leaderboard.name}: {self.user.username}"
+
+class Invite(models.Model):
+    """
+    Model representing an invitation of a OsuUser to a Leaderboard
+    """
+
+    message = models.TextField(blank=True)
+
+    # Relations
+    leaderboard = models.ForeignKey(Leaderboard, on_delete=models.CASCADE, related_name="invites")
+    user = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="invites")
+
+    # Dates
+    invite_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.leaderboard.name}: {self.user.username}"
 
 # Custom lookups
 
@@ -161,3 +209,4 @@ class NoBits(models.Lookup):
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
         return f"{lhs} & {rhs} = 0", params
+

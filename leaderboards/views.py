@@ -1,35 +1,43 @@
 from rest_framework import permissions
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from common.osu.enums import Mod
 from profiles.models import Score
 from profiles.serialisers import ScoreSerialiser
-from leaderboards.models import Leaderboard, Membership
-from leaderboards.serialisers import LeaderboardSerialiser, MembershipSerialiser
+from leaderboards.models import Leaderboard, Membership, Invite
+from leaderboards.serialisers import LeaderboardSerialiser, MembershipSerialiser, InviteSerialiser
 from leaderboards.services import create_leaderboard, create_membership
-from leaderboards.enums import LeaderboardVisibility, AllowedBeatmapStatus
+from leaderboards.enums import LeaderboardAccessType, AllowedBeatmapStatus
 
 class ListLeaderboards(APIView):
     """
     API endpoint for listing Leaderboards
     """    
-    queryset = Leaderboard.objects.all()
+    queryset = Leaderboard.objects.select_related("owner").all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
-        if request.user is not None:
-            osu_user = request.user.osu_user
-        else:
-            osu_user = None
+        osu_user = None if request.user.is_anonymous else request.user.osu_user
         leaderboards = self.queryset.visible_to(osu_user)
+        
+        user_id = request.query_params.get("user_id")
+        gamemode = request.query_params.get("gamemode")
+        if user_id is not None:
+            # filtering for leaderboards with a specific member
+            leaderboards = leaderboards.filter(members__id=user_id)
+        if gamemode is not None:
+            # Filtering for leaderboards for a speficic gamemode
+            leaderboards = leaderboards.filter(gamemode=gamemode)
+
         serialiser = LeaderboardSerialiser(leaderboards, many=True)
         return Response(serialiser.data)
 
     def post(self, request):
         # Check required parameters
-        if request.user is None:
-            user_id = None
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Must be logged in to perform this action.")
         else:
             user_id = request.user.osu_user_id
 
@@ -37,11 +45,11 @@ class ListLeaderboards(APIView):
         if gamemode is None:
             raise ParseError("Missing gamemode parameter.")
         
-        visibility = request.data.get("visibility")
-        if visibility is None:
-            raise ParseError("Missing visibility parameter.")
-        elif visibility == LeaderboardVisibility.GLOBAL:
-            raise ParseError("Parameter visibility must be either 1 for public, or 2 for private.")
+        access_type = request.data.get("access_type")
+        if access_type is None:
+            raise ParseError("Missing access_type parameter.")
+        elif access_type == LeaderboardAccessType.GLOBAL:
+            raise ParseError("Parameter access_type must be either 1 for public, or 2 for private.")
         
         name = request.data.get("name")
         if name is None:
@@ -49,12 +57,12 @@ class ListLeaderboards(APIView):
         
         leaderboard = Leaderboard(
             gamemode=gamemode,
-            visibility=visibility,
+            access_type=access_type,
             name=name
         )
 
         # Set optional score criteria
-        leaderboard.allow_past_scores = request.data.get("allow_past_scores") or True
+        leaderboard.allow_past_scores = request.data.get("allow_past_scores") if request.data.get("allow_past_scores") is not None else True
         leaderboard.allowed_beatmap_status = request.data.get("allowed_beatmap_status") or AllowedBeatmapStatus.RANKED_ONLY
         leaderboard.oldest_beatmap_date = request.data.get("oldest_beatmap_date")
         leaderboard.newest_beatmap_date = request.data.get("newest_beatmap_date")
@@ -80,25 +88,36 @@ class GetLeaderboard(APIView):
     API endpoint for specific Leaderboards
     """
     queryset = Leaderboard.objects.all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_id):
-        if request.user is not None:
-            osu_user = request.user.osu_user
-        else:
-            osu_user = None
-        leaderboard = self.queryset.visible_to(osu_user).get(id=leaderboard_id)
+        osu_user = None if request.user.is_anonymous else request.user.osu_user
+        try:
+            leaderboard = self.queryset.visible_to(osu_user).get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
         serialiser = LeaderboardSerialiser(leaderboard)
         return Response(serialiser.data)
 
     def delete(self, request, leaderboard_id):
-        leaderboard = self.queryset.get(id=leaderboard_id)
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Must be logged in to perform this action.")
+        else:
+            user_id = request.user.osu_user_id
+        try:
+            leaderboard = self.queryset.get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+        if leaderboard.owner_id != user_id:
+            raise PermissionDenied("Must be the leaderboard owner to perform this action.")
         return Response(leaderboard.delete())
 
 class ListMembers(APIView):
     """
     API endpoint for listing Memberships
     """
-    queryset = Membership.objects.select_related("user").all()
+    queryset = Membership.objects.select_related("user").order_by("-pp").all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         leaderboard_id = request.query_params.get("leaderboard_id")
@@ -112,14 +131,16 @@ class ListMembers(APIView):
         return Response(serialiser.data)
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Must be logged in to perform this action.")
+        else:
+            user_id = request.user.osu_user_id
+
         leaderboard_id = request.data.get("leaderboard_id")
-        user_id = request.data.get("user_id")
 
         # If no leaderboard_id was passed, raise 404
         if leaderboard_id is None:
             raise ParseError("Missing leaderboard_id parameter.")
-        if user_id is None:
-            raise ParseError("Missing user_id parameter.")
 
         membership = create_membership(leaderboard_id, user_id)
         serialiser = MembershipSerialiser(membership)
@@ -130,6 +151,7 @@ class GetMember(APIView):
     API endpoint for specific Members
     """
     queryset = Membership.objects.select_related("user").all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, user_id):
         leaderboard_id = request.query_params.get("leaderboard_id")
@@ -152,11 +174,60 @@ class GetMember(APIView):
         membership = self.queryset.get(leaderboard_id=leaderboard_id, user_id=user_id)
         return Response(membership.delete())
 
+class ListInvites(APIView):
+    """
+    API endpoint for listing Invites
+    """
+    queryset = Invite.objects.all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get(self, request):
+        leaderboard_id = request.query_params.get("leaderboard_id")
+        user_id = request.query_params.get("user_id")
+        
+        # If no leaderboard_id or user_id was passed, raise 404
+        if leaderboard_id is not None:
+            invites = self.queryset.filter(leaderboard_id=leaderboard_id)
+        elif user_id is not None:
+            invites = self.queryset.filter(user_id=user_id)
+        else:
+            raise ParseError("Must pass either user_id or leaderboard_id as a query parameter.")
+
+        serialiser = InviteSerialiser(invites, many=True)
+        return Response(serialiser.data)
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Must be logged in to perform this action.")
+        else:
+            user_id = request.user.osu_user_id
+
+        leaderboard_id = request.data.get("leaderboard_id")
+        invitee_id = request.data.get("user_id")
+
+        # If no leaderboard_id was passed, raise 404
+        if leaderboard_id is None or user_id is None:
+            raise ParseError("Missing leaderboard_id or user_id parameter.")
+
+        leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+        if not leaderboard.owner_id == user_id:
+            raise PermissionDenied("Must be the leaderboard owner to perform this action.")
+        
+        if leaderboard.memberships.filter(user_id=invitee_id).exists():
+            raise PermissionDenied("Cannot invite a user who is already a member.")
+
+        message = request.data.get("message") or ""
+        invite = Invite(user_id=invitee_id, leaderboard_id=leaderboard_id, message=message)
+        invite.save()
+
+        serialiser = InviteSerialiser(invite)
+        return Response(serialiser.data)
+
 class ListScores(APIView):
     """
     API endpoint for listing Scores on Memberships
     """
-    queryset = Score.objects.select_related("beatmap").all()
+    queryset = Score.objects.distinct().select_related("beatmap").prefetch_related("user_stats", "user_stats__user").all()
 
     def get(self, request):
         leaderboard_id = request.query_params.get("leaderboard_id")
@@ -172,5 +243,7 @@ class ListScores(APIView):
             scores = scores.filter(membership__user_id=user_id)
         if beatmap_id:
             scores = scores.filter(beatmap_id=beatmap_id)
+
+        scores = scores.unique_maps()[:100]
         serialiser = ScoreSerialiser(scores, many=True)
         return Response(serialiser.data)

@@ -3,8 +3,8 @@ from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from profiles.models import UserStats, Score
-from profiles.serialisers import UserStatsSerialiser, ScoreSerialiser
+from profiles.models import UserStats, Beatmap, Score
+from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, ScoreSerialiser
 from profiles.services import fetch_user, fetch_scores
 
 class GetUserStats(APIView):
@@ -30,6 +30,25 @@ class GetUserStats(APIView):
             raise NotFound("User not found.")
 
         serialiser = UserStatsSerialiser(user_stats)
+        return Response(serialiser.data)
+
+class GetBeatmaps(APIView):
+    """
+    API endpoint for getting Beatmaps
+    """
+    queryset = Beatmap.objects.all()
+
+    def get(self, request, beatmap_id):
+        """
+        Return Beatmap based on a beatmap_id
+        """
+
+        try:
+            beatmap = self.queryset.get(id=beatmap_id)
+        except Beatmap.DoesNotExist:
+            raise NotFound("Beatmap not found.")
+
+        serialiser = BeatmapSerialiser(beatmap)
         return Response(serialiser.data)
 
 class ListUserScores(APIView):

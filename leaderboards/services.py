@@ -18,3 +18,4 @@ def create_membership(leaderboard_id, user_id):
     leaderboard = Leaderboard.objects.get(id=leaderboard_id)
     membership = leaderboard.update_membership(user_id)
     return membership
+    

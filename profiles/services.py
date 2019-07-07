@@ -6,6 +6,8 @@ import pytz
 from common.osu import apiv1
 from common.osu.enums import Gamemode
 from profiles.models import OsuUser, UserStats
+from leaderboards.models import Leaderboard, Membership
+from leaderboards.enums import LeaderboardAccessType
 
 @transaction.atomic
 def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
@@ -48,6 +50,12 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     except OsuUser.DoesNotExist:
         osu_user = OsuUser(id=user_data["user_id"])
 
+        # Create memberships with global leaderboards
+        global_leaderboards = Leaderboard.objects.filter(access_type=LeaderboardAccessType.GLOBAL).values("id")
+        # TODO: refactor this to be somewhere else. dont really like setting pp to 0
+        global_memberships = [Membership(leaderboard_id=leaderboard["id"], user_id=osu_user.id, pp=0) for leaderboard in global_leaderboards]
+        Membership.objects.bulk_create(global_memberships)
+
     # Update OsuUser fields
     osu_user.username = user_data["username"]
     osu_user.country = user_data["country"]
@@ -58,7 +66,7 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     osu_user.save()
 
     # Set OsuUser relation id on UserStats
-    user_stats.user_id = int(user_data["user_id"])
+    user_stats.user_id = int(osu_user.id)
 
     # Update UserStats fields
     user_stats.playcount = int(user_data["playcount"])
@@ -80,7 +88,9 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     user_stats.count_rank_a = int(user_data["count_rank_a"])
 
     # Fetch user scores from osu api
-    score_data_list = apiv1.get_user_best(user_stats.user_id, gamemode=gamemode, limit=100)
+    score_data_list = []
+    score_data_list.extend(apiv1.get_user_best(user_stats.user_id, gamemode=gamemode, limit=100))
+    score_data_list.extend(score for score in apiv1.get_user_recent(user_stats.user_id, gamemode=gamemode, limit=50) if score["rank"] != "F")
     
     # Process and add scores
     user_stats.add_scores_from_data(score_data_list)

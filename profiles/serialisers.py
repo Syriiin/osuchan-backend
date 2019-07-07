@@ -19,6 +19,7 @@ class UserStatsSerialiser(serializers.ModelSerializer):
     class Meta:
         model = UserStats
         fields = (
+            "id",
             # osu data
             "gamemode",
             "playcount",
@@ -69,10 +70,12 @@ class BeatmapSerialiser(serializers.ModelSerializer):
 
 class ScoreSerialiser(serializers.ModelSerializer):
     beatmap = BeatmapSerialiser()
+    user_stats = UserStatsSerialiser()
     
     class Meta:
         model = Score
         fields = (
+            "id",
             # osu data
             "score",
             "count_300",
@@ -93,6 +96,7 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "result",
             # relations
             "beatmap",
+            "user_stats",
             # convenience fields
             "accuracy",
             "bpm",
