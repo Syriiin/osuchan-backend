@@ -32,7 +32,7 @@ LOGGING = {
         'file': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': 
+            'filename': os.path.join(BASE_DIR, 'warning.log')
         }
     },
     'loggers': {
