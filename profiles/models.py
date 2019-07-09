@@ -105,8 +105,36 @@ class UserStats(models.Model):
             beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
             # ^ list because we are going to add beatmaps to it as we iterate scores
 
-        # Iterate all scores fetched from osu api, setting fields and adding each to one of the following lists for bulk insertion/updating
         beatmaps_to_create = []
+        unusable_score_datas = []
+        # Add calculate pp for scores without pp
+        for score_data in score_data_list:
+            if "pp" not in score_data:
+                if not override_beatmap_id:
+                    beatmap_id = int(score_data["beatmap_id"])
+                    # If not overriding beatmap, search for beatmap in fetched, else create it
+                    beatmap = next((beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None)
+                    if beatmap is None:
+                        beatmap = Beatmap.from_data(apiv1.get_beatmaps(beatmap_id=beatmap_id)[0])
+                        beatmaps.append(beatmap)    # add to beatmaps incase another score is on this map
+                        beatmaps_to_create.append(beatmap)
+                beatmap_id = int(score_data["beatmap_id"])
+                if beatmap.gamemode == Gamemode.STANDARD:
+                    with oppaipy.Calculator(get_beatmap_path(beatmap_id)) as calc:
+                        calc.set_accuracy(count_100=int(score_data["count100"]), count_50=int(score_data["count50"]))
+                        calc.set_misses(int(score_data["countmiss"]))
+                        calc.set_combo(int(score_data["maxcombo"]))
+                        calc.set_mods(int(score_data["enabled_mods"]))
+                        calc.calculate()
+                        score_data["pp"] = calc.pp
+                else:
+                    # we have no method of calculating pp for this score so we have to disregard it
+                    unusable_score_datas.append(score)
+
+        score_data_list = [s for s in score_data_list if s not in unusable_score_datas]
+        score_data_list = [s for s in score_data_list if s == max([score for score in score_data_list if score["beatmap_id"] == s["beatmap_id"] and score["enabled_mods"] == s["enabled_mods"]], key=lambda s: float(s["pp"]))]
+
+        # Iterate all scores fetched from osu api, setting fields and adding each to one of the following lists for bulk insertion/updating
         scores_to_create = []
         scores_to_update = []
         unchanged_scores = []
@@ -152,25 +180,8 @@ class UserStats(models.Model):
             score.beatmap = beatmap
             score.user_stats_id = self.id
 
-            # Update pp (scores from get_user_recent don't include pp)
-            if "pp" in score_data:
-                score.pp = float(score_data["pp"])
-            else:
-                if score.beatmap.gamemode == Gamemode.STANDARD:
-                    with oppaipy.Calculator(get_beatmap_path(score.beatmap.id)) as calc:
-                        calc.set_accuracy(count_100=score.count_100, count_50=score.count_50)
-                        calc.set_misses(score.count_miss)
-                        calc.set_combo(score.best_combo)
-                        calc.set_mods(score.mods)
-                        calc.calculate()
-                        score.pp = calc.pp
-                else:
-                    # we have no method of calculating pp for this score so we have to disregard it
-                    if score in scores_to_create:
-                        scores_to_create.remove(score)
-                    elif score in scores_to_update:
-                        scores_to_update.remove(score)
-                    continue
+            # Update pp
+            score.pp = float(score_data["pp"])
 
             # Check if we have already added a score of this map+mods, if so, keep higher pp
             duplicate_score = next((s for s in scores_to_create + scores_to_update if s != score and s.beatmap == score.beatmap and s.mods == score.mods), None)
