@@ -132,7 +132,8 @@ class UserStats(models.Model):
                     unusable_score_datas.append(score)
 
         score_data_list = [s for s in score_data_list if s not in unusable_score_datas]
-        score_data_list = [s for s in score_data_list if s == max([score for score in score_data_list if score["beatmap_id"] == s["beatmap_id"] and score["enabled_mods"] == s["enabled_mods"]], key=lambda s: float(s["pp"]))]
+        if not override_beatmap_id:
+            score_data_list = [s for s in score_data_list if s == max([score for score in score_data_list if score["beatmap_id"] == s["beatmap_id"] and score["enabled_mods"] == s["enabled_mods"]], key=lambda s: float(s["pp"]))]
 
         # Iterate all scores fetched from osu api, setting fields and adding each to one of the following lists for bulk insertion/updating
         scores_to_create = []
