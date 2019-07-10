@@ -242,9 +242,9 @@ class ListScores(APIView):
         scores = self.queryset.filter(membership__leaderboard_id=leaderboard_id)
         if user_id:
             scores = scores.filter(membership__user_id=user_id)
-        if beatmap_id:
+            scores = scores.unique_maps()[:100]
+        elif beatmap_id:
             scores = scores.filter(beatmap_id=beatmap_id)
 
-        scores = scores.unique_maps()[:100]
         serialiser = ScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
