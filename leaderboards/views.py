@@ -228,7 +228,7 @@ class ListScores(APIView):
     """
     API endpoint for listing Scores on Memberships
     """
-    queryset = Score.objects.distinct().select_related("beatmap").prefetch_related("user_stats", "user_stats__user").all()
+    queryset = Score.objects.distinct().order_by("-pp").select_related("beatmap").prefetch_related("user_stats", "user_stats__user").all()
 
     def get(self, request):
         leaderboard_id = request.query_params.get("leaderboard_id")
