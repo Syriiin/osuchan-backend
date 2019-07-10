@@ -90,7 +90,9 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     # Fetch user scores from osu api
     score_data_list = []
     score_data_list.extend(apiv1.get_user_best(user_stats.user_id, gamemode=gamemode, limit=100))
-    score_data_list.extend(score for score in apiv1.get_user_recent(user_stats.user_id, gamemode=gamemode, limit=50) if score["rank"] != "F")
+    if gamemode == Gamemode.STANDARD:
+        # If standard, check user recent because we will be able to calculate pp for those scores
+        score_data_list.extend(score for score in apiv1.get_user_recent(user_stats.user_id, gamemode=gamemode, limit=50) if score["rank"] != "F")
     
     # Process and add scores
     user_stats.add_scores_from_data(score_data_list)
@@ -107,6 +109,10 @@ def fetch_scores(user_id, beatmap_id, gamemode):
     
     # Fetch score data from osu api
     score_data_list = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode)
+    
+    # Add beatmap id to turn it into the common json format
+    for score_data in score_data_list:
+        score_data["beatmap_id"] = beatmap_id
 
     # Process add scores
     unchanged_scores, updated_scores, new_scores = user_stats.add_scores_from_data(score_data_list, override_beatmap_id=beatmap_id)

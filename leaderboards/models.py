@@ -168,6 +168,9 @@ class Membership(models.Model):
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
 
+    def score_is_allowed(self, score):
+        return self.leaderboard.score_is_allowed(score, self)
+
     def __str__(self):
         return f"{self.leaderboard.name}: {self.user.username}"
 
