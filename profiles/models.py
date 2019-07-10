@@ -151,6 +151,9 @@ class UserStats(models.Model):
 
             scores_from_data.append(score)
 
+        # Remove potential duplicates from a top 100 play also being in the recent 50
+        scores_from_data = [score for score in scores_from_data if score == next(s for s in scores_from_data if s.date == score.date)]
+
         # Process scores for user stats values
         all_scores, scores_to_create = self.__process_scores(*scores_from_data)
         self.save()
