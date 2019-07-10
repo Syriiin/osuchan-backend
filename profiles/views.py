@@ -61,25 +61,18 @@ class ListUserScores(APIView):
     queryset = Score.objects.select_related("beatmap").non_restricted()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request):
+    def get(self, request, user_id, gamemode):
         """
         Return Scores based on a user_id and gamemode
         """
-        user_id = request.query_params.get("user_id")
-        gamemode = request.query_params.get("gamemode")
-        if user_id and gamemode:
-            scores = self.queryset.filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).unique_maps()[:100]
-        else:
-            scores = self.queryset.unique_maps()[:100]
-
+        scores = self.queryset.filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).unique_maps()[:100]
         serialiser = ScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
     
-    def post(self, request):
+    def post(self, request, user_id, gamemode):
         """
         Add new Scores based on passes user_id, gamemode, beatmap_id
         """
-        data = request.data
-        scores = fetch_scores(data["user_id"], data["beatmap_id"], data["gamemode"])
+        scores = fetch_scores(request.data["user_id"], request.data["beatmap_id"], request.data["gamemode"])
         serialiser = ScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
