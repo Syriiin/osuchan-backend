@@ -69,9 +69,6 @@ class BeatmapSerialiser(serializers.ModelSerializer):
         )
 
 class ScoreSerialiser(serializers.ModelSerializer):
-    beatmap = BeatmapSerialiser()
-    user_stats = UserStatsSerialiser()
-    
     class Meta:
         model = Score
         fields = (
@@ -105,3 +102,9 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "approach_rate",
             "overall_difficulty"
         )
+
+class UserScoreSerialiser(ScoreSerialiser):
+    beatmap = BeatmapSerialiser()
+
+class BeatmapScoreSerialiser(ScoreSerialiser):
+    user_stats = UserStatsSerialiser()

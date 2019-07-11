@@ -57,9 +57,6 @@ class MembershipSerialiser(serializers.ModelSerializer):
         )
 
 class InviteSerialiser(serializers.ModelSerializer):
-    user = OsuUserSerialiser()
-    leaderboard = LeaderboardSerialiser()
-
     class Meta:
         model = Invite
         fields = (
@@ -71,3 +68,9 @@ class InviteSerialiser(serializers.ModelSerializer):
             # dates
             "invite_date"
         )
+
+class LeaderboardInviteSerialiser(InviteSerialiser):
+    user = OsuUserSerialiser()
+
+class UserInviteSerialiser(InviteSerialiser):
+    leaderboard = LeaderboardSerialiser()

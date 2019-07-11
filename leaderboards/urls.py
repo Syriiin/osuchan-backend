@@ -5,8 +5,9 @@ from leaderboards import views
 urlpatterns = [
     path(r"leaderboards", views.ListLeaderboards.as_view()),
     path(r"leaderboards/<int:leaderboard_id>", views.GetLeaderboard.as_view()),
-    path(r"members", views.ListMembers.as_view()),
-    path(r"members/<int:user_id>", views.GetMember.as_view()),
-    path(r"invites", views.ListInvites.as_view()),
-    path(r"scores", views.ListScores.as_view())
+    path(r"leaderboards/<int:leaderboard_id>/members", views.ListLeaderboardMembers.as_view()),
+    path(r"leaderboards/<int:leaderboard_id>/members/<int:user_id>", views.GetLeaderboardMember.as_view()),
+    path(r"leaderboards/<int:leaderboard_id>/invites", views.ListLeaderboardInvites.as_view()),
+    path(r"leaderboards/<int:leaderboard_id>/beatmaps/<int:beatmap_id>/scores", views.ListLeaderboardBeatmapScores.as_view()),
+    path(r"leaderboards/<int:leaderboard_id>/members/<int:user_id>/scores", views.ListLeaderboardMemberScores.as_view())
 ]

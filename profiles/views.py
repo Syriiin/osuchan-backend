@@ -5,8 +5,10 @@ from rest_framework.response import Response
 
 from osuauth.permissions import BetaPermission
 from profiles.models import UserStats, Beatmap, Score
-from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, ScoreSerialiser
+from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserScoreSerialiser
 from profiles.services import fetch_user, fetch_scores
+from leaderboards.models import Invite
+from leaderboards.serialisers import UserInviteSerialiser
 
 class GetUserStats(APIView):
     """
@@ -66,7 +68,7 @@ class ListUserScores(APIView):
         Return Scores based on a user_id and gamemode
         """
         scores = self.queryset.filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).unique_maps()[:100]
-        serialiser = ScoreSerialiser(scores, many=True)
+        serialiser = UserScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
     
     def post(self, request, user_id, gamemode):
@@ -74,5 +76,17 @@ class ListUserScores(APIView):
         Add new Scores based on passes user_id, gamemode, beatmap_id
         """
         scores = fetch_scores(request.data["user_id"], request.data["beatmap_id"], request.data["gamemode"])
-        serialiser = ScoreSerialiser(scores, many=True)
+        serialiser = UserScoreSerialiser(scores, many=True)
+        return Response(serialiser.data)
+
+class ListUserInvites(APIView):
+    """
+    API endpoint for listing Invites for an OsuUser
+    """
+    queryset = Invite.objects.select_related("leaderboard").all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
+    def get(self, request, user_id):
+        invites = self.queryset.filter(user_id=user_id)
+        serialiser = UserInviteSerialiser(invites, many=True)
         return Response(serialiser.data)
