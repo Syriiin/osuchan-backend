@@ -61,22 +61,22 @@ class Leaderboard(models.Model):
         return ((score.mods & self.required_mods == self.required_mods) and
                 (score.mods & self.disqualified_mods == 0) and
                 # past scores
-                (self.allow_past_scores or score.date > membership.join_date) and
+                (self.allow_past_scores or score.date >= membership.join_date) and
                 # beatmap status
                 ((self.allowed_beatmap_status == AllowedBeatmapStatus.ANY) or
                     (self.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY and score.beatmap.status == BeatmapStatus.LOVED) or
                     (self.allowed_beatmap_status == AllowedBeatmapStatus.RANKED_ONLY and score.beatmap.status in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED])) and
                 # optional filters
-                (self.oldest_beatmap_date is None or self.oldest_beatmap_date < score.beatmap.last_updated) and
-                (self.newest_beatmap_date is None or self.newest_beatmap_date > score.beatmap.last_updated) and
-                (self.lowest_ar is None or self.lowest_ar < score.approach_rate) and
-                (self.highest_ar is None or self.highest_ar > score.approach_rate) and
-                (self.lowest_od is None or self.lowest_od < score.overall_difficulty) and
-                (self.highest_od is None or self.highest_od > score.overall_difficulty) and
-                (self.lowest_cs is None or self.lowest_cs < score.circle_size) and
-                (self.highest_cs is None or self.highest_cs > score.circle_size) and
-                (self.lowest_accuracy is None or self.lowest_accuracy < score.accuracy) and
-                (self.highest_accuracy is None or self.highest_accuracy > score.accuracy))
+                (self.oldest_beatmap_date is None or self.oldest_beatmap_date <= score.beatmap.last_updated) and
+                (self.newest_beatmap_date is None or self.newest_beatmap_date >= score.beatmap.last_updated) and
+                (self.lowest_ar is None or self.lowest_ar <= score.approach_rate) and
+                (self.highest_ar is None or self.highest_ar >= score.approach_rate) and
+                (self.lowest_od is None or self.lowest_od <= score.overall_difficulty) and
+                (self.highest_od is None or self.highest_od >= score.overall_difficulty) and
+                (self.lowest_cs is None or self.lowest_cs <= score.circle_size) and
+                (self.highest_cs is None or self.highest_cs >= score.circle_size) and
+                (self.lowest_accuracy is None or self.lowest_accuracy <= score.accuracy) and
+                (self.highest_accuracy is None or self.highest_accuracy >= score.accuracy))
 
     def update_membership(self, user_id):
         """
@@ -112,7 +112,7 @@ class Leaderboard(models.Model):
         )
 
         if not self.allow_past_scores:
-            scores = scores.filter(date__gt=join_date)
+            scores = scores.filter(date__gte=join_date)
 
         if self.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY:
             scores = scores.filter(beatmap__status=BeatmapStatus.LOVED)
@@ -121,25 +121,25 @@ class Leaderboard(models.Model):
 
         # optional filters
         if self.oldest_beatmap_date:
-            scores = scores.filter(beatmap__last_updated__gt=self.oldest_beatmap_date)
+            scores = scores.filter(beatmap__last_updated__gte=self.oldest_beatmap_date)
         if self.newest_beatmap_date:
-            scores = scores.filter(beatmap__last_updated__lt=self.newest_beatmap_date)
+            scores = scores.filter(beatmap__last_updated__lte=self.newest_beatmap_date)
         if self.lowest_ar:
-            scores = scores.filter(approach_rate__gt=self.lowest_ar)
+            scores = scores.filter(approach_rate__gte=self.lowest_ar)
         if self.highest_ar:
-            scores = scores.filter(approach_rate__lt=self.highest_ar)
+            scores = scores.filter(approach_rate__lte=self.highest_ar)
         if self.lowest_od:
-            scores = scores.filter(overall_difficulty__gt=self.lowest_od)
+            scores = scores.filter(overall_difficulty__gte=self.lowest_od)
         if self.highest_od:
-            scores = scores.filter(overall_difficulty__lt=self.highest_od)
+            scores = scores.filter(overall_difficulty__lte=self.highest_od)
         if self.lowest_cs:
-            scores = scores.filter(circle_size__gt=self.lowest_cs)
+            scores = scores.filter(circle_size__gte=self.lowest_cs)
         if self.highest_cs:
-            scores = scores.filter(circle_size__lt=self.highest_cs)
+            scores = scores.filter(circle_size__lte=self.highest_cs)
         if self.lowest_accuracy:
-            scores = scores.filter(accuracy__gt=self.lowest_accuracy)
+            scores = scores.filter(accuracy__gte=self.lowest_accuracy)
         if self.highest_accuracy:
-            scores = scores.filter(accuracy__lt=self.highest_accuracy)
+            scores = scores.filter(accuracy__lte=self.highest_accuracy)
 
         scores = scores.unique_maps()
 
