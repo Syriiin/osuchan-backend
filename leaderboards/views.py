@@ -134,6 +134,7 @@ class ListLeaderboardMembers(APIView):
             return PermissionError("Must be authenticated with an osu! account.")
             
         membership = create_membership(leaderboard_id, user_id)
+        membership.score_count = membership.scores.count()
         serialiser = MembershipSerialiser(membership)
         return Response(serialiser.data)
 
