@@ -14,7 +14,6 @@ class GetUserStats(APIView):
     """
     API endpoint for getting UserStats
     """
-    queryset = UserStats.objects.non_restricted()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, user_string, gamemode):
@@ -40,7 +39,6 @@ class GetBeatmaps(APIView):
     """
     API endpoint for getting Beatmaps
     """
-    queryset = Beatmap.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, beatmap_id):
@@ -49,7 +47,7 @@ class GetBeatmaps(APIView):
         """
 
         try:
-            beatmap = self.queryset.get(id=beatmap_id)
+            beatmap = Beatmap.objects.get(id=beatmap_id)
         except Beatmap.DoesNotExist:
             raise NotFound("Beatmap not found.")
 
