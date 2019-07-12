@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -83,6 +83,8 @@ class ListUserInvites(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, user_id):
+        if not request.user.is_authenticated or request.user.osu_user_id != user_id:
+            raise PermissionDenied("You may only retrieve invites for the authenticated user.")
         invites = Invite.objects.select_related("leaderboard", "leaderboard__owner").filter(user_id=user_id)
         serialiser = UserInviteSerialiser(invites, many=True)
         return Response(serialiser.data)

@@ -1,4 +1,5 @@
 from django.db.models.aggregates import Count
+from django.db.models import Subquery
 
 from rest_framework import permissions
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
@@ -21,7 +22,7 @@ class ListLeaderboards(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):
-        osu_user_id = None if request.user.is_anonymous else request.user.osu_user_id
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboards = Leaderboard.objects.visible_to(osu_user_id).select_related("owner")
         
         user_id = request.query_params.get("user_id")
@@ -37,12 +38,11 @@ class ListLeaderboards(APIView):
         return Response(serialiser.data)
 
     def post(self, request):
-        # Check required parameters
-        if not request.user.is_authenticated:
-            raise PermissionDenied("Must be logged in to perform this action.")
-        else:
-            user_id = request.user.osu_user_id
+        user_id = request.user.osu_user_id
+        if user_id is None:
+            return PermissionError("Must be authenticated with an osu! account.")
 
+        # Check required parameters
         gamemode = request.data.get("gamemode")
         if gamemode is None:
             raise ParseError("Missing gamemode parameter.")
@@ -51,7 +51,7 @@ class ListLeaderboards(APIView):
         if access_type is None:
             raise ParseError("Missing access_type parameter.")
         elif access_type == LeaderboardAccessType.GLOBAL:
-            raise ParseError("Parameter access_type must be either 1 for public, or 2 for private.")
+            raise ParseError("Parameter access_type must be either 1 for public, 2 for invite-only public, or 3 for private.")
         
         name = request.data.get("name")
         if name is None:
@@ -92,25 +92,29 @@ class GetLeaderboard(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id):
-        osu_user_id = None if request.user.is_anonymous else request.user.osu_user_id
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        
         try:
             leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
+
         serialiser = LeaderboardSerialiser(leaderboard)
         return Response(serialiser.data)
 
     def delete(self, request, leaderboard_id):
-        if not request.user.is_authenticated:
-            raise PermissionDenied("Must be logged in to perform this action.")
-        else:
-            user_id = request.user.osu_user_id
+        user_id = request.user.osu_user_id
+        if user_id is None:
+            return PermissionError("Must be authenticated with an osu! account.")
+
         try:
             leaderboard = Leaderboard.objects.get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
+            
         if leaderboard.owner_id != user_id:
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
+
         return Response(leaderboard.delete())
 
 class ListLeaderboardMembers(APIView):
@@ -125,11 +129,10 @@ class ListLeaderboardMembers(APIView):
         return Response(serialiser.data)
 
     def post(self, request, leaderboard_id):
-        if not request.user.is_authenticated:
-            raise PermissionDenied("Must be logged in to perform this action.")
-        else:
-            user_id = request.user.osu_user_id
-
+        user_id = request.user.osu_user_id
+        if user_id is None:
+            return PermissionError("Must be authenticated with an osu! account.")
+            
         membership = create_membership(leaderboard_id, user_id)
         serialiser = MembershipSerialiser(membership)
         return Response(serialiser.data)
@@ -161,10 +164,9 @@ class ListLeaderboardInvites(APIView):
         return Response(serialiser.data)
 
     def post(self, request, leaderboard_id):
-        if not request.user.is_authenticated:
-            raise PermissionDenied("Must be logged in to perform this action.")
-        else:
-            user_id = request.user.osu_user_id
+        user_id = request.user.osu_user_id
+        if user_id is None:
+            return PermissionError("Must be authenticated with an osu! account.")
 
         invitee_id = request.data.get("user_id")
 
@@ -187,7 +189,9 @@ class ListLeaderboardBeatmapScores(APIView):
     API endpoint for listing Scores on Beatmaps
     """
     def get(self, request, leaderboard_id, beatmap_id):
-        scores = Score.objects.distinct().filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id).select_related("user_stats", "user_stats__user").order_by("-pp")
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
+        scores = Score.objects.distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1]), beatmap_id=beatmap_id).select_related("user_stats", "user_stats__user").order_by("-pp")
         serialiser = BeatmapScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
 
@@ -196,6 +200,8 @@ class ListLeaderboardMemberScores(APIView):
     API endpoint for listing Scores on Memberships
     """
     def get(self, request, leaderboard_id, user_id):
-        scores = Score.objects.distinct().filter(membership__leaderboard_id=leaderboard_id, membership__user_id=user_id).select_related("beatmap").order_by("-pp").unique_maps()[:100]
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
+        scores = Score.objects.distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1]), membership__user_id=user_id).select_related("beatmap").order_by("-pp").unique_maps()[:100]
         serialiser = UserScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
