@@ -5,7 +5,6 @@ from leaderboards.models import Leaderboard, Membership, Invite
 
 class LeaderboardSerialiser(serializers.ModelSerializer):
     owner = OsuUserSerialiser()
-    member_count = serializers.IntegerField(source="members.count")
 
     class Meta:
         model = Leaderboard
@@ -33,14 +32,12 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             # relations
             "owner",
             # dates
-            "creation_time",
-            # methods
-            "member_count"
+            "creation_time"
         )
 
 class MembershipSerialiser(serializers.ModelSerializer):
     user = OsuUserSerialiser()
-    score_count = serializers.IntegerField(source="scores.count")
+    score_count = serializers.IntegerField()
 
     class Meta:
         model = Membership
@@ -52,7 +49,7 @@ class MembershipSerialiser(serializers.ModelSerializer):
             "user",
             # dates
             "join_date",
-            # methods
+            # annotations
             "score_count"
         )
 

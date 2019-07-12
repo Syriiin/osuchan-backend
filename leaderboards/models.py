@@ -11,12 +11,12 @@ from profiles.models import OsuUser, Score
 from leaderboards.enums import AllowedBeatmapStatus, LeaderboardAccessType
 
 class LeaderboardQuerySet(models.QuerySet):
-    def visible_to(self, osu_user):
+    def visible_to(self, user_id):
         # return leaderboards that are not private or that the user is a member/invitee of
-        if osu_user is None:
+        if user_id is None:
             return self.distinct().filter(~Q(access_type=LeaderboardAccessType.PRIVATE))
         else:
-            return self.distinct().filter(~Q(access_type=LeaderboardAccessType.PRIVATE) | Q(members=osu_user) | Q(invitees=osu_user))
+            return self.distinct().filter(~Q(access_type=LeaderboardAccessType.PRIVATE) | Q(members__id=user_id) | Q(invitees__id=user_id))
 
 class Leaderboard(models.Model):
     """

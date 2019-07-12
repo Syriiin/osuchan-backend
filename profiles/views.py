@@ -21,7 +21,7 @@ class GetUserStats(APIView):
         """
         Return UserStats based on a user_string and gamemode
         """
-        user_id_type = request.query_params.get("user_id_type")
+        user_id_type = request.query_params.get("user_id_type") or "id"
 
         try:
             if user_id_type == "id":
@@ -60,14 +60,13 @@ class ListUserScores(APIView):
     """
     API endpoint for Scores
     """
-    queryset = Score.objects.select_related("beatmap").non_restricted()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, user_id, gamemode):
         """
         Return Scores based on a user_id and gamemode
         """
-        scores = self.queryset.filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).unique_maps()[:100]
+        scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).unique_maps()[:100]
         serialiser = UserScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
     
@@ -83,10 +82,9 @@ class ListUserInvites(APIView):
     """
     API endpoint for listing Invites for an OsuUser
     """
-    queryset = Invite.objects.select_related("leaderboard").all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, user_id):
-        invites = self.queryset.filter(user_id=user_id)
+        invites = Invite.objects.select_related("leaderboard", "leaderboard__owner").filter(user_id=user_id)
         serialiser = UserInviteSerialiser(invites, many=True)
         return Response(serialiser.data)

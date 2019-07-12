@@ -1,3 +1,5 @@
+from django.db.models.aggregates import Count
+
 from rest_framework import permissions
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
@@ -16,12 +18,11 @@ class ListLeaderboards(APIView):
     """
     API endpoint for listing Leaderboards
     """    
-    queryset = Leaderboard.objects.select_related("owner").all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):
-        osu_user = None if request.user.is_anonymous else request.user.osu_user
-        leaderboards = self.queryset.visible_to(osu_user)
+        osu_user_id = None if request.user.is_anonymous else request.user.osu_user_id
+        leaderboards = Leaderboard.objects.visible_to(osu_user_id).select_related("owner")
         
         user_id = request.query_params.get("user_id")
         gamemode = request.query_params.get("gamemode")
@@ -88,13 +89,12 @@ class GetLeaderboard(APIView):
     """
     API endpoint for specific Leaderboards
     """
-    queryset = Leaderboard.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id):
-        osu_user = None if request.user.is_anonymous else request.user.osu_user
+        osu_user_id = None if request.user.is_anonymous else request.user.osu_user_id
         try:
-            leaderboard = self.queryset.visible_to(osu_user).get(id=leaderboard_id)
+            leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
         serialiser = LeaderboardSerialiser(leaderboard)
@@ -106,7 +106,7 @@ class GetLeaderboard(APIView):
         else:
             user_id = request.user.osu_user_id
         try:
-            leaderboard = self.queryset.get(id=leaderboard_id)
+            leaderboard = Leaderboard.objects.get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
         if leaderboard.owner_id != user_id:
@@ -117,11 +117,10 @@ class ListLeaderboardMembers(APIView):
     """
     API endpoint for listing Memberships
     """
-    queryset = Membership.objects.select_related("user").order_by("-pp").all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id):
-        memberships = self.queryset.filter(leaderboard_id=leaderboard_id)
+        memberships = Membership.objects.filter(leaderboard_id=leaderboard_id).select_related("user").annotate(score_count=Count("scores")).order_by("-pp")
         serialiser = MembershipSerialiser(memberships, many=True)
         return Response(serialiser.data)
 
@@ -139,27 +138,25 @@ class GetLeaderboardMember(APIView):
     """
     API endpoint for specific Members
     """
-    queryset = Membership.objects.select_related("user").all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id, user_id):
-        membership = self.queryset.get(leaderboard_id=leaderboard_id, user_id=user_id)
+        membership = Membership.objects.select_related("user").annotate(score_count=Count("scores")).get(leaderboard_id=leaderboard_id, user_id=user_id)
         serialiser = MembershipSerialiser(membership)
         return Response(serialiser.data)
 
     def delete(self, request, leaderboard_id, user_id):
-        membership = self.queryset.get(leaderboard_id=leaderboard_id, user_id=user_id)
+        membership = Membership.objects.get(leaderboard_id=leaderboard_id, user_id=user_id)
         return Response(membership.delete())
 
 class ListLeaderboardInvites(APIView):
     """
     API endpoint for listing Invites for a Leaderboard
     """
-    queryset = Invite.objects.select_related("user").all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id):
-        invites = self.queryset.filter(leaderboard_id=leaderboard_id)
+        invites = Invite.objects.filter(leaderboard_id=leaderboard_id).select_related("user")
         serialiser = LeaderboardInviteSerialiser(invites, many=True)
         return Response(serialiser.data)
 
@@ -189,10 +186,8 @@ class ListLeaderboardBeatmapScores(APIView):
     """
     API endpoint for listing Scores on Beatmaps
     """
-    queryset = Score.objects.distinct().order_by("-pp").select_related("user_stats", "user_stats__user").all()
-
     def get(self, request, leaderboard_id, beatmap_id):
-        scores = self.queryset.filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id)
+        scores = Score.objects.distinct().filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id).select_related("user_stats", "user_stats__user").order_by("-pp")
         serialiser = BeatmapScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
 
@@ -200,9 +195,7 @@ class ListLeaderboardMemberScores(APIView):
     """
     API endpoint for listing Scores on Memberships
     """
-    queryset = Score.objects.distinct().order_by("-pp").select_related("beatmap").all()
-
     def get(self, request, leaderboard_id, user_id):
-        scores = self.queryset.filter(membership__leaderboard_id=leaderboard_id, membership__user_id=user_id).unique_maps()[:100]
+        scores = Score.objects.distinct().filter(membership__leaderboard_id=leaderboard_id, membership__user_id=user_id).select_related("beatmap").order_by("-pp").unique_maps()[:100]
         serialiser = UserScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
