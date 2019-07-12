@@ -153,6 +153,11 @@ class Leaderboard(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["gamemode"])
+        ]
+
 class Membership(models.Model):
     """
     Model representing the membership of a OsuUser to a Leaderboard
@@ -174,6 +179,12 @@ class Membership(models.Model):
     def __str__(self):
         return f"{self.leaderboard.name}: {self.user.username}"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["leaderboard"]),
+            models.Index(fields=["user"])
+        ]
+
 class Invite(models.Model):
     """
     Model representing an invitation of a OsuUser to a Leaderboard
@@ -190,6 +201,12 @@ class Invite(models.Model):
 
     def __str__(self):
         return f"{self.leaderboard.name}: {self.user.username}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["leaderboard"]),
+            models.Index(fields=["user"])
+        ]
 
 # Custom lookups
 
