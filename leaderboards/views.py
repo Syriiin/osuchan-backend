@@ -22,11 +22,6 @@ class ListLeaderboards(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):
-        limit = int(request.query_params.get("limit", "100"))
-        offset = int(request.query_params.get("offset", "0"))
-        if limit > 100:
-            limit = 100
-
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboards = Leaderboard.objects.visible_to(osu_user_id).select_related("owner")
         
@@ -39,7 +34,7 @@ class ListLeaderboards(APIView):
             # Filtering for leaderboards for a speficic gamemode
             leaderboards = leaderboards.filter(gamemode=gamemode)
 
-        serialiser = LeaderboardSerialiser(leaderboards[offset:limit + offset], many=True)
+        serialiser = LeaderboardSerialiser(leaderboards, many=True)
         return Response(serialiser.data)
 
     def post(self, request):
