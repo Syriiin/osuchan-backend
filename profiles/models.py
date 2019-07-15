@@ -163,7 +163,7 @@ class UserStats(models.Model):
             score.user_stats_id = self.id
         
         # Bulk add and update beatmaps and scores
-        Beatmap.objects.bulk_create(beatmaps_to_create)
+        Beatmap.objects.bulk_create(beatmaps_to_create, ignore_conflicts=True)
         Score.objects.bulk_create(scores_to_create)
 
         # Update leaderboard memberships with all scores
