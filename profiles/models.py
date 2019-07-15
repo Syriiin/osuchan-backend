@@ -408,3 +408,7 @@ class Score(models.Model):
             # Scores are unique on user + date, so multiple scores from the same beatmaps + mods are allowed per user
             models.UniqueConstraint(fields=["user_stats_id", "date"], name="unique_score")
         ]
+
+        indexes = [
+            models.Index(fields=["pp"])
+        ]
