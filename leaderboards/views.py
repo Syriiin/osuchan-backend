@@ -189,6 +189,8 @@ class ListLeaderboardBeatmapScores(APIView):
     """
     API endpoint for listing Scores on Beatmaps
     """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
     def get(self, request, leaderboard_id, beatmap_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
@@ -200,6 +202,8 @@ class ListLeaderboardMemberScores(APIView):
     """
     API endpoint for listing Scores on Memberships
     """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
     def get(self, request, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
