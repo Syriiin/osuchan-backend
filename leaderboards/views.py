@@ -62,11 +62,16 @@ class ListLeaderboards(APIView):
         name = request.data.get("name")
         if name is None:
             raise ParseError("Missing name parameter.")
+
+        description = request.data.get("description")
+        icon_url = request.data.get("icon_url")
         
         leaderboard = Leaderboard(
             gamemode=gamemode,
             access_type=access_type,
-            name=name
+            name=name,
+            description=description or "",
+            icon_url=icon_url or ""
         )
 
         # Set optional score criteria
