@@ -72,7 +72,7 @@ class ListUserScores(APIView):
         """
         Add new Scores based on passes user_id, gamemode, beatmap_id
         """
-        scores = fetch_scores(request.data["user_id"], request.data["beatmap_id"], request.data["gamemode"])
+        scores = fetch_scores(user_id, request.data["beatmap_id"], gamemode)
         serialiser = UserScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
 

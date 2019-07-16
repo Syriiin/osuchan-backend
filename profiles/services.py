@@ -115,6 +115,6 @@ def fetch_scores(user_id, beatmap_id, gamemode):
         score_data["beatmap_id"] = beatmap_id
 
     # Process add scores
-    unchanged_scores, updated_scores, new_scores = user_stats.add_scores_from_data(score_data_list, override_beatmap_id=beatmap_id)
+    new_scores = user_stats.add_scores_from_data(score_data_list)
 
-    return [*unchanged_scores, *updated_scores, *new_scores]
+    return new_scores
