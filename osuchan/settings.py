@@ -16,7 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',   # browsable api
+    'rest_framework',
     'debug_toolbar',    # django debug toolbar
     'main.apps.MainConfig', # entry point to react app
     'osuauth.apps.OsuauthConfig',   # osu auth and accounts
@@ -110,16 +110,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'osuchan-frontend', 'build', 'static')
 ]
-
-
-# Django REST framework
-# https://www.django-rest-framework.org/api-guide/settings/
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
-    ]
-}
 
 
 # osu! API
