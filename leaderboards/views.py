@@ -23,7 +23,7 @@ class ListLeaderboards(APIView):
 
     def get(self, request):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        leaderboards = Leaderboard.objects.visible_to(osu_user_id).select_related("owner")
+        leaderboards = Leaderboard.objects.visible_to(osu_user_id).exclude(access_type=LeaderboardAccessType.GLOBAL).select_related("owner")
         
         user_id = request.query_params.get("user_id")
         gamemode = request.query_params.get("gamemode")
@@ -33,6 +33,12 @@ class ListLeaderboards(APIView):
         if gamemode is not None:
             # Filtering for leaderboards for a speficic gamemode
             leaderboards = leaderboards.filter(gamemode=gamemode)
+
+        leaderboards = leaderboards.annotate(member_count=Count("members")).order_by("-member_count")
+        
+        if user_id is None:
+            global_leaderboards = Leaderboard.objects.filter(access_type=LeaderboardAccessType.GLOBAL).select_related("owner")
+            leaderboards = list(global_leaderboards) + list(leaderboards[:25])
 
         serialiser = LeaderboardSerialiser(leaderboards, many=True)
         return Response(serialiser.data)
