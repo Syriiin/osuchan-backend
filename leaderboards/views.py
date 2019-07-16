@@ -190,8 +190,11 @@ class ListLeaderboardInvites(APIView):
             raise PermissionDenied("Cannot invite a user who is already a member.")
 
         message = request.data.get("message") or ""
-        invite = Invite(user_id=invitee_id, leaderboard_id=leaderboard_id, message=message)
-        invite.save()
+        try:
+            invite = Invite.objects.get(user_id=invitee_id, leaderboard_id=leaderboard_id)
+        except Invite.DoesNotExist:
+            invite = Invite(user_id=invitee_id, leaderboard_id=leaderboard_id, message=message)
+            invite.save()
 
         serialiser = LeaderboardInviteSerialiser(invite)
         return Response(serialiser.data)
