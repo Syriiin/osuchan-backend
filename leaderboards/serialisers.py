@@ -14,6 +14,7 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "access_type",
             "name",
             "description",
+            "icon_url",
             # score criteria
             "allow_past_scores",
             "allowed_beatmap_status",

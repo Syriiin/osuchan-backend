@@ -27,6 +27,7 @@ class Leaderboard(models.Model):
     access_type = models.IntegerField()
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    icon_url = models.CharField(max_length=250)
 
     # score criteria
     allow_past_scores = models.BooleanField()   # allow scores set before membership started
