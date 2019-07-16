@@ -36,5 +36,5 @@ if settings.DEBUG:
     )
 
 urlpatterns.append(
-    re_path(r"^.*", main)
+    re_path(r"^.*", main, name="main")
 )

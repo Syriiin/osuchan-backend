@@ -5,15 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>osu!chan beta</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            color: #fff;
+            background-color: #111E42;
+        }
+        div {
+            margin-top: 40vh;
+            text-align: center;
+        }
+        a {
+            color: #7289CC;
+        }
+    </style>
 </head>
 <body>
-    <h1>osu!chan beta</h1>
-    <br />
-    {% if not user.is_authenticated %}
-    <a href="{% url 'login_redirect' %}">Click here to log in with osu! and request to join the beta!</a>
-    {% else %}
-    <p>Logged in as: {{ user.osu_user.username }}</p>
-    <p>Your request to join the beta has been sent.</p>
-    {% endif %}
+    <div>
+        <h1>osu!chan beta</h1>
+        <br />
+        {% if not user.is_authenticated %}
+        <a href="{% url 'login_redirect' %}">Click here to log in with osu! and request to join the beta!</a>
+        {% else %}
+        <p>Logged in as: {{ user.osu_user.username }}</p>
+        <p>Your request to join the beta has been sent.</p>
+        <p>Feel free to follow <a href="https://twitter.com/Syriiins">@Syriiins</a> on twitter to see when new beta invitations are happening.</p>
+        {% endif %}
+    </div>
 </body>
 </html>
