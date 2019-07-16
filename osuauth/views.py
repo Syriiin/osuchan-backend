@@ -10,6 +10,7 @@ from rest_framework import permissions
 
 import requests
 
+from profiles.services import fetch_user
 from profiles.serialisers import OsuUserSerialiser
 
 def login_redirect(request):
@@ -68,5 +69,9 @@ def me(request):
         raise Http404
 
     # user might still not have osu_user if not they are a non-linked account (ie. admin)
-    serialiser = OsuUserSerialiser(getattr(request.user, "osu_user", None))
+    osu_user = request.user.osu_user
+    if osu_user is not None:
+        fetch_user(user_id=osu_user.id) # TODO: specify gamemode based on user preferences
+
+    serialiser = OsuUserSerialiser(osu_user)
     return Response(serialiser.data)
