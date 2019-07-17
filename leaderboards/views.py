@@ -18,7 +18,7 @@ from leaderboards.enums import LeaderboardAccessType, AllowedBeatmapStatus
 class ListLeaderboards(APIView):
     """
     API endpoint for listing Leaderboards
-    """    
+    """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request):

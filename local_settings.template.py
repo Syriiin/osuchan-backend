@@ -60,6 +60,17 @@ DATABASES = {
 }
 
 
+# Cache
+# https://docs.djangoproject.com/en/2.2/ref/settings/#caches
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': ''
+    }
+}
+
+
 # Django REST framework
 # https://www.django-rest-framework.org/api-guide/settings/
 
@@ -70,7 +81,17 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         # 'rest_framework.renderers.BrowsableAPIRenderer'
-    ]
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/minute',
+        'user': '30/minute',
+        'anon': '1000/day',
+        'user': '1000/day'
+    }
 }
 
 
