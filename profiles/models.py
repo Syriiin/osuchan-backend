@@ -209,7 +209,7 @@ class UserStats(models.Model):
 
     def __update_memberships(self, *scores):
         """
-        Updates memberships this UserStats has with Leaderboards with the scores passed
+        Updates memberships this UserStats' OsuUser has with Leaderboards with the scores passed
         """
         memberships = self.user.memberships.select_for_update().select_related("leaderboard").filter(leaderboard__gamemode=self.gamemode)
         
