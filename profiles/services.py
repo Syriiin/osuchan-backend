@@ -69,23 +69,23 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     user_stats.user_id = int(osu_user.id)
 
     # Update UserStats fields
-    user_stats.playcount = int(user_data["playcount"])
-    user_stats.playtime = int(user_data["total_seconds_played"])
-    user_stats.level = float(user_data["level"])
-    user_stats.ranked_score = int(user_data["ranked_score"])
-    user_stats.total_score = int(user_data["total_score"])
-    user_stats.rank = int(user_data["pp_rank"])
-    user_stats.country_rank = int(user_data["pp_country_rank"])
-    user_stats.pp = float(user_data["pp_raw"])
-    user_stats.accuracy = float(user_data["accuracy"])
-    user_stats.count_300 = int(user_data["count300"])
-    user_stats.count_100 = int(user_data["count100"])
-    user_stats.count_50 = int(user_data["count50"])
-    user_stats.count_rank_ss = int(user_data["count_rank_ss"])
-    user_stats.count_rank_ssh = int(user_data["count_rank_ssh"])
-    user_stats.count_rank_s = int(user_data["count_rank_s"])
-    user_stats.count_rank_sh = int(user_data["count_rank_sh"])
-    user_stats.count_rank_a = int(user_data["count_rank_a"])
+    user_stats.playcount = int(user_data["playcount"]) if user_data["playcount"] is not None else 0
+    user_stats.playtime = int(user_data["total_seconds_played"]) if user_data["total_seconds_played"] is not None else 0
+    user_stats.level = float(user_data["level"]) if user_data["level"] is not None else 0
+    user_stats.ranked_score = int(user_data["ranked_score"]) if user_data["ranked_score"] is not None else 0
+    user_stats.total_score = int(user_data["total_score"]) if user_data["total_score"] is not None else 0
+    user_stats.rank = int(user_data["pp_rank"]) if user_data["pp_rank"] is not None else 0
+    user_stats.country_rank = int(user_data["pp_country_rank"]) if user_data["pp_country_rank"] is not None else 0
+    user_stats.pp = float(user_data["pp_raw"]) if user_data["pp_raw"] is not None else 0
+    user_stats.accuracy = float(user_data["accuracy"]) if user_data["accuracy"] is not None else 0
+    user_stats.count_300 = int(user_data["count300"]) if user_data["count300"] is not None else 0
+    user_stats.count_100 = int(user_data["count100"]) if user_data["count100"] is not None else 0
+    user_stats.count_50 = int(user_data["count50"]) if user_data["count50"] is not None else 0
+    user_stats.count_rank_ss = int(user_data["count_rank_ss"]) if user_data["count_rank_ss"] is not None else 0
+    user_stats.count_rank_ssh = int(user_data["count_rank_ssh"]) if user_data["count_rank_ssh"] is not None else 0
+    user_stats.count_rank_s = int(user_data["count_rank_s"]) if user_data["count_rank_s"] is not None else 0
+    user_stats.count_rank_sh = int(user_data["count_rank_sh"]) if user_data["count_rank_sh"] is not None else 0
+    user_stats.count_rank_a = int(user_data["count_rank_a"]) if user_data["count_rank_a"] is not None else 0
 
     # Fetch user scores from osu api
     score_data_list = []
