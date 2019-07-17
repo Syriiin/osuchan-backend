@@ -11,7 +11,7 @@ class User(AbstractUser):
     is_beta_tester = models.BooleanField(default=False)
 
     # Relations
-    osu_user = models.OneToOneField(OsuUser, on_delete=models.SET_NULL, null=True)
+    osu_user = models.OneToOneField(OsuUser, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         if self.osu_user:
