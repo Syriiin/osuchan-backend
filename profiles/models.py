@@ -119,7 +119,7 @@ class UserStats(models.Model):
                 beatmaps.append(beatmap)    # add to beatmaps incase another score is on this map
                 beatmaps_to_create.append(beatmap)
             score.beatmap = beatmap
-            score.user_stats_id = self.id
+            score.user_stats = self
 
             # Update pp
             if "pp" in score_data:
@@ -389,7 +389,7 @@ class Score(models.Model):
 
     def process(self):
         # calculate nochoke pp and result
-        if self.beatmap.gamemode == Gamemode.STANDARD:
+        if self.user_stats.gamemode == Gamemode.STANDARD:
             # determine score result
             self.__process_score_result()
             # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
