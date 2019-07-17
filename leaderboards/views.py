@@ -25,6 +25,9 @@ class ListLeaderboards(APIView):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboards = Leaderboard.objects.exclude(access_type=LeaderboardAccessType.GLOBAL).select_related("owner")
         
+        # order by member count
+        leaderboards = leaderboards.annotate(member_count=Count("members")).order_by("-member_count")
+        
         user_id = request.query_params.get("user_id")
         gamemode = request.query_params.get("gamemode")
         if user_id is not None:
@@ -34,9 +37,6 @@ class ListLeaderboards(APIView):
             # Filtering for leaderboards for a speficic gamemode
             leaderboards = leaderboards.filter(gamemode=gamemode)
 
-        # order by member count
-        leaderboards = leaderboards.annotate(member_count=Count("members")).order_by("-member_count")
-        
         # filter for leaderboards visible to the user
         leaderboards = leaderboards.visible_to(osu_user_id)
 
