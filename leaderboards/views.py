@@ -77,6 +77,10 @@ class ListLeaderboards(APIView):
         if name is None:
             raise ParseError("Missing name parameter.")
 
+        user_owned_leaderboards = Leaderboard.objects.filter(owner_id=user_id)
+        if user_owned_leaderboards.count() >= 10:
+            raise PermissionDenied("Each user is limited to owning 10 leaderboards.")
+
         description = request.data.get("description")
         icon_url = request.data.get("icon_url")
         
