@@ -200,24 +200,28 @@ class ListLeaderboardInvites(APIView):
         user_id = request.user.osu_user_id
         if user_id is None:
             return PermissionError("Must be authenticated with an osu! account.")
-
-        invitee_id = request.data.get("user_id")
-
+        
         leaderboard = Leaderboard.objects.get(id=leaderboard_id)
         if not leaderboard.owner_id == user_id:
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
-        
-        if leaderboard.memberships.filter(user_id=invitee_id).exists():
-            raise PermissionDenied("Cannot invite a user who is already a member.")
 
-        message = request.data.get("message") or ""
-        try:
-            invite = Invite.objects.get(user_id=invitee_id, leaderboard_id=leaderboard_id)
-        except Invite.DoesNotExist:
-            invite = Invite(user_id=invitee_id, leaderboard_id=leaderboard_id, message=message)
-            invite.save()
+        invitee_ids = request.data.get("user_ids")
 
-        serialiser = LeaderboardInviteSerialiser(invite)
+        invites = []
+        for invitee_id in invitee_ids:
+            if leaderboard.memberships.filter(user_id=invitee_id).exists():
+                continue
+
+            message = request.data.get("message") or ""
+            try:
+                invite = Invite.objects.get(user_id=invitee_id, leaderboard_id=leaderboard_id)
+            except Invite.DoesNotExist:
+                invite = Invite(user_id=invitee_id, leaderboard_id=leaderboard_id, message=message)
+                invite.save()
+            
+            invites.append(invite)
+
+        serialiser = LeaderboardInviteSerialiser(invites, many=True)
         return Response(serialiser.data)
 
 class ListLeaderboardBeatmapScores(APIView):

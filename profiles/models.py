@@ -122,7 +122,7 @@ class UserStats(models.Model):
             score.user_stats = self
 
             # Update pp
-            if "pp" in score_data:
+            if "pp" in score_data and score_data["pp"] is not None:
                 score.pp = float(score_data["pp"])
             else:
                 # Check for gamemode

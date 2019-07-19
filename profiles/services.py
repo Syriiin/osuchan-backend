@@ -100,21 +100,25 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     return user_stats
 
 @transaction.atomic
-def fetch_scores(user_id, beatmap_id, gamemode):
+def fetch_scores(user_id, beatmap_ids, gamemode):
     """
-    Fetch and add scores for a user on a beatmap in a gamemode
+    Fetch and add scores for a user on beatmaps in a gamemode
     """
     # Fetch UserStats from database
     user_stats = UserStats.objects.select_for_update().get(user_id=user_id, gamemode=gamemode)
     
-    # Fetch score data from osu api
-    score_data_list = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode)
-    
-    # Add beatmap id to turn it into the common json format
-    for score_data in score_data_list:
-        score_data["beatmap_id"] = beatmap_id
+    full_score_data_list = []
+    for beatmap_id in beatmap_ids:
+        # Fetch score data from osu api
+        score_data_list = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode)
 
+        # Add beatmap id to turn it into the common json format
+        for score_data in score_data_list:
+            score_data["beatmap_id"] = beatmap_id
+        
+        full_score_data_list += score_data_list
+    
     # Process add scores
-    new_scores = user_stats.add_scores_from_data(score_data_list)
+    new_scores = user_stats.add_scores_from_data(full_score_data_list)
 
     return new_scores
