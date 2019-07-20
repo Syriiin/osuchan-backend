@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Subquery
 
+import math
 from datetime import datetime
 
 import pytz
@@ -136,7 +137,7 @@ class UserStats(models.Model):
                         calc.set_combo(score.best_combo)
                         calc.set_mods(score.mods)
                         calc.calculate()
-                        score.pp = calc.pp
+                        score.pp = calc.pp if math.isfinite(calc.pp) else 0
             
             # Update convenience fields
             score.accuracy = utils.get_accuracy(score.count_300, score.count_100, score.count_50, score.count_miss, score.count_katu, score.count_geki)
@@ -397,8 +398,8 @@ class Score(models.Model):
                 calc.set_accuracy(count_100=self.count_100, count_50=self.count_50)
                 calc.set_mods(self.mods)
                 calc.calculate()
-                self.nochoke_pp = calc.pp
-                self.star_rating = calc.stars
+                self.nochoke_pp = calc.pp if math.isfinite(calc.pp) else 0
+                self.star_rating = calc.stars if math.isfinite(calc.stars) else 0
 
     def __str__(self):
         return "{}: {:.0f}pp".format(self.beatmap_id, self.pp)
