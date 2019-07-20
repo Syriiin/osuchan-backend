@@ -127,7 +127,7 @@ class UserStats(models.Model):
                 score.pp = float(score_data["pp"])
             else:
                 # Check for gamemode
-                if score.beatmap.gamemode != Gamemode.STANDARD:
+                if self.gamemode != Gamemode.STANDARD:
                     # We cant calculate pp for this mode so we need to disregard about this score
                     continue
                 # Use oppai to calculate pp
@@ -140,7 +140,7 @@ class UserStats(models.Model):
                         score.pp = calc.pp if math.isfinite(calc.pp) else 0
             
             # Update convenience fields
-            score.accuracy = utils.get_accuracy(score.count_300, score.count_100, score.count_50, score.count_miss, score.count_katu, score.count_geki)
+            score.accuracy = utils.get_accuracy(score.count_300, score.count_100, score.count_50, score.count_miss, score.count_katu, score.count_geki, gamemode=self.gamemode)
             score.bpm = utils.get_bpm(beatmap.bpm, score.mods)
             score.length = utils.get_length(beatmap.drain_time, score.mods)
             score.circle_size = utils.get_cs(beatmap.circle_size, score.mods)

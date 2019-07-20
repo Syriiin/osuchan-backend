@@ -6,15 +6,15 @@ def calculate_pp_total(sorted_pps):
     # sorted_pps should be a sorted generator but can be any iterable of floats
     return sum(pp * (0.95 ** i) for i, pp in enumerate(sorted_pps))
 
-def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, count_geki=None, mode=Gamemode.STANDARD):
+def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, count_geki=None, gamemode=Gamemode.STANDARD):
     #---------------Acc calculations
     # Accuracy = (Total points of hits / (Total number of hits * 300) * 100)
     # Total points of hits = (Number of 50s * 50 + Number of 100s * 100 + Number of 300s * 300)
     # Total number of hits = (Number of misses + Number of 50's + Number of 100's + Number of 300's)
 
-    mode = Gamemode(mode)
+    gamemode = Gamemode(gamemode)
 
-    if mode == Gamemode.STANDARD:
+    if gamemode == Gamemode.STANDARD:
         #standard acc
         no_300 = int(count_300)
         no_100 = int(count_100)
@@ -26,7 +26,7 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 
         accuracy = (points / (total_hits * 300)) * 100
 
-    elif mode == Gamemode.TAIKO:
+    elif gamemode == Gamemode.TAIKO:
         #taiko acc
         no_300 = int(count_300)
         no_100 = int(count_100)
@@ -37,7 +37,7 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 
         accuracy = (points / (total_hits * 300)) * 100
 
-    elif mode == Gamemode.CATCH:
+    elif gamemode == Gamemode.CATCH:
         #ctb acc
         no_300 = int(count_300)
         no_100 = int(count_100)
@@ -50,7 +50,7 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 
         accuracy = (caught / total_hits) * 100
 
-    elif mode == Gamemode.MANIA:
+    elif gamemode == Gamemode.MANIA:
         #mania acc
         no_MAX = int(count_geki)
         no_300 = int(count_300)
