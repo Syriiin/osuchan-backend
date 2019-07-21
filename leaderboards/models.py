@@ -34,6 +34,8 @@ class Leaderboard(models.Model):
     allowed_beatmap_status = models.IntegerField()
     oldest_beatmap_date = models.DateTimeField(null=True, blank=True)
     newest_beatmap_date = models.DateTimeField(null=True, blank=True)
+    oldest_score_date = models.DateTimeField(null=True, blank=True)
+    newest_score_date = models.DateTimeField(null=True, blank=True)
     lowest_ar = models.FloatField(null=True, blank=True)
     highest_ar = models.FloatField(null=True, blank=True)
     lowest_od = models.FloatField(null=True, blank=True)
@@ -70,6 +72,8 @@ class Leaderboard(models.Model):
                 # optional filters
                 (self.oldest_beatmap_date is None or self.oldest_beatmap_date <= score.beatmap.last_updated) and
                 (self.newest_beatmap_date is None or self.newest_beatmap_date >= score.beatmap.last_updated) and
+                (self.oldest_score_date is None or self.oldest_score_date <= score.date) and
+                (self.newest_score_date is None or self.newest_score_date >= score.date) and
                 (self.lowest_ar is None or self.lowest_ar <= score.approach_rate) and
                 (self.highest_ar is None or self.highest_ar >= score.approach_rate) and
                 (self.lowest_od is None or self.lowest_od <= score.overall_difficulty) and
@@ -125,6 +129,10 @@ class Leaderboard(models.Model):
             scores = scores.filter(beatmap__last_updated__gte=self.oldest_beatmap_date)
         if self.newest_beatmap_date:
             scores = scores.filter(beatmap__last_updated__lte=self.newest_beatmap_date)
+        if self.oldest_score_date:
+            scores = scores.filter(date__gte=self.oldest_score_date)
+        if self.newest_score_date:
+            scores = scores.filter(date__lte=self.newest_score_date)
         if self.lowest_ar:
             scores = scores.filter(approach_rate__gte=self.lowest_ar)
         if self.highest_ar:

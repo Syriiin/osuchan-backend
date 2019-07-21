@@ -20,6 +20,8 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "allowed_beatmap_status",
             "oldest_beatmap_date",
             "newest_beatmap_date",
+            "oldest_score_date",
+            "newest_score_date",
             "lowest_ar",
             "highest_ar",
             "lowest_od",

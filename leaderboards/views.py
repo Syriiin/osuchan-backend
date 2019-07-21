@@ -97,6 +97,8 @@ class ListLeaderboards(APIView):
         leaderboard.allowed_beatmap_status = request.data.get("allowed_beatmap_status") or AllowedBeatmapStatus.RANKED_ONLY
         leaderboard.oldest_beatmap_date = request.data.get("oldest_beatmap_date")
         leaderboard.newest_beatmap_date = request.data.get("newest_beatmap_date")
+        leaderboard.oldest_score_date = request.data.get("oldest_score_date")
+        leaderboard.newest_score_date = request.data.get("newest_score_date")
         leaderboard.lowest_ar = request.data.get("lowest_ar")
         leaderboard.highest_ar = request.data.get("highest_ar")
         leaderboard.lowest_od = request.data.get("lowest_od")
