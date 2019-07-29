@@ -43,7 +43,7 @@ class OsuBackend:
             # User doesn't exist yet, so let's create it
             # We will use osu id as username to avoid name conflicts from name changes and such
             #   not a great solution but it's fine for now (could do something like require email input)
-            user = User(username=data["id"])
+            user = User(username=data["id"], is_beta_tester=int(data["id"]) in settings.AUTO_BETA_TESTERS)
         user.osu_user = osu_user
         user.save()
 

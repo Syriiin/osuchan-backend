@@ -1,5 +1,8 @@
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
+
+import os
 
 from osuauth.models import User
 
@@ -9,6 +12,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("accept_count", nargs=1, type=int)
         parser.add_argument("accept_type", nargs=1, type=str)
+        parser.add_argument("--file")
 
     def handle(self, *args, **options):
         accept_count = options["accept_count"][0]
@@ -20,6 +24,11 @@ class Command(BaseCommand):
             users = users.order_by("?")
         else:
             users = users.order_by("date_joined")
+
+        if options["file"]:
+            file_path = os.path.join(settings.BASE_DIR, options["file"])
+            with open(file_path, "r") as fp:
+                users = users.filter(osu_user_id__in=[int(user_id.replace("\n", "")) for user_id in fp.readlines()])
 
         users = users[:accept_count]
 
