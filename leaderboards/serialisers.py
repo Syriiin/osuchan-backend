@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from profiles.serialisers import OsuUserSerialiser
+from profiles.serialisers import OsuUserSerialiser, ScoreSerialiser, UserStatsSerialiser, BeatmapSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
 
 class LeaderboardSerialiser(serializers.ModelSerializer):
@@ -74,3 +74,7 @@ class LeaderboardInviteSerialiser(InviteSerialiser):
 
 class UserInviteSerialiser(InviteSerialiser):
     leaderboard = LeaderboardSerialiser()
+
+class LeaderboardScoreSerialiser(ScoreSerialiser):
+    user_stats = UserStatsSerialiser()
+    beatmap = BeatmapSerialiser()

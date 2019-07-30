@@ -13,7 +13,7 @@ from osuauth.permissions import BetaPermission
 from profiles.models import Score
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
-from leaderboards.serialisers import LeaderboardSerialiser, MembershipSerialiser, LeaderboardInviteSerialiser
+from leaderboards.serialisers import LeaderboardSerialiser, MembershipSerialiser, LeaderboardInviteSerialiser, LeaderboardScoreSerialiser
 from leaderboards.services import create_leaderboard, create_membership
 from leaderboards.enums import LeaderboardAccessType, AllowedBeatmapStatus
 
@@ -169,6 +169,20 @@ class ListLeaderboardMembers(APIView):
         membership = create_membership(leaderboard_id, user_id)
         membership.score_count = membership.scores.count()
         serialiser = MembershipSerialiser(membership)
+        return Response(serialiser.data)
+
+class ListLeaderboardScores(APIView):
+    """
+    API endpoint for listing scores from all members of a leaderboard
+    """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
+    # @method_decorator(cache_page(60 * 2))
+    def get(self, request, leaderboard_id):
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
+        scores = Score.objects.distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1])).select_related("user_stats", "user_stats__user", "beatmap").order_by("-pp")[:5]
+        serialiser = LeaderboardScoreSerialiser(scores[:50], many=True)
         return Response(serialiser.data)
 
 class GetLeaderboardMember(APIView):
