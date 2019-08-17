@@ -117,9 +117,10 @@ class UserStats(models.Model):
             beatmap = next((beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None)
             if beatmap is None:
                 beatmap = Beatmap.from_data(apiv1.get_beatmaps(beatmap_id=beatmap_id)[0])
+                if beatmap.status not in [BeatmapStatus.APPROVED, BeatmapStatus.RANKED, BeatmapStatus.LOVED]:
+                    continue
                 beatmaps.append(beatmap)    # add to beatmaps incase another score is on this map
-                if beatmap.status in [BeatmapStatus.APPROVED, BeatmapStatus.RANKED, BeatmapStatus.LOVED]:
-                    beatmaps_to_create.append(beatmap)
+                beatmaps_to_create.append(beatmap)
             score.beatmap = beatmap
             score.user_stats = self
 
