@@ -10,7 +10,7 @@ import oppaipy
 from common.utils import get_beatmap_path
 from common.enums import ScoreResult
 from common.osu import apiv1, utils
-from common.osu.enums import Gamemode
+from common.osu.enums import Gamemode, BeatmapStatus
 
 class OsuUserQuerySet(models.QuerySet):
     def non_restricted(self):
@@ -118,7 +118,8 @@ class UserStats(models.Model):
             if beatmap is None:
                 beatmap = Beatmap.from_data(apiv1.get_beatmaps(beatmap_id=beatmap_id)[0])
                 beatmaps.append(beatmap)    # add to beatmaps incase another score is on this map
-                beatmaps_to_create.append(beatmap)
+                if beatmap.status in [BeatmapStatus.APPROVED, BeatmapStatus.RANKED, BeatmapStatus.LOVED]:
+                    beatmaps_to_create.append(beatmap)
             score.beatmap = beatmap
             score.user_stats = self
 
