@@ -110,4 +110,3 @@ BEATMAP_CACHE_PATH = ''
 
 # Beta status
 BETA = True
-AUTO_BETA_TESTERS = []
