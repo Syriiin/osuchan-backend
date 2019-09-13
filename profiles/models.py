@@ -130,7 +130,7 @@ class UserStats(models.Model):
             else:
                 # Check for gamemode
                 if self.gamemode != Gamemode.STANDARD:
-                    # We cant calculate pp for this mode so we need to disregard about this score
+                    # We cant calculate pp for this mode so we need to disregard this score
                     continue
                 # Use oppai to calculate pp
                 with oppaipy.Calculator(get_beatmap_path(beatmap_id)) as calc:
@@ -224,7 +224,12 @@ class UserStats(models.Model):
             # Find all scores matching criteria
             allowed_scores = [score for score in scores if membership.score_is_allowed(score)]
             # Filter for unique maps
-            unique_map_scores = [score for score in allowed_scores if score == next(s for s in allowed_scores if s.beatmap_id == score.beatmap_id)]
+            unique_map_scores = []
+            beatmap_ids = []
+            for score in allowed_scores:
+                if score.beatmap_id not in beatmap_ids:
+                    unique_map_scores.append(score)
+                    beatmap_ids.append(score.beatmap_id)
             
             # Clear current scores so we can refresh them
             membership.scores.clear()
