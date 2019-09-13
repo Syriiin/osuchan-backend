@@ -1,11 +1,15 @@
 from django.conf import settings
+from django.db import transaction
+
+from datetime import datetime
 
 import requests
 
 from common.osu.enums import Gamemode
 from osuauth.models import User
-from profiles.models import UserStats
-from profiles.services import fetch_user
+from profiles.models import OsuUser
+from leaderboards.models import Leaderboard, Membership
+from leaderboards.enums import LeaderboardAccessType
 
 class OsuBackend:
     """
@@ -32,8 +36,25 @@ class OsuBackend:
         data = response.json()
 
         # create/update osu user object
-        user_stats = fetch_user(user_id=data["id"], gamemode=Gamemode.STANDARD)
-        osu_user = user_stats.user
+        with transaction.atomic():
+            try:
+                osu_user = OsuUser.objects.select_for_update().get(id=data["id"])
+            except OsuUser.DoesNotExist:
+                osu_user = OsuUser(id=data["id"])
+
+                # Create memberships with global leaderboards
+                global_leaderboards = Leaderboard.objects.filter(access_type=LeaderboardAccessType.GLOBAL).values("id")
+                # TODO: refactor this to be somewhere else. dont really like setting pp to 0
+                global_memberships = [Membership(leaderboard_id=leaderboard["id"], user_id=osu_user.id, pp=0) for leaderboard in global_leaderboards]
+                Membership.objects.bulk_create(global_memberships)
+
+            # Update OsuUser fields
+            osu_user.username = data["username"]
+            osu_user.country = data["country"]["code"]
+            osu_user.join_date = datetime.strptime(data["join_date"], "%Y-%m-%dT%H:%M:%S%z")
+            osu_user.disabled = False
+
+            osu_user.save()
 
         # create/find (auth) user, update and return
         try:
