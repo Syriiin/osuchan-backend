@@ -95,6 +95,14 @@ REST_FRAMEWORK = {
 }
 
 
+# Celery
+# https://docs.celeryproject.org/en/latest/userguide/configuration.html
+
+CELERY_BROKER_URL = "amqp://"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+
 # osu! API
 
 # v2
