@@ -1,5 +1,6 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.db.models.aggregates import Count
 
 from rest_framework import permissions
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -10,8 +11,8 @@ from osuauth.permissions import BetaPermission
 from profiles.models import UserStats, Beatmap, Score
 from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserScoreSerialiser
 from profiles.services import fetch_user, fetch_scores
-from leaderboards.models import Invite
-from leaderboards.serialisers import UserInviteSerialiser
+from leaderboards.models import Membership, Invite
+from leaderboards.serialisers import UserMembershipSerialiser, UserInviteSerialiser
 
 class GetUserStats(APIView):
     """
@@ -80,6 +81,19 @@ class ListUserScores(APIView):
         """
         scores = fetch_scores(user_id, request.data.get("beatmap_ids"), gamemode)
         serialiser = UserScoreSerialiser(scores, many=True)
+        return Response(serialiser.data)
+
+class ListUserMemberships(APIView):
+    """
+    API endpoint for listing Memberships for an OsuUser
+    """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
+    def get(self, request, user_id):
+        if not request.user.is_authenticated or request.user.osu_user_id != user_id:
+            raise PermissionDenied("You may only retrieve memberships for the authenticated user.")
+        memberships = Membership.objects.select_related("leaderboard", "leaderboard__owner").annotate(score_count=Count("scores")).filter(user_id=user_id)
+        serialiser = UserMembershipSerialiser(memberships, many=True)
         return Response(serialiser.data)
 
 class ListUserInvites(APIView):

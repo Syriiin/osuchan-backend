@@ -39,7 +39,6 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
         )
 
 class MembershipSerialiser(serializers.ModelSerializer):
-    user = OsuUserSerialiser()
     score_count = serializers.IntegerField()
 
     class Meta:
@@ -55,6 +54,12 @@ class MembershipSerialiser(serializers.ModelSerializer):
             # annotations
             "score_count"
         )
+
+class LeaderboardMembershipSerialiser(MembershipSerialiser):
+    user = OsuUserSerialiser()
+
+class UserMembershipSerialiser(MembershipSerialiser):
+    leaderboard = LeaderboardSerialiser()
 
 class InviteSerialiser(serializers.ModelSerializer):
     class Meta:

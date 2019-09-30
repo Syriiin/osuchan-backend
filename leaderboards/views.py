@@ -13,7 +13,7 @@ from osuauth.permissions import BetaPermission
 from profiles.models import Score
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
-from leaderboards.serialisers import LeaderboardSerialiser, MembershipSerialiser, LeaderboardInviteSerialiser, LeaderboardScoreSerialiser
+from leaderboards.serialisers import LeaderboardSerialiser, LeaderboardMembershipSerialiser, UserMembershipSerialiser, LeaderboardInviteSerialiser, LeaderboardScoreSerialiser
 from leaderboards.services import create_leaderboard, create_membership
 from leaderboards.enums import LeaderboardAccessType, AllowedBeatmapStatus
 
@@ -158,7 +158,7 @@ class ListLeaderboardMembers(APIView):
     # @method_decorator(cache_page(60 * 1))
     def get(self, request, leaderboard_id):
         memberships = Membership.objects.filter(leaderboard_id=leaderboard_id).select_related("user").annotate(score_count=Count("scores")).order_by("-pp")
-        serialiser = MembershipSerialiser(memberships[:100], many=True)
+        serialiser = LeaderboardMembershipSerialiser(memberships[:100], many=True)
         return Response(serialiser.data)
 
     def post(self, request, leaderboard_id):
@@ -168,7 +168,7 @@ class ListLeaderboardMembers(APIView):
             
         membership = create_membership(leaderboard_id, user_id)
         membership.score_count = membership.scores.count()
-        serialiser = MembershipSerialiser(membership)
+        serialiser = UserMembershipSerialiser(membership)
         return Response(serialiser.data)
 
 class ListLeaderboardScores(APIView):
@@ -194,7 +194,7 @@ class GetLeaderboardMember(APIView):
     # @method_decorator(cache_page(60 * 1))
     def get(self, request, leaderboard_id, user_id):
         membership = Membership.objects.select_related("user").annotate(score_count=Count("scores")).get(leaderboard_id=leaderboard_id, user_id=user_id)
-        serialiser = MembershipSerialiser(membership)
+        serialiser = LeaderboardMembershipSerialiser(membership)
         return Response(serialiser.data)
 
     def delete(self, request, leaderboard_id, user_id):

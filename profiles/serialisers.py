@@ -64,8 +64,8 @@ class BeatmapSerialiser(serializers.ModelSerializer):
             "health_drain",
             "star_rating",
             "last_updated",
-            # relations ids
-            "creator_id"
+            # relations
+            "creator"
         )
 
 class ScoreSerialiser(serializers.ModelSerializer):

@@ -9,7 +9,6 @@ from common.osu.enums import Gamemode
 from profiles.models import UserStats
 from profiles.tasks import update_user
 
-@transaction.atomic
 def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     """
     Fetch user from database and enqueue update (max once each 5 minutes)
@@ -21,13 +20,13 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     # Attempt to get the UserStats model and enqueue update
     try:
         if user_id:
-            user_stats = UserStats.objects.select_for_update().get(user_id=user_id, gamemode=gamemode)
+            user_stats = UserStats.objects.get(user_id=user_id, gamemode=gamemode)
         else:
-            user_stats = UserStats.objects.select_for_update().get(user__username__iexact=username, gamemode=gamemode)
+            user_stats = UserStats.objects.get(user__username__iexact=username, gamemode=gamemode)
         
         if user_stats.last_updated < (datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)):
             # User was last updated more than 5 minutes ago, so enqueue another update
-            update_user.delay(user_id=user_id, username=username, gamemode=gamemode)
+            update_user.delay(user_id=user_stats.user_id, gamemode=gamemode)
     except UserStats.DoesNotExist:
         # User not in database, either doesn't exist or is first time seeing this user (or namechange)
         # Calling update_user in a blocking way here because otherwise we would be showing the user to not exist, before we know that for sure 
