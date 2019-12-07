@@ -8,9 +8,9 @@ import pytz
 import oppaipy
 
 from common.utils import get_beatmap_path
-from common.enums import ScoreResult
 from common.osu import apiv1, utils
 from common.osu.enums import Gamemode, BeatmapStatus
+from profiles.enums import ScoreResult
 
 class OsuUserQuerySet(models.QuerySet):
     def non_restricted(self):
@@ -379,7 +379,7 @@ class Score(models.Model):
 
     def __process_score_result(self):
         if self.count_miss == 1:
-            self.result = ScoreResult.ONEMISS
+            self.result = ScoreResult.ONE_MISS
             return
         
         pct_combo = self.best_combo / self.beatmap.max_combo
@@ -387,11 +387,11 @@ class Score(models.Model):
         if pct_combo == 1:
             self.result = ScoreResult.PERFECT
         elif pct_combo > 0.98 and self.count_miss == 0:
-            self.result = ScoreResult.NOBREAK
+            self.result = ScoreResult.NO_BREAK
         elif pct_combo > 0.85:
-            self.result = ScoreResult.ENDCHOKE
+            self.result = ScoreResult.END_CHOKE
         elif self.count_miss == 0:
-            self.result = ScoreResult.SLIDERBREAK
+            self.result = ScoreResult.SLIDER_BREAK
         else:
             self.result = ScoreResult.CLEAR
 

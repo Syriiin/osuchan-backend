@@ -1,6 +1,6 @@
 # osu! related utils
 
-from common.osu.enums import Gamemode, Mod
+from common.osu.enums import Gamemode, Mods
 
 def calculate_pp_total(sorted_pps):
     # sorted_pps should be a sorted generator but can be any iterable of floats
@@ -69,19 +69,19 @@ def get_accuracy(count_300, count_100, count_50, count_miss, count_katu=None, co
 def get_bpm(bpm, mods):
     bpm = float(bpm)
     mods = int(mods)
-    if mods & Mod.DOUBLETIME:
+    if mods & Mods.DOUBLETIME:
         return bpm * 1.5
-    elif mods & Mod.HALFTIME:
-        return bpm * (3/4)
+    elif mods & Mods.HALFTIME:
+        return bpm * (3 / 4)
     else:
         return bpm
 
 def get_length(length, mods):
     length = float(length)
     mods = int(mods)
-    if mods & Mod.DOUBLETIME:
+    if mods & Mods.DOUBLETIME:
         return length / 1.5
-    elif mods & Mod.HALFTIME:
+    elif mods & Mods.HALFTIME:
         return length / (3 / 4)
     else:
         return length
@@ -90,15 +90,15 @@ def get_cs(cs, mods):
     cs = float(cs)
     mods = int(mods)
     
-    if mods & Mod.HARDROCK:
+    if mods & Mods.HARDROCK:
         cs *= 1.3
-    if mods & Mod.EASY:
+    if mods & Mods.EASY:
         cs *= 0.5
 
     return cs
 
 def get_ar(ar, mods):
-    def ar_to_ms(ar):		#convert ar to ms
+    def ar_to_ms(ar):       #convert ar to ms
         if ar <= 5:
             # ms = -120ar + 1800
             ms = -120 * ar + 1800
@@ -107,7 +107,7 @@ def get_ar(ar, mods):
             ms = -150 * ar + 1950
         return ms
 
-    def ms_to_ar(ms):		#convert ms to ar
+    def ms_to_ar(ms):       #convert ms to ar
         if ms >= 1200:
             ar = (ms - 1800) / -120
         elif ms < 1200:
@@ -117,30 +117,30 @@ def get_ar(ar, mods):
     ar = float(ar)
     mods = int(mods)
 
-    if mods & Mod.HARDROCK:
+    if mods & Mods.HARDROCK:
         ar *= 1.4
-    if mods & Mod.EASY:
+    if mods & Mods.EASY:
         ar *= 0.5
 
     if ar > 10:
         ar = 10
 
-    if mods & Mod.DOUBLETIME:
+    if mods & Mods.DOUBLETIME:
         ms = ar_to_ms(ar) / 1.5
         ar = ms_to_ar(ms)
-    if mods & Mod.HALFTIME:
+    if mods & Mods.HALFTIME:
         ms = ar_to_ms(ar) / (3 / 4)
         ar = ms_to_ar(ms)
 
     return ar
 
 def get_od(od, mods):
-    def od_to_ms(od):		#convert od to ms
+    def od_to_ms(od):       #convert od to ms
         # ms = -6od + 79.5
         ms = -6 * od + 79.5
         return ms
 
-    def ms_to_od(ms):		#convert ms to od
+    def ms_to_od(ms):       #convert ms to od
         # od = (ms - 79.5) / -6
         od = (ms - 79.5) / -6
         return od
@@ -148,18 +148,18 @@ def get_od(od, mods):
     od = float(od)
     mods = int(mods)
 
-    if mods & Mod.HARDROCK:
+    if mods & Mods.HARDROCK:
         od *= 1.4
-    elif mods & Mod.EASY:
+    elif mods & Mods.EASY:
         od *= 0.5
 
     if od > 10:
         od = 10
     
-    if mods & Mod.DOUBLETIME:
+    if mods & Mods.DOUBLETIME:
         ms = od_to_ms(od) / 1.5
         od = ms_to_od(ms)
-    if mods & Mod.HALFTIME:
+    if mods & Mods.HALFTIME:
         ms = od_to_ms(od) / (3 / 4)
         od = ms_to_od(ms)
 

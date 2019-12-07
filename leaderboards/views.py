@@ -8,7 +8,7 @@ from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from common.osu.enums import Mod
+from common.osu.enums import Mods
 from osuauth.permissions import BetaPermission
 from profiles.models import Score
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
@@ -27,7 +27,7 @@ class ListLeaderboards(APIView):
     def get(self, request):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         
-        # something very weird is happening when visible_to() is chanined after the aggregate annotation for member_count
+        # something very weird is happening when visible_to() is chained after the aggregate annotation for member_count
         #   that is causing the annotated values to be jumbled up on wrong instances somehow
         # for now we will temporarily disable showing private leaderboards on the full leaderboard list so we dont need to use visible_to() and solve this issue
         
@@ -105,8 +105,8 @@ class ListLeaderboards(APIView):
         leaderboard.highest_od = request.data.get("highest_od")
         leaderboard.lowest_cs = request.data.get("lowest_cs")
         leaderboard.highest_cs = request.data.get("highest_cs")
-        leaderboard.required_mods = request.data.get("required_mods") or Mod.NONE
-        leaderboard.disqualified_mods = request.data.get("disqualified_mods") or Mod.NONE
+        leaderboard.required_mods = request.data.get("required_mods") or Mods.NONE
+        leaderboard.disqualified_mods = request.data.get("disqualified_mods") or Mods.NONE
         leaderboard.lowest_accuracy = request.data.get("lowest_accuracy")
         leaderboard.highest_accuracy = request.data.get("highest_accuracy")
         
