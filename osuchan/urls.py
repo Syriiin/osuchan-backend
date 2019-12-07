@@ -19,13 +19,14 @@ from django.conf import settings
 from django.conf.urls import include
 from django.http.response import HttpResponse
 
-from main.views import main
+from main.views import main, getBeatmapFile
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/profiles/", include("profiles.urls")),
     path("api/leaderboards/", include("leaderboards.urls")),
-    path("osuauth/", include("osuauth.urls"))
+    path("osuauth/", include("osuauth.urls")),
+    path("beatmapfiles/<int:beatmap_id>", getBeatmapFile)
 ]
 
 # Enable debug toolbar in debug mode
