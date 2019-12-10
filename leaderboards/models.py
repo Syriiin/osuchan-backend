@@ -70,8 +70,8 @@ class Leaderboard(models.Model):
                     (self.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY and score.beatmap.status == BeatmapStatus.LOVED) or
                     (self.allowed_beatmap_status == AllowedBeatmapStatus.RANKED_ONLY and score.beatmap.status in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED])) and
                 # optional filters
-                (self.oldest_beatmap_date is None or self.oldest_beatmap_date <= score.beatmap.last_updated) and
-                (self.newest_beatmap_date is None or self.newest_beatmap_date >= score.beatmap.last_updated) and
+                (self.oldest_beatmap_date is None or self.oldest_beatmap_date <= score.beatmap.approval_date) and
+                (self.newest_beatmap_date is None or self.newest_beatmap_date >= score.beatmap.approval_date) and
                 (self.oldest_score_date is None or self.oldest_score_date <= score.date) and
                 (self.newest_score_date is None or self.newest_score_date >= score.date) and
                 (self.lowest_ar is None or self.lowest_ar <= score.approach_rate) and
@@ -126,9 +126,9 @@ class Leaderboard(models.Model):
 
         # optional filters
         if self.oldest_beatmap_date:
-            scores = scores.filter(beatmap__last_updated__gte=self.oldest_beatmap_date)
+            scores = scores.filter(beatmap__approval_date__gte=self.oldest_beatmap_date)
         if self.newest_beatmap_date:
-            scores = scores.filter(beatmap__last_updated__lte=self.newest_beatmap_date)
+            scores = scores.filter(beatmap__approval_date__lte=self.newest_beatmap_date)
         if self.oldest_score_date:
             scores = scores.filter(date__gte=self.oldest_score_date)
         if self.newest_score_date:

@@ -63,6 +63,8 @@ class BeatmapSerialiser(serializers.ModelSerializer):
             "approach_rate",
             "health_drain",
             "star_rating",
+            "submission_date",
+            "approval_date",
             "last_updated",
             # relations
             "creator"

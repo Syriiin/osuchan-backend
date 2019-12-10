@@ -281,6 +281,8 @@ class Beatmap(models.Model):
     approach_rate = models.FloatField()
     health_drain = models.FloatField()
     star_rating = models.FloatField()
+    submission_date = models.DateTimeField()
+    approval_date = models.DateTimeField()
     last_updated = models.DateTimeField()
     
     # Relations
@@ -309,6 +311,8 @@ class Beatmap(models.Model):
         beatmap.approach_rate = float(beatmap_data["diff_approach"])
         beatmap.health_drain = float(beatmap_data["diff_drain"])
         beatmap.star_rating = float(beatmap_data["difficultyrating"])
+        beatmap.submission_date = datetime.strptime(beatmap_data["submit_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
+        beatmap.approval_date = datetime.strptime(beatmap_data["approved_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
         beatmap.last_updated = datetime.strptime(beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
         
         # Update foreign key ids
