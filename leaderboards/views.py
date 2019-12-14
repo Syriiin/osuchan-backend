@@ -198,7 +198,7 @@ class GetLeaderboardMember(APIView):
         return Response(serialiser.data)
 
     def delete(self, request, leaderboard_id, user_id):
-        membership = Membership.objects.get(leaderboard_id=leaderboard_id, user_id=user_id)
+        membership = Membership.objects.exclude(leaderboard__access_type=LeaderboardAccessType.GLOBAL).get(leaderboard_id=leaderboard_id, user_id=user_id)
         return Response(membership.delete())
 
 class ListLeaderboardInvites(APIView):
