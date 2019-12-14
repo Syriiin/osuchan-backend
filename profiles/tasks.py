@@ -36,6 +36,11 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     # Get or create UserStats model
     try:
         user_stats = UserStats.objects.select_for_update().select_related("user").get(user_id=user_data["user_id"], gamemode=gamemode)
+        
+        # Check if user was updated recently (update enqueued multiple times before processing)
+        if user_stats.last_updated > (datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)):
+            return user_stats
+
         osu_user = user_stats.user
     except UserStats.DoesNotExist:
         user_stats = UserStats()
