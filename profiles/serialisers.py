@@ -97,6 +97,7 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "beatmap",
             "user_stats",
             # convenience fields
+            "gamemode",
             "accuracy",
             "bpm",
             "length",
