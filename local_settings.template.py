@@ -46,7 +46,7 @@ LOGGING = {
 
 
 # Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
+# https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -61,7 +61,7 @@ DATABASES = {
 
 
 # Cache
-# https://docs.djangoproject.com/en/2.2/ref/settings/#caches
+# https://docs.djangoproject.com/en/dev/ref/settings/#caches
 
 CACHES = {
     'default': {

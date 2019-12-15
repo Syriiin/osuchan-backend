@@ -1,5 +1,5 @@
 """
-Django settings for osuchan project.
+Django settings for osuchan
 """
 
 import os
@@ -57,7 +57,7 @@ WSGI_APPLICATION = 'osuchan.wsgi.application'
 
 
 # Auth
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth
+# https://docs.djangoproject.com/en/dev/ref/settings/#auth
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -68,7 +68,7 @@ AUTH_USER_MODEL = 'osuauth.User'
 
 
 # Password validation
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -87,7 +87,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
+# https://docs.djangoproject.com/en/dev/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -101,7 +101,7 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
+# https://docs.djangoproject.com/en/dev/howto/static-files/
 
 STATIC_URL = '/static/'
 
