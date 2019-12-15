@@ -2,8 +2,7 @@
 
 ## Requirements
 
-- Python 3 (untested below 3.7.3)
-
+- Python 3
 
 ## Setup (bash)
 
@@ -16,7 +15,7 @@
 1. Create and enter a virtual environment (recommended)
     ```shell
     $ python3 -m venv env
-    $ source env/Scripts/activate
+    $ source env/bin/activate
     ```    
 2. Install dependencies
     ```shell
@@ -43,14 +42,19 @@
         ```sql
         GRANT ALL PRIVILEGES ON DATABASE osuchan TO django;
         ```
-4. Add a custom domain to your hosts file that resolves to localhost
-5. Create an [osu apiv2 oauth client](https://github.com/int-and-his-friends/osu-api-v2/wiki/Oauth-clients) for your development environment with the redirect uri as `<custom host>/osuauth/callback` where `<custom host>` is the host you defined in the previous step
-6. Make a copy of `local_settings.template.py` named `local_settings.py` and modify contents for sensitive/environment-specific info (and ensure it isn't being committed)
-7. Run migrations
+4. [Install RabbitMQ](https://www.rabbitmq.com/download.html) (if using local queue)
+5. Add a custom domain to your hosts file that resolves to localhost
+6. Create an [osu apiv2 oauth client](https://github.com/int-and-his-friends/osu-api-v2/wiki/Oauth-clients) for your development environment with the redirect uri as `<custom host>/osuauth/callback` where `<custom host>` is the host you defined in the previous step
+7. Make a copy of `local_settings.template.py` named `local_settings.py` and modify contents for sensitive/environment-specific info (and ensure it isn't being committed)
+8. Run migrations
     ```shell
     $ python manage.py migrate
     ```
-8. Start development server
+9. Start celery worker (use `--pool solo` on windows)
+    ```shell
+    $ celery --app osuchan worker --loglevel info
+    ```
+10. Start development server
     ```shell
     $ python manage.py runserver
     ```
