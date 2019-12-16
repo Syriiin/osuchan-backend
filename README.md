@@ -12,16 +12,11 @@
     $ npm install
     $ npm run build
     ```
-1. Create and enter a virtual environment (recommended)
+1. Initialise project environment with `pipenv`
     ```shell
-    $ python3 -m venv env
-    $ source env/bin/activate
-    ```    
-2. Install dependencies
-    ```shell
-    $ pip install -r requirements.txt
+    $ pipenv install
     ```
-3. Setup new PostgreSQL database
+2. Setup new PostgreSQL database
     1. Install PostgreSQL (if using local database)
     2. Enter psql shell
     3. Create a new database
@@ -42,19 +37,19 @@
         ```sql
         GRANT ALL PRIVILEGES ON DATABASE osuchan TO django;
         ```
-4. [Install RabbitMQ](https://www.rabbitmq.com/download.html) (if using local queue)
-5. Add a custom domain to your hosts file that resolves to localhost
-6. Create an [osu apiv2 oauth client](https://github.com/int-and-his-friends/osu-api-v2/wiki/Oauth-clients) for your development environment with the redirect uri as `<custom host>/osuauth/callback` where `<custom host>` is the host you defined in the previous step
-7. Make a copy of `local_settings.template.py` named `local_settings.py` and modify contents for sensitive/environment-specific info (and ensure it isn't being committed)
-8. Run migrations
+3. [Install RabbitMQ](https://www.rabbitmq.com/download.html) (if using local queue)
+4. Add a custom domain to your hosts file that resolves to localhost
+5. Create an [osu apiv2 oauth client](https://github.com/int-and-his-friends/osu-api-v2/wiki/Oauth-clients) for your development environment with the redirect uri as `<custom host>/osuauth/callback` where `<custom host>` is the host you defined in the previous step
+6. Make a copy of `local_settings.template.py` named `local_settings.py` and modify contents for sensitive/environment-specific info (and ensure it isn't being committed)
+7. Run migrations
     ```shell
-    $ python manage.py migrate
+    $ pipenv run python manage.py migrate
     ```
-9. Start celery worker (use `--pool solo` on windows)
+8. Start celery worker (use `--pool solo` on windows)
     ```shell
-    $ celery --app osuchan worker --loglevel info
+    $ pipenv run celery --app osuchan worker --loglevel info
     ```
-10. Start development server
+9. Start development server
     ```shell
-    $ python manage.py runserver
+    $ pipenv run python manage.py runserver
     ```
