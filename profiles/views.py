@@ -7,6 +7,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from common.osu.enums import BeatmapStatus
 from osuauth.permissions import BetaPermission
 from profiles.models import UserStats, Beatmap, Score
 from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserScoreSerialiser
@@ -71,13 +72,13 @@ class ListUserScores(APIView):
         """
         Return Scores based on a user_id and gamemode
         """
-        scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).unique_maps()[:100]
+        scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode, beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED]).unique_maps()[:100]
         serialiser = UserScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
     
     def post(self, request, user_id, gamemode):
         """
-        Add new Scores based on passes user_id, gamemode, beatmap_id
+        Add new Scores based on passes user_id, gamemode, beatmap_ids
         """
         scores = fetch_scores(user_id, request.data.get("beatmap_ids"), gamemode)
         serialiser = UserScoreSerialiser(scores, many=True)
