@@ -86,9 +86,31 @@ def get_length(length, mods):
     else:
         return length
 
-def get_cs(cs, mods):
+def get_cs(cs, mods, gamemode):
     cs = float(cs)
     mods = int(mods)
+    
+    if gamemode == Gamemode.MANIA:
+        if mods & Mods.KEY_MOD:
+            if mods & Mods.KEY_1:
+                return 1
+            if mods & Mods.KEY_2:
+                return 2
+            if mods & Mods.KEY_3:
+                return 3
+            if mods & Mods.KEY_4:
+                return 4
+            if mods & Mods.KEY_5:
+                return 5
+            if mods & Mods.KEY_6:
+                return 6
+            if mods & Mods.KEY_7:
+                return 7
+            if mods & Mods.KEY_8:
+                return 8
+            if mods & Mods.KEY_9:
+                return 9
+        return cs
     
     if mods & Mods.HARDROCK:
         cs *= 1.3

@@ -146,7 +146,7 @@ class UserStats(models.Model):
             score.accuracy = utils.get_accuracy(score.count_300, score.count_100, score.count_50, score.count_miss, score.count_katu, score.count_geki, gamemode=self.gamemode)
             score.bpm = utils.get_bpm(beatmap.bpm, score.mods)
             score.length = utils.get_length(beatmap.drain_time, score.mods)
-            score.circle_size = utils.get_cs(beatmap.circle_size, score.mods)
+            score.circle_size = utils.get_cs(beatmap.circle_size, score.mods, score.gamemode)
             score.approach_rate = utils.get_ar(beatmap.approach_rate, score.mods)
             score.overall_difficulty = utils.get_od(beatmap.overall_difficulty, score.mods)
 
