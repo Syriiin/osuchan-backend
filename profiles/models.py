@@ -335,11 +335,11 @@ class ScoreQuerySet(models.QuerySet):
         """
         # I do not like this query, but i cannot for the life of me figure out how to get django to SELECT FROM (...subquery...)
         # It seems after testing, the raw sql of these two queries (current one vs select from subquery), they were generally the same speed (on a tiny dataset)
-        # I simply want to `return self.order_by("beatmap_id", "-pp").distinct("beatmap_id").order_by("-pp")`, but this doesnt translate to a subquery
+        # I simply want to `return self.order_by("beatmap_id", "-pp").distinct("beatmap_id").order_by("-pp", "date")`, but this doesnt translate to a subquery
         # TODO: figure this out
         return self.filter(
             id__in=Subquery(self.all().order_by("beatmap_id", "-pp").distinct("beatmap_id").values("id"))
-        ).order_by("-pp")
+        ).order_by("-pp", "date")
 
 class Score(models.Model):
     """

@@ -153,7 +153,7 @@ class Leaderboard(models.Model):
         scores = scores.unique_maps()
 
         # Add scores to membership
-        membership.pp = calculate_pp_total(score.pp for score in scores.order_by("-pp"))
+        membership.pp = calculate_pp_total(score.pp for score in scores)
         membership.save()
         membership.scores.add(*scores)
 
