@@ -264,6 +264,6 @@ class ListLeaderboardMemberScores(APIView):
     def get(self, request, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
-        scores = Score.objects.distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1]), membership__user_id=user_id).select_related("beatmap").order_by("-pp", "date").unique_maps()[:100]
+        scores = Score.objects.distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1]), membership__user_id=user_id).select_related("beatmap").order_by("-pp", "date").get_score_set()[:100]
         serialiser = UserScoreSerialiser(scores[:100], many=True)
         return Response(serialiser.data)

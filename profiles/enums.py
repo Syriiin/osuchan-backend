@@ -12,3 +12,8 @@ class ScoreResult(IntEnum):
 
     FULL_COMBO = PERFECT | NO_BREAK
     CHOKE = SLIDER_BREAK | ONE_MISS | END_CHOKE
+
+class ScoreSet(IntEnum):
+    NORMAL = 0
+    NEVER_CHOKE = 1
+    ALWAYS_FULL_COMBO = 2

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from common.osu.enums import BeatmapStatus
 from osuauth.permissions import BetaPermission
+from profiles.enums import ScoreSet
 from profiles.models import UserStats, Beatmap, Score
 from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserScoreSerialiser
 from profiles.services import fetch_user, fetch_scores
@@ -72,8 +73,20 @@ class ListUserScores(APIView):
         """
         Return Scores based on a user_id and gamemode
         """
-        scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode, beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED]).unique_maps()[:100]
-        serialiser = UserScoreSerialiser(scores, many=True)
+        allow_loved = request.query_params.get("allow_loved") == "true" or False
+        try:
+            score_set = ScoreSet(int(request.query_params.get("score_set")))
+        except (ValueError, TypeError):
+            score_set = ScoreSet.NORMAL
+
+        scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode)
+        if allow_loved:
+            scores = scores.filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED])
+        else:
+            scores = scores.filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED])
+        scores = scores.get_score_set(score_set)
+        
+        serialiser = UserScoreSerialiser(scores[:100], many=True)
         return Response(serialiser.data)
     
     def post(self, request, user_id, gamemode):

@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Subquery
+from django.db.models import Subquery, Case, When, F
 
 import math
 from datetime import datetime
@@ -10,7 +10,7 @@ import oppaipy
 from common.utils import get_beatmap_path
 from common.osu import apiv1, utils
 from common.osu.enums import Gamemode, BeatmapStatus
-from profiles.enums import ScoreResult
+from profiles.enums import ScoreResult, ScoreSet
 
 class OsuUserQuerySet(models.QuerySet):
     def non_restricted(self):
@@ -328,18 +328,38 @@ class ScoreQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user_stats__user__disabled=False)
 
-    def unique_maps(self):
+    def get_score_set(self, score_set=ScoreSet.NORMAL):
         """
-        Queryset that returns distinct on beatmap_id prioritising highest pp.
-        Remember to use at end of query to not unintentially filter out scores before primary filtering.
+        Queryset that returns distinct on beatmap_id prioritising highest pp given the score_set.
+        Remember to use at end of query to not unintentionally filter out scores before primary filtering.
         """
+        if score_set == ScoreSet.NORMAL:
+            # always use pp
+            scores = self.annotate(
+                sorting_pp=F("pp")
+            )
+        elif score_set == ScoreSet.NEVER_CHOKE:
+            # if choke use nochoke_pp, else use pp
+            scores = self.annotate(
+                sorting_pp=Case(
+                    When(result=F("result").bitand(ScoreResult.CHOKE), then=F("nochoke_pp")),
+                    default=F("pp"),
+                    output_field=models.FloatField()
+                )
+            )
+        elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
+            # always use nochoke_pp
+            scores = self.annotate(
+                sorting_pp=F("nochoke_pp")
+            )
+
         # I do not like this query, but i cannot for the life of me figure out how to get django to SELECT FROM (...subquery...)
         # It seems after testing, the raw sql of these two queries (current one vs select from subquery), they were generally the same speed (on a tiny dataset)
         # I simply want to `return self.order_by("beatmap_id", "-pp").distinct("beatmap_id").order_by("-pp", "date")`, but this doesnt translate to a subquery
         # TODO: figure this out
-        return self.filter(
-            id__in=Subquery(self.all().order_by("beatmap_id", "-pp").distinct("beatmap_id").values("id"))
-        ).order_by("-pp", "date")
+        return scores.filter(
+            id__in=Subquery(scores.all().order_by("beatmap_id", "-sorting_pp").distinct("beatmap_id").values("id"))
+        ).order_by("-sorting_pp", "date")
 
 class Score(models.Model):
     """

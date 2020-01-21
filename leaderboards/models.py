@@ -150,7 +150,7 @@ class Leaderboard(models.Model):
         if self.highest_accuracy:
             scores = scores.filter(accuracy__lte=self.highest_accuracy)
 
-        scores = scores.unique_maps()
+        scores = scores.get_score_set()
 
         # Add scores to membership
         membership.pp = calculate_pp_total(score.pp for score in scores)
