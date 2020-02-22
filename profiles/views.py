@@ -36,6 +36,10 @@ class GetUserStats(APIView):
                 user_stats = fetch_user(username=user_string, gamemode=gamemode)
             else:
                 raise NotFound("User not found.")
+
+            # Show not found for disabled (restricted) users
+            if user_stats.user.disabled:
+                raise NotFound("User not found.")
         except UserStats.DoesNotExist:
             raise NotFound("User not found.")
 

@@ -167,6 +167,10 @@ class Leaderboard(models.Model):
             models.Index(fields=["gamemode"])
         ]
 
+class MembershipQuerySet(models.QuerySet):
+    def non_restricted(self):
+        return self.filter(user__disabled=False)
+
 class Membership(models.Model):
     """
     Model representing the membership of a OsuUser to a Leaderboard
@@ -181,6 +185,8 @@ class Membership(models.Model):
 
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
+
+    objects = MembershipQuerySet.as_manager()
 
     def score_is_allowed(self, score):
         return self.leaderboard.score_is_allowed(score, self)

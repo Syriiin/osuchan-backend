@@ -20,9 +20,9 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     # Attempt to get the UserStats model and enqueue update
     try:
         if user_id:
-            user_stats = UserStats.objects.get(user_id=user_id, gamemode=gamemode)
+            user_stats = UserStats.objects.select_related("user").get(user_id=user_id, gamemode=gamemode)
         else:
-            user_stats = UserStats.objects.get(user__username__iexact=username, gamemode=gamemode)
+            user_stats = UserStats.objects.select_related("user").get(user__username__iexact=username, gamemode=gamemode)
         
         if user_stats.last_updated < (datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)):
             # User was last updated more than 5 minutes ago, so enqueue another update
