@@ -29,9 +29,32 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
 
     # Check for response
     if not user_data:
-        # user either doesnt exist, or is restricted
-        # TODO: somehow determine if user was restricted and set their OsuUser to disabled
-        return None
+        if user_id:
+            # User either doesnt exist, or is restricted and needs to be disabled
+            try:
+                osu_user = OsuUser.objects.select_for_update().get(id=user_id)
+                # Restricted
+                osu_user.disabled = True
+                osu_user.save()
+            except OsuUser.DoesNotExist:
+                # Doesnt exist (or was restricted before osuchan ever saw them)
+                pass
+            return None
+        else:
+            # User either doesnt exist, is restricted, or name changed
+            try:
+                osu_user = OsuUser.objects.select_for_update().get(username=username)
+                # Fetch from osu api with user id incase of name change
+                user_data = apiv1.get_user(osu_user.id, user_id_type="id", gamemode=gamemode)
+
+                if not user_data:
+                    # Restricted
+                    osu_user.disabled = True
+                    osu_user.save()
+                    return None
+            except OsuUser.DoesNotExist:
+                # Doesnt exist
+                return None
 
     # Get or create UserStats model
     try:

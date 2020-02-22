@@ -27,8 +27,7 @@ class OsuUser(models.Model):
     country = models.CharField(max_length=2)
     join_date = models.DateTimeField()
 
-    # used for marking players than suddenly disappear from osu api responses (user restricted)
-    # TODO: testing on if this has a significant performance impact in places such as Score.objects.filter(user_stats__user__disabled=False)
+    # Indicates restricted users
     disabled = models.BooleanField()
 
     objects = OsuUserQuerySet.as_manager()
