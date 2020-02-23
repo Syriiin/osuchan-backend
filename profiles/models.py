@@ -198,9 +198,9 @@ class UserStats(models.Model):
         # Calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - utils.calculate_pp_total(score.pp for score in unique_map_scores[:100])
 
-        # Calculate nochoke pp and mod pp
+        # Calculate nochoke pp
         if self.gamemode == Gamemode.STANDARD:
-            self.nochoke_pp = utils.calculate_pp_total(sorted((score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp for score in unique_map_scores), reverse=True)) + self.extra_pp
+            self.nochoke_pp = utils.calculate_pp_total(sorted((score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp for score in unique_map_scores), reverse=True)[:100]) + self.extra_pp
         
         # Calculate score style
         top_100_scores = unique_map_scores[:100]  # score style limited to top 100 scores
