@@ -180,10 +180,10 @@ class UserStats(models.Model):
         Calculates pp totals (extra pp, nochoke pp) and scores style using unique maps, and returns all scores for UserStats and the scores that need to be added
         """
         # Fetch all scores currently in database and add to new_scores ensuring no duplicate scores
-        database_scores = self.scores.select_related("beatmap").filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED])
+        database_scores = self.scores.select_related("beatmap").filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED])
         database_score_dates = [score.date for score in database_scores]
         scores_to_create = [score for score in new_scores if score.date not in database_score_dates]
-        scores = [*[score for score in scores_to_create if score.beatmap.status in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED]], *database_scores]
+        scores = [*[score for score in scores_to_create if score.beatmap.status in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED]], *database_scores]
 
         # Sort all scores by pp
         scores.sort(key=lambda s: s.pp, reverse=True)
