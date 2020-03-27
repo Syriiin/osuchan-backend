@@ -7,7 +7,7 @@ import os
 from profiles.services import fetch_user
 
 class Command(BaseCommand):
-    help = "Refreshes the specified global leaderboards for all users"
+    help = "Runs user update for given users"
 
     def add_arguments(self, parser):
         parser.add_argument("gamemode", nargs=1, type=int)
