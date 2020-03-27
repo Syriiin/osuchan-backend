@@ -94,7 +94,7 @@ class ListLeaderboards(APIView):
 
         # Set optional score criteria
         leaderboard.allow_past_scores = request.data.get("allow_past_scores") if request.data.get("allow_past_scores") is not None else True
-        leaderboard.allowed_beatmap_status = request.data.get("allowed_beatmap_status") or AllowedBeatmapStatus.RANKED_ONLY
+        leaderboard.allowed_beatmap_status = request.data.get("allowed_beatmap_status") if request.data.get("allowed_beatmap_status") is not None else AllowedBeatmapStatus.RANKED_ONLY
         leaderboard.oldest_beatmap_date = request.data.get("oldest_beatmap_date")
         leaderboard.newest_beatmap_date = request.data.get("newest_beatmap_date")
         leaderboard.oldest_score_date = request.data.get("oldest_score_date")
@@ -105,8 +105,8 @@ class ListLeaderboards(APIView):
         leaderboard.highest_od = request.data.get("highest_od")
         leaderboard.lowest_cs = request.data.get("lowest_cs")
         leaderboard.highest_cs = request.data.get("highest_cs")
-        leaderboard.required_mods = request.data.get("required_mods") or Mods.NONE
-        leaderboard.disqualified_mods = request.data.get("disqualified_mods") or Mods.NONE
+        leaderboard.required_mods = request.data.get("required_mods") if request.data.get("required_mods") is not None else Mods.NONE
+        leaderboard.disqualified_mods = request.data.get("disqualified_mods") if request.data.get("disqualified_mods") is not None else Mods.NONE
         leaderboard.lowest_accuracy = request.data.get("lowest_accuracy")
         leaderboard.highest_accuracy = request.data.get("highest_accuracy")
         
