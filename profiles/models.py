@@ -189,7 +189,14 @@ class UserStats(models.Model):
         scores.sort(key=lambda s: s.pp, reverse=True)
 
         # Filter to be unique on maps (cant use .unique_maps() because duplicate maps might come from new scores)
-        unique_map_scores = [score for score in scores if score == next(s for s in scores if s.beatmap_id == score.beatmap_id)]
+        #   (also this 1 liner is really inefficient for some reason so lets do it the standard way)
+        # unique_map_scores = [score for score in scores if score == next(s for s in scores if s.beatmap_id == score.beatmap_id)]
+        unique_map_scores = []
+        beatmap_ids = []
+        for score in scores:
+            if score.beatmap_id not in beatmap_ids:
+                unique_map_scores.append(score)
+                beatmap_ids.append(score.beatmap_id)
 
         # Calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - utils.calculate_pp_total(score.pp for score in unique_map_scores[:100])
