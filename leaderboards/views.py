@@ -10,12 +10,12 @@ from rest_framework.response import Response
 
 from common.osu.enums import Mods
 from osuauth.permissions import BetaPermission
-from profiles.models import Score
+from profiles.models import Score, ScoreFilter
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
 from leaderboards.serialisers import LeaderboardSerialiser, LeaderboardMembershipSerialiser, UserMembershipSerialiser, LeaderboardInviteSerialiser, LeaderboardScoreSerialiser
 from leaderboards.services import create_leaderboard, create_membership
-from leaderboards.enums import LeaderboardAccessType, AllowedBeatmapStatus
+from leaderboards.enums import LeaderboardAccessType
 
 class ListLeaderboards(APIView):
     """
@@ -93,22 +93,24 @@ class ListLeaderboards(APIView):
         )
 
         # Set optional score criteria
-        leaderboard.allow_past_scores = request.data.get("allow_past_scores") if request.data.get("allow_past_scores") is not None else True
-        leaderboard.allowed_beatmap_status = request.data.get("allowed_beatmap_status") if request.data.get("allowed_beatmap_status") is not None else AllowedBeatmapStatus.RANKED_ONLY
-        leaderboard.oldest_beatmap_date = request.data.get("oldest_beatmap_date")
-        leaderboard.newest_beatmap_date = request.data.get("newest_beatmap_date")
-        leaderboard.oldest_score_date = request.data.get("oldest_score_date")
-        leaderboard.newest_score_date = request.data.get("newest_score_date")
-        leaderboard.lowest_ar = request.data.get("lowest_ar")
-        leaderboard.highest_ar = request.data.get("highest_ar")
-        leaderboard.lowest_od = request.data.get("lowest_od")
-        leaderboard.highest_od = request.data.get("highest_od")
-        leaderboard.lowest_cs = request.data.get("lowest_cs")
-        leaderboard.highest_cs = request.data.get("highest_cs")
-        leaderboard.required_mods = request.data.get("required_mods") if request.data.get("required_mods") is not None else Mods.NONE
-        leaderboard.disqualified_mods = request.data.get("disqualified_mods") if request.data.get("disqualified_mods") is not None else Mods.NONE
-        leaderboard.lowest_accuracy = request.data.get("lowest_accuracy")
-        leaderboard.highest_accuracy = request.data.get("highest_accuracy")
+        leaderboard.allow_past_scores = request.data.get("allow_past_scores")
+        leaderboard.score_filter = ScoreFilter.objects.create(
+            allowed_beatmap_status=request.data.get("allowed_beatmap_status"),
+            oldest_beatmap_date=request.data.get("oldest_beatmap_date"),
+            newest_beatmap_date=request.data.get("newest_beatmap_date"),
+            oldest_score_date=request.data.get("oldest_score_date"),
+            newest_score_date=request.data.get("newest_score_date"),
+            lowest_ar=request.data.get("lowest_ar"),
+            highest_ar=request.data.get("highest_ar"),
+            lowest_od=request.data.get("lowest_od"),
+            highest_od=request.data.get("highest_od"),
+            lowest_cs=request.data.get("lowest_cs"),
+            highest_cs=request.data.get("highest_cs"),
+            required_mods=request.data.get("required_mods") if request.data.get("required_mods") is not None else Mods.NONE,
+            disqualified_mods=request.data.get("disqualified_mods") if request.data.get("disqualified_mods") is not None else Mods.NONE,
+            lowest_accuracy=request.data.get("lowest_accuracy"),
+            highest_accuracy=request.data.get("highest_accuracy")
+        )
         
         # Hand off to create_leaderboard service to set relations, update owner membership, and save
         leaderboard = create_leaderboard(user_id, leaderboard)

@@ -9,8 +9,8 @@ import oppaipy
 
 from common.utils import get_beatmap_path
 from common.osu import apiv1, utils
-from common.osu.enums import Gamemode, BeatmapStatus
-from profiles.enums import ScoreResult, ScoreSet
+from common.osu.enums import Gamemode, BeatmapStatus, Mods
+from profiles.enums import ScoreResult, ScoreSet, AllowedBeatmapStatus
 
 class OsuUserQuerySet(models.QuerySet):
     def non_restricted(self):
@@ -169,9 +169,6 @@ class UserStats(models.Model):
         Beatmap.objects.bulk_create(beatmaps_to_create, ignore_conflicts=True)
         Score.objects.bulk_create(scores_to_create)
 
-        # Update leaderboard memberships with all scores
-        self.__update_memberships(*all_scores)
-
         # Return new scores
         return scores_to_create
 
@@ -216,39 +213,6 @@ class UserStats(models.Model):
         self.score_style_od = sum(score.overall_difficulty * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
 
         return scores, scores_to_create
-
-    def __update_memberships(self, *scores):
-        """
-        Updates memberships this UserStats' OsuUser has with Leaderboards with the scores passed
-        """
-        memberships = self.user.memberships.select_for_update().select_related("leaderboard").filter(leaderboard__gamemode=self.gamemode)
-        
-        # Using through model so we can bulk add all scores for all memberships at once
-        membership_score_model = Score.membership_set.through
-        membership_scores_to_add = []
-
-        for membership in memberships:
-            # Find all scores matching criteria
-            allowed_scores = [score for score in scores if membership.score_is_allowed(score)]
-            # Filter for unique maps
-            unique_map_scores = []
-            beatmap_ids = []
-            for score in allowed_scores:
-                if score.beatmap_id not in beatmap_ids:
-                    unique_map_scores.append(score)
-                    beatmap_ids.append(score.beatmap_id)
-            
-            # Clear current scores so we can refresh them
-            membership.scores.clear()
-
-            # Create relations
-            membership_scores = [membership_score_model(score=score, membership=membership) for score in unique_map_scores]
-            membership_scores_to_add.extend(membership_scores)
-            membership.pp = utils.calculate_pp_total(ms.score.pp for ms in membership_scores)
-        
-        # Bulk add scores to memberships and update memberships pp
-        membership_score_model.objects.bulk_create(membership_scores_to_add, ignore_conflicts=True)
-        self.user.memberships.bulk_update(memberships, ["pp"])
 
     def __str__(self):
         return "{}: {}".format(self.gamemode, self.user_id)
@@ -333,6 +297,47 @@ class Beatmap(models.Model):
 class ScoreQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user_stats__user__disabled=False)
+
+    def apply_score_filter(self, score_filter):
+        # Mods
+        scores = self.filter(
+            mods__allbits=score_filter.required_mods,
+            mods__nobits=score_filter.disqualified_mods
+        )
+
+        # Beatmap Status
+        if score_filter.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY:
+            scores = scores.filter(beatmap__status=BeatmapStatus.LOVED)
+        elif score_filter.allowed_beatmap_status == AllowedBeatmapStatus.RANKED_ONLY:
+            scores = scores.filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED])
+
+        # Optional filters
+        if score_filter.oldest_beatmap_date:
+            scores = scores.filter(beatmap__approval_date__gte=score_filter.oldest_beatmap_date)
+        if score_filter.newest_beatmap_date:
+            scores = scores.filter(beatmap__approval_date__lte=score_filter.newest_beatmap_date)
+        if score_filter.oldest_score_date:
+            scores = scores.filter(date__gte=score_filter.oldest_score_date)
+        if score_filter.newest_score_date:
+            scores = scores.filter(date__lte=score_filter.newest_score_date)
+        if score_filter.lowest_ar:
+            scores = scores.filter(approach_rate__gte=score_filter.lowest_ar)
+        if score_filter.highest_ar:
+            scores = scores.filter(approach_rate__lte=score_filter.highest_ar)
+        if score_filter.lowest_od:
+            scores = scores.filter(overall_difficulty__gte=score_filter.lowest_od)
+        if score_filter.highest_od:
+            scores = scores.filter(overall_difficulty__lte=score_filter.highest_od)
+        if score_filter.lowest_cs:
+            scores = scores.filter(circle_size__gte=score_filter.lowest_cs)
+        if score_filter.highest_cs:
+            scores = scores.filter(circle_size__lte=score_filter.highest_cs)
+        if score_filter.lowest_accuracy:
+            scores = scores.filter(accuracy__gte=score_filter.lowest_accuracy)
+        if score_filter.highest_accuracy:
+            scores = scores.filter(accuracy__lte=score_filter.highest_accuracy)
+        
+        return scores
 
     def get_score_set(self, score_set=ScoreSet.NORMAL):
         """
@@ -452,3 +457,42 @@ class Score(models.Model):
         indexes = [
             models.Index(fields=["pp"])
         ]
+
+class ScoreFilter(models.Model):
+    allowed_beatmap_status = models.IntegerField(default=AllowedBeatmapStatus.RANKED_ONLY)
+    oldest_beatmap_date = models.DateTimeField(null=True, blank=True)
+    newest_beatmap_date = models.DateTimeField(null=True, blank=True)
+    oldest_score_date = models.DateTimeField(null=True, blank=True)
+    newest_score_date = models.DateTimeField(null=True, blank=True)
+    lowest_ar = models.FloatField(null=True, blank=True)
+    highest_ar = models.FloatField(null=True, blank=True)
+    lowest_od = models.FloatField(null=True, blank=True)
+    highest_od = models.FloatField(null=True, blank=True)
+    lowest_cs = models.FloatField(null=True, blank=True)
+    highest_cs = models.FloatField(null=True, blank=True)
+    required_mods = models.IntegerField(default=Mods.NONE)
+    disqualified_mods = models.IntegerField(default=Mods.NONE)
+    lowest_accuracy = models.FloatField(null=True, blank=True)
+    highest_accuracy = models.FloatField(null=True, blank=True)
+
+# Custom lookups
+
+@models.fields.Field.register_lookup
+class AllBits(models.Lookup):
+    lookup_name = "allbits"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params + rhs_params
+        return f"{lhs} & {rhs} = {rhs}", params
+
+@models.fields.Field.register_lookup
+class NoBits(models.Lookup):
+    lookup_name = "nobits"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params
+        return f"{lhs} & {rhs} = 0", params

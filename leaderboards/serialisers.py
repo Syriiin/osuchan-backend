@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
-from profiles.serialisers import OsuUserSerialiser, ScoreSerialiser, UserStatsSerialiser, BeatmapSerialiser
+from profiles.serialisers import OsuUserSerialiser, ScoreSerialiser, UserStatsSerialiser, BeatmapSerialiser, ScoreFilterSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
 
 class LeaderboardSerialiser(serializers.ModelSerializer):
+    score_filter = ScoreFilterSerialiser()
     owner = OsuUserSerialiser()
 
     class Meta:
@@ -15,24 +16,9 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "name",
             "description",
             "icon_url",
-            # score criteria
             "allow_past_scores",
-            "allowed_beatmap_status",
-            "oldest_beatmap_date",
-            "newest_beatmap_date",
-            "oldest_score_date",
-            "newest_score_date",
-            "lowest_ar",
-            "highest_ar",
-            "lowest_od",
-            "highest_od",
-            "lowest_cs",
-            "highest_cs",
-            "required_mods",
-            "disqualified_mods",
-            "lowest_accuracy",
-            "highest_accuracy",
             # relations
+            "score_filter",
             "owner",
             # dates
             "creation_time"

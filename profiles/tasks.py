@@ -10,6 +10,7 @@ from common.osu.enums import Gamemode
 from profiles.models import OsuUser, UserStats
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.enums import LeaderboardAccessType
+from leaderboards.tasks import update_memberships
 
 @shared_task
 @transaction.atomic
@@ -121,5 +122,8 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     
     # Process and add scores
     user_stats.add_scores_from_data(score_data_list)
+
+    # Update memberships
+    update_memberships.delay(user_id=user_stats.user_id, gamemode=user_stats.gamemode)
 
     return user_stats

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from profiles.models import OsuUser, UserStats, Beatmap, Score
+from profiles.models import OsuUser, UserStats, Beatmap, Score, ScoreFilter
 
 class OsuUserSerialiser(serializers.ModelSerializer):
     class Meta:
@@ -111,3 +111,26 @@ class UserScoreSerialiser(ScoreSerialiser):
 
 class BeatmapScoreSerialiser(ScoreSerialiser):
     user_stats = UserStatsSerialiser()
+
+class ScoreFilterSerialiser(serializers.ModelSerializer):
+    class Meta:
+        model = ScoreFilter
+        fields = (
+            "id",
+            # score criteria
+            "allowed_beatmap_status",
+            "oldest_beatmap_date",
+            "newest_beatmap_date",
+            "oldest_score_date",
+            "newest_score_date",
+            "lowest_ar",
+            "highest_ar",
+            "lowest_od",
+            "highest_od",
+            "lowest_cs",
+            "highest_cs",
+            "required_mods",
+            "disqualified_mods",
+            "lowest_accuracy",
+            "highest_accuracy",
+        )

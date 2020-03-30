@@ -17,3 +17,8 @@ class ScoreSet(IntEnum):
     NORMAL = 0
     NEVER_CHOKE = 1
     ALWAYS_FULL_COMBO = 2
+    
+class AllowedBeatmapStatus(IntEnum):
+    ANY = 0
+    RANKED_ONLY = 1     # ranked + approved
+    LOVED_ONLY = 2
