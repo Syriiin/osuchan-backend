@@ -7,10 +7,11 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from common.osu.enums import BeatmapStatus
+from common.utils import parse_int_or_none
+from common.osu.enums import BeatmapStatus, Mods
 from osuauth.permissions import BetaPermission
-from profiles.enums import ScoreSet
-from profiles.models import UserStats, Beatmap, Score
+from profiles.enums import ScoreSet, AllowedBeatmapStatus
+from profiles.models import UserStats, Beatmap, Score, ScoreFilter
 from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserScoreSerialiser
 from profiles.services import fetch_user, fetch_scores
 from leaderboards.models import Membership, Invite
@@ -75,20 +76,28 @@ class ListUserScores(APIView):
     # @method_decorator(cache_page(60 * 2))
     def get(self, request, user_id, gamemode):
         """
-        Return Scores based on a user_id and gamemode
+        Return Scores based on a user_id, gamemode, score_set, and various filters
         """
-        allow_loved = request.query_params.get("allow_loved") == "true" or False
-        try:
-            score_set = ScoreSet(int(request.query_params.get("score_set")))
-        except (ValueError, TypeError):
-            score_set = ScoreSet.NORMAL
+        score_filter = ScoreFilter(
+            allowed_beatmap_status=parse_int_or_none(request.query_params.get("allowed_beatmap_status")) if parse_int_or_none(request.query_params.get("allowed_beatmap_status")) is not None else AllowedBeatmapStatus.RANKED_ONLY,
+            oldest_beatmap_date=request.query_params.get("oldest_beatmap_date"),
+            newest_beatmap_date=request.query_params.get("newest_beatmap_date"),
+            oldest_score_date=request.query_params.get("oldest_score_date"),
+            newest_score_date=request.query_params.get("newest_score_date"),
+            lowest_ar=parse_int_or_none(request.query_params.get("lowest_ar")),
+            highest_ar=parse_int_or_none(request.query_params.get("highest_ar")),
+            lowest_od=parse_int_or_none(request.query_params.get("lowest_od")),
+            highest_od=parse_int_or_none(request.query_params.get("highest_od")),
+            lowest_cs=parse_int_or_none(request.query_params.get("lowest_cs")),
+            highest_cs=parse_int_or_none(request.query_params.get("highest_cs")),
+            required_mods=parse_int_or_none(request.query_params.get("required_mods")) if parse_int_or_none(request.query_params.get("required_mods")) is not None else Mods.NONE,
+            disqualified_mods=parse_int_or_none(request.query_params.get("disqualified_mods")) if parse_int_or_none(request.query_params.get("disqualified_mods")) is not None else Mods.NONE,
+            lowest_accuracy=parse_int_or_none(request.query_params.get("lowest_accuracy")),
+            highest_accuracy=parse_int_or_none(request.query_params.get("highest_accuracy"))
+        )
+        score_set = parse_int_or_none(request.query_params.get("score_set")) or ScoreSet.NORMAL
 
-        scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode)
-        if allow_loved:
-            scores = scores.filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED])
-        else:
-            scores = scores.filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED])
-        scores = scores.get_score_set(score_set)
+        scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).apply_score_filter(score_filter).get_score_set(score_set)
         
         serialiser = UserScoreSerialiser(scores[:100], many=True)
         return Response(serialiser.data)

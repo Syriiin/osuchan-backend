@@ -17,4 +17,10 @@ def get_beatmap_path(beatmap_id):
         urllib.request.urlretrieve(bm_url, beatmap_path)
 
     return beatmap_path
+
+def parse_int_or_none(input):
+    try:
+        return int(input)
+    except (ValueError, TypeError):
+        return None
     
