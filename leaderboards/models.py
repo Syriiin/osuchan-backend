@@ -31,7 +31,7 @@ class Leaderboard(models.Model):
     allow_past_scores = models.BooleanField(default=True)   # allow scores set before membership started
 
     # Relations
-    score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE, null=True)
+    score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
     owner = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="owned_leaderboards", null=True, blank=True)
     members = models.ManyToManyField(OsuUser, through="Membership", related_name="leaderboards")
     invitees = models.ManyToManyField(OsuUser, through="Invite", related_name="invited_leaderboards")
