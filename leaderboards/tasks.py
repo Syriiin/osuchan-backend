@@ -22,7 +22,9 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         else:
             scores = user_stats.scores.all()
 
-        membership.scores.set(scores.get_score_set())
+        scores = scores.get_score_set()
+
+        membership.scores.set(scores)
         membership.pp = utils.calculate_pp_total(score.pp for score in scores)
         membership.save()
         
