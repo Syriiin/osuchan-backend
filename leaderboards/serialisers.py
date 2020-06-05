@@ -12,6 +12,7 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
         fields = (
             "id",
             "gamemode",
+            "score_set",
             "access_type",
             "name",
             "description",

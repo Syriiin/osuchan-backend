@@ -8,7 +8,7 @@ from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from common.osu.enums import Mods
+from common.osu.enums import Mods, Gamemode
 from osuauth.permissions import BetaPermission
 from profiles.models import Score, ScoreFilter
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
@@ -67,6 +67,13 @@ class ListLeaderboards(APIView):
         if gamemode is None:
             raise ParseError("Missing gamemode parameter.")
         
+        score_set = request.data.get("score_set")
+        if score_set is None:
+            raise ParseError("Missing score_set parameter.")
+        elif gamemode != Gamemode.STANDARD:
+            # score set is not supported yet by non-standard gamemodes since they dont support chokes
+            score_set = 0
+        
         access_type = request.data.get("access_type")
         if access_type is None:
             raise ParseError("Missing access_type parameter.")
@@ -86,6 +93,7 @@ class ListLeaderboards(APIView):
         
         leaderboard = Leaderboard(
             gamemode=gamemode,
+            score_set=score_set,
             access_type=access_type,
             name=name,
             description=description or "",
@@ -170,7 +178,7 @@ class ListLeaderboardMembers(APIView):
             
         membership = create_membership(leaderboard_id, user_id)
         membership.score_count = membership.scores.count()
-        serialiser = UserMembershipSerialiser(membership)
+        serialiser = LeaderboardMembershipSerialiser(membership)
         return Response(serialiser.data)
 
 class ListLeaderboardScores(APIView):
@@ -182,9 +190,9 @@ class ListLeaderboardScores(APIView):
     # @method_decorator(cache_page(60 * 2))
     def get(self, request, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
-        scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1])).select_related("user_stats", "user_stats__user", "beatmap").order_by("-pp", "date")[:5]
-        serialiser = LeaderboardScoreSerialiser(scores[:50], many=True)
+        leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
+        scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=leaderboard_id).select_related("user_stats", "user_stats__user", "beatmap").order_by("-pp", "date").get_score_set(score_set=leaderboard.score_set)
+        serialiser = LeaderboardScoreSerialiser(scores[:5], many=True)
         return Response(serialiser.data)
 
 class GetLeaderboardMember(APIView):
@@ -253,8 +261,8 @@ class ListLeaderboardBeatmapScores(APIView):
     # @method_decorator(cache_page(60 * 2))
     def get(self, request, leaderboard_id, beatmap_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
-        scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1]), beatmap_id=beatmap_id).select_related("user_stats", "user_stats__user").order_by("-pp", "date")
+        leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
+        scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id).select_related("user_stats", "user_stats__user").order_by("-pp", "date").get_score_set(score_set=leaderboard.score_set)
         serialiser = BeatmapScoreSerialiser(scores[:50], many=True)
         return Response(serialiser.data)
 
@@ -267,7 +275,7 @@ class ListLeaderboardMemberScores(APIView):
     # @method_decorator(cache_page(60 * 2))
     def get(self, request, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        leaderboard = Leaderboard.objects.visible_to(osu_user_id).filter(id=leaderboard_id)
-        scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=Subquery(leaderboard.values("id")[:1]), membership__user_id=user_id).select_related("beatmap").order_by("-pp", "date").get_score_set()[:100]
+        leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
+        scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=leaderboard_id, membership__user_id=user_id).select_related("beatmap").order_by("-pp", "date").get_score_set(score_set=leaderboard.score_set)
         serialiser = UserScoreSerialiser(scores[:100], many=True)
         return Response(serialiser.data)

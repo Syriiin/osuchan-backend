@@ -2,7 +2,8 @@ from django.db import transaction
 from celery import shared_task
 
 from common.osu.enums import Gamemode
-from common.osu import utils
+from common.osu.utils import calculate_pp_total
+from profiles.enums import ScoreSet, ScoreResult
 from profiles.models import UserStats
 from leaderboards.models import Membership
 
@@ -22,10 +23,16 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         else:
             scores = user_stats.scores.all()
 
-        scores = scores.get_score_set()
-
+        scores = scores.get_score_set(score_set=leaderboard.score_set)
         membership.scores.set(scores)
-        membership.pp = utils.calculate_pp_total(score.pp for score in scores)
+        
+        if leaderboard.score_set == ScoreSet.NORMAL:
+            membership.pp = calculate_pp_total(score.pp for score in scores)
+        elif leaderboard.score_set == ScoreSet.NEVER_CHOKE:
+            membership.pp = calculate_pp_total(score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp for score in scores)
+        elif leaderboard.score_set == ScoreSet.ALWAYS_FULL_COMBO:
+            membership.pp = calculate_pp_total(score.nochoke_pp for score in scores)
+
         membership.save()
         
     return memberships

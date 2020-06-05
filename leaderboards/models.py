@@ -7,6 +7,7 @@ from datetime import datetime
 
 from common.osu.utils import calculate_pp_total
 from common.osu.enums import BeatmapStatus
+from profiles.enums import ScoreSet, ScoreResult
 from profiles.models import OsuUser, Score, ScoreFilter
 from leaderboards.enums import LeaderboardAccessType
 
@@ -24,6 +25,7 @@ class Leaderboard(models.Model):
     """
 
     gamemode = models.IntegerField()
+    score_set = models.IntegerField()
     access_type = models.IntegerField()
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -69,7 +71,7 @@ class Leaderboard(models.Model):
         # Get scores
         scores = Score.objects.filter(
             user_stats__user_id=user_id,
-            beatmap__gamemode=self.gamemode
+            gamemode=self.gamemode
         )
 
         if not self.allow_past_scores:
@@ -78,10 +80,15 @@ class Leaderboard(models.Model):
         if self.score_filter:
             scores = scores.apply_score_filter(self.score_filter)
         
-        scores = scores.get_score_set()
+        scores = scores.get_score_set(score_set=self.score_set)
 
         # Add scores to membership
-        membership.pp = calculate_pp_total(score.pp for score in scores)
+        if self.score_set == ScoreSet.NORMAL:
+            membership.pp = calculate_pp_total(score.pp for score in scores)
+        elif self.score_set == ScoreSet.NEVER_CHOKE:
+            membership.pp = calculate_pp_total(score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp for score in scores)
+        elif self.score_set == ScoreSet.ALWAYS_FULL_COMBO:
+            membership.pp = calculate_pp_total(score.nochoke_pp for score in scores)
         membership.save()
         membership.scores.add(*scores)
 
