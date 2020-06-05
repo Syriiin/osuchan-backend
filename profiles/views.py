@@ -7,7 +7,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from common.utils import parse_int_or_none
+from common.utils import parse_int_or_none, parse_float_or_none
 from common.osu.enums import BeatmapStatus, Mods
 from osuauth.permissions import BetaPermission
 from profiles.enums import ScoreSet, AllowedBeatmapStatus
@@ -84,16 +84,16 @@ class ListUserScores(APIView):
             newest_beatmap_date=request.query_params.get("newest_beatmap_date"),
             oldest_score_date=request.query_params.get("oldest_score_date"),
             newest_score_date=request.query_params.get("newest_score_date"),
-            lowest_ar=parse_int_or_none(request.query_params.get("lowest_ar")),
-            highest_ar=parse_int_or_none(request.query_params.get("highest_ar")),
-            lowest_od=parse_int_or_none(request.query_params.get("lowest_od")),
-            highest_od=parse_int_or_none(request.query_params.get("highest_od")),
-            lowest_cs=parse_int_or_none(request.query_params.get("lowest_cs")),
-            highest_cs=parse_int_or_none(request.query_params.get("highest_cs")),
+            lowest_ar=parse_float_or_none(request.query_params.get("lowest_ar")),
+            highest_ar=parse_float_or_none(request.query_params.get("highest_ar")),
+            lowest_od=parse_float_or_none(request.query_params.get("lowest_od")),
+            highest_od=parse_float_or_none(request.query_params.get("highest_od")),
+            lowest_cs=parse_float_or_none(request.query_params.get("lowest_cs")),
+            highest_cs=parse_float_or_none(request.query_params.get("highest_cs")),
             required_mods=parse_int_or_none(request.query_params.get("required_mods")) if parse_int_or_none(request.query_params.get("required_mods")) is not None else Mods.NONE,
             disqualified_mods=parse_int_or_none(request.query_params.get("disqualified_mods")) if parse_int_or_none(request.query_params.get("disqualified_mods")) is not None else Mods.NONE,
-            lowest_accuracy=parse_int_or_none(request.query_params.get("lowest_accuracy")),
-            highest_accuracy=parse_int_or_none(request.query_params.get("highest_accuracy"))
+            lowest_accuracy=parse_float_or_none(request.query_params.get("lowest_accuracy")),
+            highest_accuracy=parse_float_or_none(request.query_params.get("highest_accuracy"))
         )
         score_set = parse_int_or_none(request.query_params.get("score_set")) or ScoreSet.NORMAL
 
