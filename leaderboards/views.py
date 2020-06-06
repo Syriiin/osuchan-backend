@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from common.osu.enums import Mods, Gamemode
 from osuauth.permissions import BetaPermission
+from profiles.enums import ScoreSet
 from profiles.models import Score, ScoreFilter
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
@@ -72,7 +73,7 @@ class ListLeaderboards(APIView):
             raise ParseError("Missing score_set parameter.")
         elif gamemode != Gamemode.STANDARD:
             # score set is not supported yet by non-standard gamemodes since they dont support chokes
-            score_set = 0
+            score_set = ScoreSet.NORMAL
         
         access_type = request.data.get("access_type")
         if access_type is None:

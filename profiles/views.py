@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from common.utils import parse_int_or_none, parse_float_or_none
-from common.osu.enums import BeatmapStatus, Mods
+from common.osu.enums import BeatmapStatus, Mods, Gamemode
 from osuauth.permissions import BetaPermission
 from profiles.enums import ScoreSet, AllowedBeatmapStatus
 from profiles.models import UserStats, Beatmap, Score, ScoreFilter
@@ -96,6 +96,9 @@ class ListUserScores(APIView):
             highest_accuracy=parse_float_or_none(request.query_params.get("highest_accuracy"))
         )
         score_set = parse_int_or_none(request.query_params.get("score_set")) or ScoreSet.NORMAL
+        if gamemode != Gamemode.STANDARD:
+            # score set is not supported yet by non-standard gamemodes since they dont support chokes
+            score_set = ScoreSet.NORMAL
 
         scores = Score.objects.select_related("beatmap").non_restricted().filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode).apply_score_filter(score_filter).get_score_set(score_set)
         
