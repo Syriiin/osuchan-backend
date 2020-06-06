@@ -122,10 +122,8 @@ def get_cs(cs, mods, gamemode):
 def get_ar(ar, mods):
     def ar_to_ms(ar):       #convert ar to ms
         if ar <= 5:
-            # ms = -120ar + 1800
             ms = -120 * ar + 1800
         elif ar > 5:
-            # ms = -150ar + 1950
             ms = -150 * ar + 1950
         return ms
 
@@ -158,12 +156,10 @@ def get_ar(ar, mods):
 
 def get_od(od, mods):
     def od_to_ms(od):       #convert od to ms
-        # ms = -6od + 79.5
         ms = -6 * od + 79.5
         return ms
 
     def ms_to_od(ms):       #convert ms to od
-        # od = (ms - 79.5) / -6
         od = (ms - 79.5) / -6
         return od
 
