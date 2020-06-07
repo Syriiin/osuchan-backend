@@ -47,7 +47,7 @@ class GetUserStats(APIView):
         serialiser = UserStatsSerialiser(user_stats)
         return Response(serialiser.data)
 
-class GetBeatmaps(APIView):
+class GetBeatmap(APIView):
     """
     API endpoint for getting Beatmaps
     """

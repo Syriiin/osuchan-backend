@@ -58,12 +58,10 @@ def callback(request):
     return redirect("/")
 
 @api_view()
-@permission_classes([permissions.AllowAny])
 def me(request):
     """
-    API Endpoint for checking the currently logged in user
+    API Endpoint for checking the currently authenticated user
     """
-
     # if user isn't logged in, 404
     if not request.user.is_authenticated:
         raise Http404

@@ -98,27 +98,25 @@ class ListLeaderboards(APIView):
             access_type=access_type,
             name=name,
             description=description or "",
-            icon_url=icon_url or ""
-        )
-
-        # Set optional score criteria
-        leaderboard.allow_past_scores = request.data.get("allow_past_scores")
-        leaderboard.score_filter = ScoreFilter.objects.create(
-            allowed_beatmap_status=request.data.get("allowed_beatmap_status"),
-            oldest_beatmap_date=request.data.get("oldest_beatmap_date"),
-            newest_beatmap_date=request.data.get("newest_beatmap_date"),
-            oldest_score_date=request.data.get("oldest_score_date"),
-            newest_score_date=request.data.get("newest_score_date"),
-            lowest_ar=request.data.get("lowest_ar"),
-            highest_ar=request.data.get("highest_ar"),
-            lowest_od=request.data.get("lowest_od"),
-            highest_od=request.data.get("highest_od"),
-            lowest_cs=request.data.get("lowest_cs"),
-            highest_cs=request.data.get("highest_cs"),
-            required_mods=request.data.get("required_mods") if request.data.get("required_mods") is not None else Mods.NONE,
-            disqualified_mods=request.data.get("disqualified_mods") if request.data.get("disqualified_mods") is not None else Mods.NONE,
-            lowest_accuracy=request.data.get("lowest_accuracy"),
-            highest_accuracy=request.data.get("highest_accuracy")
+            icon_url=icon_url or "",
+            allow_past_scores=request.data.get("allow_past_scores"),
+            score_filter = ScoreFilter.objects.create(
+                allowed_beatmap_status=request.data.get("allowed_beatmap_status"),
+                oldest_beatmap_date=request.data.get("oldest_beatmap_date"),
+                newest_beatmap_date=request.data.get("newest_beatmap_date"),
+                oldest_score_date=request.data.get("oldest_score_date"),
+                newest_score_date=request.data.get("newest_score_date"),
+                lowest_ar=request.data.get("lowest_ar"),
+                highest_ar=request.data.get("highest_ar"),
+                lowest_od=request.data.get("lowest_od"),
+                highest_od=request.data.get("highest_od"),
+                lowest_cs=request.data.get("lowest_cs"),
+                highest_cs=request.data.get("highest_cs"),
+                required_mods=request.data.get("required_mods") if request.data.get("required_mods") is not None else Mods.NONE,
+                disqualified_mods=request.data.get("disqualified_mods") if request.data.get("disqualified_mods") is not None else Mods.NONE,
+                lowest_accuracy=request.data.get("lowest_accuracy"),
+                highest_accuracy=request.data.get("highest_accuracy")
+            )
         )
         
         # Hand off to create_leaderboard service to set relations, update owner membership, and save
