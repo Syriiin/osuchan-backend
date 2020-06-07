@@ -30,7 +30,6 @@ class UserStatsSerialiser(serializers.ModelSerializer):
             "pp",
             "accuracy",
             # osuchan data
-            "nochoke_pp",
             "score_style_accuracy",
             "score_style_bpm",
             "score_style_cs",
