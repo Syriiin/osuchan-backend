@@ -91,6 +91,10 @@ class ListLeaderboards(APIView):
 
         description = request.data.get("description")
         icon_url = request.data.get("icon_url")
+
+        score_filter_data = request.data.get("score_filter")
+        if score_filter_data is None:
+            raise ParseError("Missing score_filter parameter.")
         
         leaderboard = Leaderboard(
             gamemode=gamemode,
@@ -100,22 +104,22 @@ class ListLeaderboards(APIView):
             description=description or "",
             icon_url=icon_url or "",
             allow_past_scores=request.data.get("allow_past_scores"),
-            score_filter = ScoreFilter.objects.create(
-                allowed_beatmap_status=request.data.get("allowed_beatmap_status"),
-                oldest_beatmap_date=request.data.get("oldest_beatmap_date"),
-                newest_beatmap_date=request.data.get("newest_beatmap_date"),
-                oldest_score_date=request.data.get("oldest_score_date"),
-                newest_score_date=request.data.get("newest_score_date"),
-                lowest_ar=request.data.get("lowest_ar"),
-                highest_ar=request.data.get("highest_ar"),
-                lowest_od=request.data.get("lowest_od"),
-                highest_od=request.data.get("highest_od"),
-                lowest_cs=request.data.get("lowest_cs"),
-                highest_cs=request.data.get("highest_cs"),
-                required_mods=request.data.get("required_mods") if request.data.get("required_mods") is not None else Mods.NONE,
-                disqualified_mods=request.data.get("disqualified_mods") if request.data.get("disqualified_mods") is not None else Mods.NONE,
-                lowest_accuracy=request.data.get("lowest_accuracy"),
-                highest_accuracy=request.data.get("highest_accuracy")
+            score_filter=ScoreFilter.objects.create(
+                allowed_beatmap_status=score_filter_data.get("allowed_beatmap_status"),
+                oldest_beatmap_date=score_filter_data.get("oldest_beatmap_date"),
+                newest_beatmap_date=score_filter_data.get("newest_beatmap_date"),
+                oldest_score_date=score_filter_data.get("oldest_score_date"),
+                newest_score_date=score_filter_data.get("newest_score_date"),
+                lowest_ar=score_filter_data.get("lowest_ar"),
+                highest_ar=score_filter_data.get("highest_ar"),
+                lowest_od=score_filter_data.get("lowest_od"),
+                highest_od=score_filter_data.get("highest_od"),
+                lowest_cs=score_filter_data.get("lowest_cs"),
+                highest_cs=score_filter_data.get("highest_cs"),
+                required_mods=score_filter_data.get("required_mods") if score_filter_data.get("required_mods") is not None else Mods.NONE,
+                disqualified_mods=score_filter_data.get("disqualified_mods") if score_filter_data.get("disqualified_mods") is not None else Mods.NONE,
+                lowest_accuracy=score_filter_data.get("lowest_accuracy"),
+                highest_accuracy=score_filter_data.get("highest_accuracy")
             )
         )
         
