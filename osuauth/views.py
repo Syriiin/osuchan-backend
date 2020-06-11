@@ -14,11 +14,10 @@ import requests
 
 from common.osu.enums import Mods
 from osuauth.models import ScoreFilterPreset
-from osuauth.serialisers import ScoreFilterPresetSerialiser
+from osuauth.serialisers import UserSerialiser, ScoreFilterPresetSerialiser
 from osuauth.permissions import BetaPermission
 from profiles.services import fetch_user
 from profiles.models import ScoreFilter
-from profiles.serialisers import OsuUserSerialiser
 
 def login_redirect(request):
     """
@@ -74,11 +73,11 @@ def me(request):
         raise Http404
 
     # user might still not have osu_user if not they are a non-linked account (ie. admin)
-    osu_user = request.user.osu_user
-    if osu_user is not None:
-        fetch_user(user_id=osu_user.id) # TODO: specify gamemode based on user preferences
+    user = request.user
+    if user.osu_user is not None:
+        fetch_user(user_id=user.osu_user_id)    # TODO: specify gamemode based on user preferences
 
-    serialiser = OsuUserSerialiser(osu_user)
+    serialiser = UserSerialiser(user)
     return Response(serialiser.data)
 
 class ListScoreFilterPresets(APIView):
