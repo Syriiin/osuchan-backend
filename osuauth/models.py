@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from profiles.models import OsuUser, ScoreFilter
+from profiles.models import OsuUser
 
 class User(AbstractUser):
     """
@@ -18,10 +18,3 @@ class User(AbstractUser):
             return "{} ({})".format(self.username, self.osu_user.username)
         else:
             return self.username
-
-class ScoreFilterPreset(models.Model):
-    name = models.CharField(max_length=30)
-
-    # Relations
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    score_filter = models.ForeignKey(ScoreFilter, on_delete=models.CASCADE)

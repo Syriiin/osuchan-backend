@@ -20,8 +20,9 @@ INSTALLED_APPS = [
     'debug_toolbar',    # django debug toolbar
     'main.apps.MainConfig', # entry point to react app
     'osuauth.apps.OsuauthConfig',   # osu auth and accounts
-    'profiles.apps.ProfilesConfig',
-    'leaderboards.apps.LeaderboardsConfig'
+    'users.apps.UsersConfig',   # api for users
+    'profiles.apps.ProfilesConfig', # api for profiles
+    'leaderboards.apps.LeaderboardsConfig'  # api for leaderboards
 ]
 
 MIDDLEWARE = [
