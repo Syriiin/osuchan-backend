@@ -331,6 +331,10 @@ class ScoreQuerySet(models.QuerySet):
             scores = scores.filter(accuracy__gte=score_filter.lowest_accuracy)
         if score_filter.highest_accuracy:
             scores = scores.filter(accuracy__lte=score_filter.highest_accuracy)
+        if score_filter.lowest_length:
+            scores = scores.filter(length__gte=score_filter.lowest_length)
+        if score_filter.highest_length:
+            scores = scores.filter(length__lte=score_filter.highest_length)
         
         return scores
 
@@ -469,6 +473,8 @@ class ScoreFilter(models.Model):
     disqualified_mods = models.IntegerField(default=Mods.NONE)
     lowest_accuracy = models.FloatField(null=True, blank=True)
     highest_accuracy = models.FloatField(null=True, blank=True)
+    lowest_length = models.FloatField(null=True, blank=True)
+    highest_length = models.FloatField(null=True, blank=True)
 
 # Custom lookups
 

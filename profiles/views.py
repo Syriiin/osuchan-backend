@@ -93,7 +93,9 @@ class ListUserScores(APIView):
             required_mods=parse_int_or_none(request.query_params.get("required_mods")) if parse_int_or_none(request.query_params.get("required_mods")) is not None else Mods.NONE,
             disqualified_mods=parse_int_or_none(request.query_params.get("disqualified_mods")) if parse_int_or_none(request.query_params.get("disqualified_mods")) is not None else Mods.NONE,
             lowest_accuracy=parse_float_or_none(request.query_params.get("lowest_accuracy")),
-            highest_accuracy=parse_float_or_none(request.query_params.get("highest_accuracy"))
+            highest_accuracy=parse_float_or_none(request.query_params.get("highest_accuracy")),
+            lowest_length=parse_float_or_none(request.query_params.get("lowest_length")),
+            highest_length=parse_float_or_none(request.query_params.get("highest_length"))
         )
         score_set = parse_int_or_none(request.query_params.get("score_set")) or ScoreSet.NORMAL
         if gamemode != Gamemode.STANDARD:

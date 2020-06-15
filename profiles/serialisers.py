@@ -132,4 +132,6 @@ class ScoreFilterSerialiser(serializers.ModelSerializer):
             "disqualified_mods",
             "lowest_accuracy",
             "highest_accuracy",
+            "lowest_length",
+            "highest_length"
         )

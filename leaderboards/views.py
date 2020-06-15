@@ -119,7 +119,9 @@ class ListLeaderboards(APIView):
                 required_mods=score_filter_data.get("required_mods") if score_filter_data.get("required_mods") is not None else Mods.NONE,
                 disqualified_mods=score_filter_data.get("disqualified_mods") if score_filter_data.get("disqualified_mods") is not None else Mods.NONE,
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
-                highest_accuracy=score_filter_data.get("highest_accuracy")
+                highest_accuracy=score_filter_data.get("highest_accuracy"),
+                lowest_length=score_filter_data.get("lowest_length"),
+                highest_length=score_filter_data.get("highest_length")
             )
         )
         

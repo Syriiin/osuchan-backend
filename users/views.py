@@ -81,7 +81,9 @@ class ListScoreFilterPresets(APIView):
                 required_mods=score_filter_data.get("required_mods") if score_filter_data.get("required_mods") is not None else Mods.NONE,
                 disqualified_mods=score_filter_data.get("disqualified_mods") if score_filter_data.get("disqualified_mods") is not None else Mods.NONE,
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
-                highest_accuracy=score_filter_data.get("highest_accuracy")
+                highest_accuracy=score_filter_data.get("highest_accuracy"),
+                lowest_length=score_filter_data.get("lowest_length"),
+                highest_length=score_filter_data.get("highest_length")
             )
         )
 
@@ -134,6 +136,8 @@ class GetScoreFilterPreset(APIView):
         score_filter.disqualified_mods = score_filter_data.get("disqualified_mods") if score_filter_data.get("disqualified_mods") is not None else Mods.NONE
         score_filter.lowest_accuracy = score_filter_data.get("lowest_accuracy")
         score_filter.highest_accuracy = score_filter_data.get("highest_accuracy")
+        score_filter.lowest_length = score_filter_data.get("lowest_length")
+        score_filter.highest_length = score_filter_data.get("highest_length")
 
         score_filter.save()
         preset.save()
