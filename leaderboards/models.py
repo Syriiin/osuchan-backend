@@ -57,12 +57,12 @@ class Leaderboard(models.Model):
             if self.access_type in (LeaderboardAccessType.PUBLIC_INVITE_ONLY, LeaderboardAccessType.PRIVATE) and self.owner_id != user_id:
                 # Check if user has been invited
                 try:
-                    invite = self.invitees.get(id=user_id)
+                    invitees = self.invitees.filter(id=user_id)
                 except OsuUser.DoesNotExist:
                     raise PermissionDenied("You must be invited to join this leaderboard.")
                 
                 # Invite is being accepted
-                self.invitees.remove(invite)
+                self.invitees.remove(*invitees)
 
             # Create new membership
             membership = Membership(user_id=user_id, leaderboard=self)
