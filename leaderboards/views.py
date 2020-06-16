@@ -239,13 +239,13 @@ class ListLeaderboardInvites(APIView):
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
 
         invitee_ids = request.data.get("user_ids")
+        message = request.data.get("message") or ""
 
         invites = []
         for invitee_id in invitee_ids:
             if leaderboard.memberships.filter(user_id=invitee_id).exists():
                 continue
 
-            message = request.data.get("message") or ""
             try:
                 invite = Invite.objects.get(user_id=invitee_id, leaderboard_id=leaderboard_id)
             except Invite.DoesNotExist:
