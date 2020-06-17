@@ -150,6 +150,11 @@ class Invite(models.Model):
         return f"{self.leaderboard.name}: {self.user.username}"
 
     class Meta:
+        constraints = [
+            # each user can only have 1 invite row per leaderboard
+            models.UniqueConstraint(fields=["leaderboard_id", "user_id"], name="unique_invites")
+        ]
+
         indexes = [
             models.Index(fields=["leaderboard"]),
             models.Index(fields=["user"])
