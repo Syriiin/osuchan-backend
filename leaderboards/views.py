@@ -251,6 +251,21 @@ class ListLeaderboardInvites(APIView):
         serialiser = LeaderboardInviteSerialiser(invites, many=True)
         return Response(serialiser.data)
 
+class GetLeaderboardInvite(APIView):
+    """
+    API endpoint for getting specific Invites
+    """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
+    def get(self, request, leaderboard_id, user_id):
+        invite = Invite.objects.select_related("user").annotate(score_count=Count("scores")).get(leaderboard_id=leaderboard_id, user_id=user_id)
+        serialiser = LeaderboardInviteSerialiser(invite)
+        return Response(serialiser.data)
+
+    def delete(self, request, leaderboard_id, user_id):
+        invite = Invite.objects.get(leaderboard_id=leaderboard_id, user_id=user_id)
+        return Response(invite.delete())
+
 class ListLeaderboardBeatmapScores(APIView):
     """
     API endpoint for listing Scores on Beatmaps
