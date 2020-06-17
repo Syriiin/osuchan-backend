@@ -1,7 +1,6 @@
 from django.db.models.aggregates import Count
 from django.db.models import Subquery
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 
 from rest_framework import permissions
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
@@ -24,7 +23,6 @@ class ListLeaderboards(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 1))
     def get(self, request):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         
@@ -137,7 +135,6 @@ class GetLeaderboard(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 5))
     def get(self, request, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         
@@ -170,7 +167,6 @@ class ListLeaderboardMembers(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 1))
     def get(self, request, leaderboard_id):
         memberships = Membership.objects.non_restricted().filter(leaderboard_id=leaderboard_id).select_related("user").annotate(score_count=Count("scores")).order_by("-pp")
         serialiser = LeaderboardMembershipSerialiser(memberships[:100], many=True)
@@ -192,7 +188,6 @@ class ListLeaderboardScores(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 2))
     def get(self, request, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
@@ -206,7 +201,6 @@ class GetLeaderboardMember(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 1))
     def get(self, request, leaderboard_id, user_id):
         membership = Membership.objects.select_related("user").annotate(score_count=Count("scores")).get(leaderboard_id=leaderboard_id, user_id=user_id)
         if membership.user.disabled:
@@ -263,7 +257,6 @@ class ListLeaderboardBeatmapScores(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 2))
     def get(self, request, leaderboard_id, beatmap_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
@@ -277,7 +270,6 @@ class ListLeaderboardMemberScores(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 2))
     def get(self, request, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
         leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)

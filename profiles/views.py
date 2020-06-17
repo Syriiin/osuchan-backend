@@ -1,5 +1,4 @@
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from django.db.models.aggregates import Count
 
 from rest_framework import permissions
@@ -23,7 +22,6 @@ class GetUserStats(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 2))
     def get(self, request, user_string, gamemode):
         """
         Return UserStats based on a user_string and gamemode
@@ -53,7 +51,6 @@ class GetBeatmap(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 5))
     def get(self, request, beatmap_id):
         """
         Return Beatmap based on a beatmap_id
@@ -73,7 +70,6 @@ class ListUserScores(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    # @method_decorator(cache_page(60 * 2))
     def get(self, request, user_id, gamemode):
         """
         Return Scores based on a user_id, gamemode, score_set, and various filters
