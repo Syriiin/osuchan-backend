@@ -114,8 +114,8 @@ class ListLeaderboards(APIView):
                 highest_od=score_filter_data.get("highest_od"),
                 lowest_cs=score_filter_data.get("lowest_cs"),
                 highest_cs=score_filter_data.get("highest_cs"),
-                required_mods=score_filter_data.get("required_mods") if score_filter_data.get("required_mods") is not None else Mods.NONE,
-                disqualified_mods=score_filter_data.get("disqualified_mods") if score_filter_data.get("disqualified_mods") is not None else Mods.NONE,
+                required_mods=score_filter_data.get("required_mods", Mods.NONE),
+                disqualified_mods=score_filter_data.get("disqualified_mods", Mods.NONE),
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
                 highest_accuracy=score_filter_data.get("highest_accuracy"),
                 lowest_length=score_filter_data.get("lowest_length"),
@@ -233,7 +233,7 @@ class ListLeaderboardInvites(APIView):
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
 
         invitee_ids = request.data.get("user_ids")
-        message = request.data.get("message") or ""
+        message = request.data.get("message", "")
 
         invites = []
         for invitee_id in invitee_ids:

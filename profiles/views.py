@@ -26,7 +26,7 @@ class GetUserStats(APIView):
         """
         Return UserStats based on a user_string and gamemode
         """
-        user_id_type = request.query_params.get("user_id_type") or "id"
+        user_id_type = request.query_params.get("user_id_type", "id")
 
         try:
             if user_id_type == "id":
@@ -75,7 +75,7 @@ class ListUserScores(APIView):
         Return Scores based on a user_id, gamemode, score_set, and various filters
         """
         score_filter = ScoreFilter(
-            allowed_beatmap_status=parse_int_or_none(request.query_params.get("allowed_beatmap_status")) if parse_int_or_none(request.query_params.get("allowed_beatmap_status")) is not None else AllowedBeatmapStatus.RANKED_ONLY,
+            allowed_beatmap_status=parse_int_or_none(request.query_params.get("allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY)),
             oldest_beatmap_date=request.query_params.get("oldest_beatmap_date"),
             newest_beatmap_date=request.query_params.get("newest_beatmap_date"),
             oldest_score_date=request.query_params.get("oldest_score_date"),
@@ -86,14 +86,14 @@ class ListUserScores(APIView):
             highest_od=parse_float_or_none(request.query_params.get("highest_od")),
             lowest_cs=parse_float_or_none(request.query_params.get("lowest_cs")),
             highest_cs=parse_float_or_none(request.query_params.get("highest_cs")),
-            required_mods=parse_int_or_none(request.query_params.get("required_mods")) if parse_int_or_none(request.query_params.get("required_mods")) is not None else Mods.NONE,
-            disqualified_mods=parse_int_or_none(request.query_params.get("disqualified_mods")) if parse_int_or_none(request.query_params.get("disqualified_mods")) is not None else Mods.NONE,
+            required_mods=parse_int_or_none(request.query_params.get("required_mods", Mods.NONE)),
+            disqualified_mods=parse_int_or_none(request.query_params.get("disqualified_mods", Mods.NONE)),
             lowest_accuracy=parse_float_or_none(request.query_params.get("lowest_accuracy")),
             highest_accuracy=parse_float_or_none(request.query_params.get("highest_accuracy")),
             lowest_length=parse_float_or_none(request.query_params.get("lowest_length")),
             highest_length=parse_float_or_none(request.query_params.get("highest_length"))
         )
-        score_set = parse_int_or_none(request.query_params.get("score_set")) or ScoreSet.NORMAL
+        score_set = parse_int_or_none(request.query_params.get("score_set", ScoreSet.NORMAL))
         if gamemode != Gamemode.STANDARD:
             # score set is not supported yet by non-standard gamemodes since they dont support chokes
             score_set = ScoreSet.NORMAL
