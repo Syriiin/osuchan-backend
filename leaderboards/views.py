@@ -1,7 +1,3 @@
-from django.db.models.aggregates import Count
-from django.db.models import Subquery
-from django.utils.decorators import method_decorator
-
 from rest_framework import permissions, status
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
@@ -25,35 +21,14 @@ class ListLeaderboards(APIView):
 
     def get(self, request):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        
-        # something very weird is happening when visible_to() is chained after the aggregate annotation for member_count
-        #   that is causing the annotated values to be jumbled up on wrong instances somehow
-        # for now we will temporarily disable showing private leaderboards on the full leaderboard list so we dont need to use visible_to() and solve this issue
-        
-        user_id = request.query_params.get("user_id")
+
+        leaderboards = Leaderboard.objects.select_related("owner").visible_to(osu_user_id).order_by("-member_count")
+
         gamemode = request.query_params.get("gamemode")
-        if user_id is not None:
-            # filtering for leaderboards with a specific member and exclude global leaderboards
-            leaderboards = Leaderboard.objects.exclude(access_type=LeaderboardAccessType.GLOBAL).filter(members__id=user_id).select_related("owner")
+        if gamemode is not None:
+            leaderboards = leaderboard.filter(gamemode=gamemode)
 
-            if gamemode is not None:
-                # Filtering for leaderboards for a speficic gamemode
-                leaderboards = leaderboards.filter(gamemode=gamemode)
-            
-            # filter for leaderboards visible to the user
-            leaderboards = leaderboards.visible_to(osu_user_id)
-        else:
-            # filter for public leaderboards
-            leaderboards = Leaderboard.objects.filter(access_type__in=[LeaderboardAccessType.PUBLIC, LeaderboardAccessType.PUBLIC_INVITE_ONLY]).select_related("owner")
-            
-            # order by member count
-            leaderboards = leaderboards.order_by("-member_count")
-        
-            # add in global leaderboards
-            global_leaderboards = Leaderboard.objects.filter(access_type=LeaderboardAccessType.GLOBAL).select_related("owner")
-            leaderboards = list(global_leaderboards) + list(leaderboards[:25])
-
-        serialiser = LeaderboardSerialiser(leaderboards, many=True)
+        serialiser = LeaderboardSerialiser(leaderboards[:100], many=True)
         return Response(serialiser.data)
 
     def post(self, request):

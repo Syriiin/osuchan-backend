@@ -15,6 +15,7 @@ from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserSco
 from profiles.services import fetch_user, fetch_scores
 from leaderboards.models import Membership, Invite
 from leaderboards.serialisers import UserMembershipSerialiser, UserInviteSerialiser
+from leaderboards.enums import LeaderboardAccessType
 
 class GetUserStats(APIView):
     """
@@ -118,9 +119,8 @@ class ListUserMemberships(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, user_id):
-        if not request.user.is_authenticated or request.user.osu_user_id != user_id:
-            raise PermissionDenied("You may only retrieve memberships for the authenticated user.")
-        memberships = Membership.objects.select_related("leaderboard", "leaderboard__owner").annotate(score_count=Count("scores")).filter(user_id=user_id)
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        memberships = Membership.objects.select_related("leaderboard", "leaderboard__owner").exclude(leaderboard__access_type__in=[LeaderboardAccessType.GLOBAL]).filter(user_id=user_id).visible_to(osu_user_id).order_by("-leaderboard__member_count")
         serialiser = UserMembershipSerialiser(memberships, many=True)
         return Response(serialiser.data)
 
