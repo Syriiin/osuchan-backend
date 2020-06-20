@@ -18,6 +18,7 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "description",
             "icon_url",
             "allow_past_scores",
+            "member_count",
             # relations
             "score_filter",
             "owner",
@@ -26,20 +27,18 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
         )
 
 class MembershipSerialiser(serializers.ModelSerializer):
-    score_count = serializers.IntegerField()
-
     class Meta:
         model = Membership
         fields = (
             "id",
             "pp",
+            "score_count",
+            "rank",
             # relations
             "leaderboard",
             "user",
             # dates
-            "join_date",
-            # annotations
-            "score_count"
+            "join_date"
         )
 
 class LeaderboardMembershipSerialiser(MembershipSerialiser):

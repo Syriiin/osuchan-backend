@@ -2,7 +2,7 @@ from django.db.models.aggregates import Count
 from django.db.models import Subquery
 from django.utils.decorators import method_decorator
 
-from rest_framework import permissions
+from rest_framework import permissions, status
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,7 +14,7 @@ from profiles.models import Score, ScoreFilter
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
 from leaderboards.models import Leaderboard, Membership, Invite
 from leaderboards.serialisers import LeaderboardSerialiser, LeaderboardMembershipSerialiser, UserMembershipSerialiser, LeaderboardInviteSerialiser, LeaderboardScoreSerialiser
-from leaderboards.services import create_leaderboard, create_membership
+from leaderboards.services import create_leaderboard, create_membership, delete_membership
 from leaderboards.enums import LeaderboardAccessType
 
 class ListLeaderboards(APIView):
@@ -47,7 +47,7 @@ class ListLeaderboards(APIView):
             leaderboards = Leaderboard.objects.filter(access_type__in=[LeaderboardAccessType.PUBLIC, LeaderboardAccessType.PUBLIC_INVITE_ONLY]).select_related("owner")
             
             # order by member count
-            leaderboards = leaderboards.annotate(member_count=Count("members")).order_by("-member_count")
+            leaderboards = leaderboards.order_by("-member_count")
         
             # add in global leaderboards
             global_leaderboards = Leaderboard.objects.filter(access_type=LeaderboardAccessType.GLOBAL).select_related("owner")
@@ -168,7 +168,7 @@ class ListLeaderboardMembers(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id):
-        memberships = Membership.objects.non_restricted().filter(leaderboard_id=leaderboard_id).select_related("user").annotate(score_count=Count("scores")).order_by("-pp")
+        memberships = Membership.objects.non_restricted().filter(leaderboard_id=leaderboard_id).select_related("user").order_by("-pp")
         serialiser = LeaderboardMembershipSerialiser(memberships[:100], many=True)
         return Response(serialiser.data)
 
@@ -178,7 +178,6 @@ class ListLeaderboardMembers(APIView):
             return PermissionError("Must be authenticated with an osu! account.")
             
         membership = create_membership(leaderboard_id, user_id)
-        membership.score_count = membership.scores.count()
         serialiser = LeaderboardMembershipSerialiser(membership)
         return Response(serialiser.data)
 
@@ -202,15 +201,17 @@ class GetLeaderboardMember(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id, user_id):
-        membership = Membership.objects.select_related("user").annotate(score_count=Count("scores")).get(leaderboard_id=leaderboard_id, user_id=user_id)
+        membership = Membership.objects.select_related("user").get(leaderboard_id=leaderboard_id, user_id=user_id)
         if membership.user.disabled:
             return None
         serialiser = LeaderboardMembershipSerialiser(membership)
         return Response(serialiser.data)
 
     def delete(self, request, leaderboard_id, user_id):
-        membership = Membership.objects.exclude(leaderboard__access_type=LeaderboardAccessType.GLOBAL).get(leaderboard_id=leaderboard_id, user_id=user_id)
-        return Response(membership.delete())
+        if request.user.osu_user_id != user_id:
+            raise PermissionDenied("You can only remove yourself from leaderboards.")
+        delete_membership(leaderboard_id, user_id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ListLeaderboardInvites(APIView):
     """
@@ -258,7 +259,7 @@ class GetLeaderboardInvite(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
     def get(self, request, leaderboard_id, user_id):
-        invite = Invite.objects.select_related("user").annotate(score_count=Count("scores")).get(leaderboard_id=leaderboard_id, user_id=user_id)
+        invite = Invite.objects.select_related("user").get(leaderboard_id=leaderboard_id, user_id=user_id)
         serialiser = LeaderboardInviteSerialiser(invite)
         return Response(serialiser.data)
 

@@ -31,6 +31,7 @@ class Leaderboard(models.Model):
     description = models.TextField(blank=True)
     icon_url = models.CharField(max_length=250, blank=True)
     allow_past_scores = models.BooleanField(default=True)   # allow scores set before membership started
+    member_count = models.IntegerField(null=True)   # global leaderboards will have null member count
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
@@ -81,6 +82,7 @@ class Leaderboard(models.Model):
             scores = scores.apply_score_filter(self.score_filter)
         
         scores = scores.get_score_set(score_set=self.score_set)
+        score_count = len(scores)   # len because we're evaluating the queryset anyway
 
         # Add scores to membership
         if self.score_set == ScoreSet.NORMAL:
@@ -89,10 +91,21 @@ class Leaderboard(models.Model):
             membership.pp = calculate_pp_total(score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp for score in scores)
         elif self.score_set == ScoreSet.ALWAYS_FULL_COMBO:
             membership.pp = calculate_pp_total(score.nochoke_pp for score in scores)
+
+        # Fetch rank
+        membership.rank = self.memberships.filter(pp__gt=membership.pp).count() + 1
+        
         membership.save()
         membership.scores.add(*scores)
 
         return membership
+
+    def update_member_count(self):
+        """
+        Updates Leaderboard.member_count with the count of Leaderboard.memberships
+        """
+        self.member_count = self.members.count()
+        self.save()
 
     def __str__(self):
         return self.name
@@ -112,6 +125,8 @@ class Membership(models.Model):
     """
 
     pp = models.FloatField()
+    score_count = models.IntegerField()
+    rank = models.IntegerField()
     
     # Relations
     leaderboard = models.ForeignKey(Leaderboard, on_delete=models.CASCADE, related_name="memberships")
