@@ -82,7 +82,7 @@ class Leaderboard(models.Model):
             scores = scores.apply_score_filter(self.score_filter)
         
         scores = scores.get_score_set(score_set=self.score_set)
-        score_count = len(scores)   # len because we're evaluating the queryset anyway
+        membership.score_count = len(scores)    # len because we're evaluating the queryset anyway
 
         # Add scores to membership
         if self.score_set == ScoreSet.NORMAL:
