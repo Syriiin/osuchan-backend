@@ -102,7 +102,7 @@ class ListLeaderboards(APIView):
             description=description or "",
             icon_url=icon_url or "",
             allow_past_scores=request.data.get("allow_past_scores"),
-            score_filter=ScoreFilter.objects.create(
+            score_filter=ScoreFilter(
                 allowed_beatmap_status=score_filter_data.get("allowed_beatmap_status"),
                 oldest_beatmap_date=score_filter_data.get("oldest_beatmap_date"),
                 newest_beatmap_date=score_filter_data.get("newest_beatmap_date"),

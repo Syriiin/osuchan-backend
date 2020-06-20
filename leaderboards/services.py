@@ -11,6 +11,7 @@ def create_leaderboard(owner_id, leaderboard):
     # Set relations and update membership
     leaderboard.owner_id = owner_id
     leaderboard.member_count = 1
+    leaderboard.score_filter.save()
     leaderboard.save()
     leaderboard.update_membership(owner_id)
     return leaderboard
