@@ -44,7 +44,7 @@ class ListLeaderboards(APIView):
     def post(self, request):
         user_id = request.user.osu_user_id
         if user_id is None:
-            return PermissionError("Must be authenticated with an osu! account.")
+            raise PermissionDenied("Must be authenticated with an osu! account.")
 
         # Check required parameters
         gamemode = request.data.get("gamemode")
@@ -134,7 +134,7 @@ class GetLeaderboard(APIView):
     def delete(self, request, leaderboard_id):
         user_id = request.user.osu_user_id
         if user_id is None:
-            return PermissionError("Must be authenticated with an osu! account.")
+            raise PermissionDenied("Must be authenticated with an osu! account.")
 
         try:
             leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
@@ -160,7 +160,7 @@ class ListLeaderboardMembers(APIView):
     def post(self, request, leaderboard_id):
         user_id = request.user.osu_user_id
         if user_id is None:
-            return PermissionError("Must be authenticated with an osu! account.")
+            raise PermissionDenied("Must be authenticated with an osu! account.")
             
         membership = create_membership(leaderboard_id, user_id)
         serialiser = LeaderboardMembershipSerialiser(membership)
@@ -212,7 +212,7 @@ class ListLeaderboardInvites(APIView):
     def post(self, request, leaderboard_id):
         user_id = request.user.osu_user_id
         if user_id is None:
-            return PermissionError("Must be authenticated with an osu! account.")
+            raise PermissionDenied("Must be authenticated with an osu! account.")
         
         leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
         if not leaderboard.owner_id == user_id:
