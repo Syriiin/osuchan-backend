@@ -77,7 +77,7 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
             osu_user = OsuUser(id=user_data["user_id"])
 
             # Create memberships with global leaderboards
-            global_leaderboards = Leaderboard.objects.filter(access_type=LeaderboardAccessType.GLOBAL).values("id")
+            global_leaderboards = Leaderboard.global_leaderboards.values("id")
             # TODO: refactor this to be somewhere else. dont really like setting values to 0
             global_memberships = [Membership(leaderboard_id=leaderboard["id"], user_id=osu_user.id, pp=0, rank=0, score_count=0) for leaderboard in global_leaderboards]
             Membership.objects.bulk_create(global_memberships)

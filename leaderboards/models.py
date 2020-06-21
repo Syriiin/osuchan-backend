@@ -11,7 +11,15 @@ from profiles.enums import ScoreSet, ScoreResult
 from profiles.models import OsuUser, Score, ScoreFilter
 from leaderboards.enums import LeaderboardAccessType
 
-class LeaderboardQuerySet(models.QuerySet):
+class GlobalLeaderboardManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(access_type=LeaderboardAccessType.GLOBAL)
+
+class CommunityLeaderboardManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().exclude(access_type=LeaderboardAccessType.GLOBAL)
+
+class CommunityLeaderboardQuerySet(models.QuerySet):
     def visible_to(self, user_id):
         # return leaderboards that are not private or that the user is a member/invitee of
         if user_id is None:
@@ -42,7 +50,8 @@ class Leaderboard(models.Model):
     # Dates
     creation_time = models.DateTimeField(auto_now_add=True)
 
-    objects = LeaderboardQuerySet.as_manager()
+    global_leaderboards = GlobalLeaderboardManager()
+    community_leaderboards = CommunityLeaderboardManager.from_queryset(CommunityLeaderboardQuerySet)()
 
     def update_membership(self, user_id):
         """

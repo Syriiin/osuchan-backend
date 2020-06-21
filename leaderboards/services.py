@@ -18,7 +18,10 @@ def create_leaderboard(owner_id, leaderboard):
 
 @transaction.atomic
 def create_membership(leaderboard_id, user_id):
-    leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    """
+    Creates a membership with a community leaderboard and update Leaderboard.member_count
+    """
+    leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
     membership = leaderboard.update_membership(user_id)
     leaderboard.update_member_count()
     return membership
@@ -26,9 +29,9 @@ def create_membership(leaderboard_id, user_id):
 @transaction.atomic
 def delete_membership(leaderboard_id, user_id):
     """
-    Delete a membership and update Leaderboard.member_count
+    Delete a membership of a community leaderboard and update Leaderboard.member_count
     """
-    leaderboard = Leaderboard.objects.exclude(access_type=LeaderboardAccessType.GLOBAL).get(id=leaderboard_id)
+    leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
     membership = leaderboard.members.get(user_id=user_id)
     membership.delete()
     leaderboard.update_member_count()

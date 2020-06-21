@@ -22,11 +22,21 @@ class ListLeaderboards(APIView):
     def get(self, request):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
 
-        leaderboards = Leaderboard.objects.select_related("owner").visible_to(osu_user_id).order_by("-member_count")
-
         gamemode = request.query_params.get("gamemode")
-        if gamemode is not None:
-            leaderboards = leaderboard.filter(gamemode=gamemode)
+        if gamemode is None:
+            raise ParseError("Missing gamemode parameter")
+        leaderboard_type = request.query_params.get("type")
+        if leaderboard_type is None:
+            raise ParseError("Missing type parameter")
+
+        if leaderboard_type == "global":
+            leaderboards = Leaderboard.global_leaderboards
+        elif leaderboard_type == "community":
+            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id).select_related("owner").order_by("-member_count")
+        else:
+            raise ParseError("Unknown value for type parameter.")
+
+        leaderboards = leaderboards.filter(gamemode=gamemode)
 
         serialiser = LeaderboardSerialiser(leaderboards[:100], many=True)
         return Response(serialiser.data)
@@ -58,7 +68,7 @@ class ListLeaderboards(APIView):
         if name is None:
             raise ParseError("Missing name parameter.")
 
-        user_owned_leaderboards = Leaderboard.objects.filter(owner_id=user_id)
+        user_owned_leaderboards = Leaderboard.community_leaderboards.filter(owner_id=user_id)
         if user_owned_leaderboards.count() >= 10:
             raise PermissionDenied("Each user is limited to owning 10 leaderboards.")
 
@@ -127,7 +137,7 @@ class GetLeaderboard(APIView):
             return PermissionError("Must be authenticated with an osu! account.")
 
         try:
-            leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+            leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
             
@@ -204,7 +214,7 @@ class ListLeaderboardInvites(APIView):
         if user_id is None:
             return PermissionError("Must be authenticated with an osu! account.")
         
-        leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+        leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
         if not leaderboard.owner_id == user_id:
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
 

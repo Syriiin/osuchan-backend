@@ -15,7 +15,7 @@ class Command(BaseCommand):
         osu_users = OsuUser.objects.all().values("id")
         for leaderboard_id in options["leaderboard_ids"]:
             try:
-                leaderboard = Leaderboard.objects.get(pk=leaderboard_id, access_type=LeaderboardAccessType.GLOBAL)
+                leaderboard = Leaderboard.global_leaderboards.get(pk=leaderboard_id)
             except Leaderboard.DoesNotExist:
                 raise CommandError(f"Global leaderboard {leaderboard_id} does not exist")
 
