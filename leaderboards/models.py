@@ -50,6 +50,7 @@ class Leaderboard(models.Model):
     # Dates
     creation_time = models.DateTimeField(auto_now_add=True)
 
+    objects = models.Manager()
     global_leaderboards = GlobalLeaderboardManager()
     community_leaderboards = CommunityLeaderboardManager.from_queryset(CommunityLeaderboardQuerySet)()
 
@@ -161,6 +162,7 @@ class Membership(models.Model):
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
 
+    objects = models.Manager()
     global_memberships = GlobalMembershipManager.from_queryset(GlobalMembershipQuerySet)()
     community_memberships = CommunityMembershipManager.from_queryset(CommunityMembershipQuerySet)()
 
