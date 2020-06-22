@@ -1,8 +1,11 @@
+from django.core.paginator import Paginator
+
 from rest_framework import permissions, status
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from common.utils import parse_int_or_none
 from common.osu.enums import Mods, Gamemode
 from osuauth.permissions import BetaPermission
 from profiles.enums import ScoreSet
@@ -28,17 +31,20 @@ class ListLeaderboards(APIView):
         leaderboard_type = request.query_params.get("type")
         if leaderboard_type is None:
             raise ParseError("Missing type parameter")
+        page = parse_int_or_none(request.query_params.get("page"))
 
         if leaderboard_type == "global":
-            leaderboards = Leaderboard.global_leaderboards
+            leaderboards = Leaderboard.global_leaderboards.filter(gamemode=gamemode)
         elif leaderboard_type == "community":
-            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id).select_related("owner").order_by("-member_count")
+            leaderboards = Leaderboard.community_leaderboards.filter(gamemode=gamemode).visible_to(osu_user_id).select_related("owner").order_by("-member_count")
+            paginator = Paginator(leaderboards, 10)
+            if page > paginator.num_pages:
+                raise NotFound("Page does not exist")
+            leaderboards = paginator.get_page(page)
         else:
             raise ParseError("Unknown value for type parameter.")
 
-        leaderboards = leaderboards.filter(gamemode=gamemode)
-
-        serialiser = LeaderboardSerialiser(leaderboards[:100], many=True)
+        serialiser = LeaderboardSerialiser(leaderboards, many=True)
         return Response(serialiser.data)
 
     def post(self, request):
