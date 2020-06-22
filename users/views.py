@@ -149,4 +149,5 @@ class GetScoreFilterPreset(APIView):
         if not request.user.is_authenticated:
             raise Http404
         preset = ScoreFilterPreset.objects.get(id=score_filter_preset_id, user=request.user)
+        preset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -124,16 +124,25 @@ class Leaderboard(models.Model):
             models.Index(fields=["gamemode"])
         ]
 
-class MembershipQuerySet(models.QuerySet):
+class GlobalMembershipManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(leaderboard__access_type=LeaderboardAccessType.GLOBAL)
+
+class CommunityMembershipManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().exclude(leaderboard__access_type=LeaderboardAccessType.GLOBAL)
+
+class GlobalMembershipQuerySet(models.QuerySet):
+    def non_restricted(self):
+        return self.filter(user__disabled=False)
+
+class CommunityMembershipQuerySet(GlobalMembershipQuerySet):
     def visible_to(self, user_id):
         # return memberships of leaderboards that are not private or that the user is a member/invitee of
         if user_id is None:
             return self.distinct().filter(~Q(leaderboard__access_type=LeaderboardAccessType.PRIVATE))
         else:
             return self.distinct().filter(~Q(leaderboard__access_type=LeaderboardAccessType.PRIVATE) | Q(leaderboard__members__id=user_id) | Q(leaderboard__invitees__id=user_id))
-
-    def non_restricted(self):
-        return self.filter(user__disabled=False)
 
 class Membership(models.Model):
     """
@@ -152,7 +161,8 @@ class Membership(models.Model):
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
 
-    objects = MembershipQuerySet.as_manager()
+    global_memberships = GlobalMembershipManager.from_queryset(GlobalMembershipQuerySet)()
+    community_memberships = CommunityMembershipManager.from_queryset(CommunityMembershipQuerySet)()
 
     def __str__(self):
         return f"{self.leaderboard.name}: {self.user.username}"

@@ -144,6 +144,8 @@ class GetLeaderboard(APIView):
         if leaderboard.owner_id != user_id:
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
 
+        leaderboard.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ListLeaderboardMembers(APIView):
@@ -250,6 +252,7 @@ class GetLeaderboardInvite(APIView):
 
     def delete(self, request, leaderboard_id, user_id):
         invite = Invite.objects.get(leaderboard_id=leaderboard_id, user_id=user_id)
+        invite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ListLeaderboardBeatmapScores(APIView):
