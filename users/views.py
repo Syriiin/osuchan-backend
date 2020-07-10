@@ -12,6 +12,8 @@ from users.models import ScoreFilterPreset
 from users.serialisers import ScoreFilterPresetSerialiser
 from profiles.services import fetch_user
 from profiles.models import ScoreFilter
+from leaderboards.models import Invite
+from leaderboards.serialisers import UserInviteSerialiser
 
 class GetMe(APIView):
     """
@@ -151,3 +153,16 @@ class GetScoreFilterPreset(APIView):
         preset = ScoreFilterPreset.objects.get(id=score_filter_preset_id, user=request.user)
         preset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ListInvites(APIView):
+    """
+    API endpoint for listing Invites for the currently authenticated user
+    """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            raise Http404
+        invites = Invite.objects.select_related("leaderboard", "leaderboard__owner").filter(user_id=request.user.osu_user_id)
+        serialiser = UserInviteSerialiser(invites, many=True)
+        return Response(serialiser.data)

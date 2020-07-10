@@ -15,8 +15,8 @@ from profiles.enums import ScoreSet, AllowedBeatmapStatus
 from profiles.models import UserStats, Beatmap, Score, ScoreFilter
 from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserScoreSerialiser
 from profiles.services import fetch_user, fetch_scores
-from leaderboards.models import Membership, Invite
-from leaderboards.serialisers import UserMembershipSerialiser, UserInviteSerialiser
+from leaderboards.models import Membership
+from leaderboards.serialisers import UserMembershipSerialiser
 from leaderboards.enums import LeaderboardAccessType
 
 class GetUserStats(APIView):
@@ -138,16 +138,3 @@ class ListUserMemberships(APIView):
             count=memberships.count(),
             results=serialiser.data
         ))
-
-class ListUserInvites(APIView):
-    """
-    API endpoint for listing Invites for an OsuUser
-    """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
-
-    def get(self, request, user_id):
-        if not request.user.is_authenticated or request.user.osu_user_id != user_id:
-            raise PermissionDenied("You may only retrieve invites for the authenticated user.")
-        invites = Invite.objects.select_related("leaderboard", "leaderboard__owner").filter(user_id=user_id)
-        serialiser = UserInviteSerialiser(invites, many=True)
-        return Response(serialiser.data)
