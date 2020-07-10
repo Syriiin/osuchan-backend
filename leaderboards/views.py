@@ -1,9 +1,9 @@
-from django.core.paginator import Paginator
-
 from rest_framework import permissions, status
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from collections import OrderedDict
 
 from common.utils import parse_int_or_none
 from common.osu.enums import Mods, Gamemode
@@ -22,41 +22,34 @@ class ListLeaderboards(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request):
+    def get(self, request, leaderboard_type, gamemode):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-
-        gamemode = request.query_params.get("gamemode")
-        if gamemode is None:
-            raise ParseError("Missing gamemode parameter")
-        leaderboard_type = request.query_params.get("type")
-        if leaderboard_type is None:
-            raise ParseError("Missing type parameter")
-        page = parse_int_or_none(request.query_params.get("page"))
+        
+        limit = parse_int_or_none(request.query_params.get("limit", 5))
+        offset = parse_int_or_none(request.query_params.get("offset", 0))
+        if limit > 25:
+            limit = 25
 
         if leaderboard_type == "global":
             leaderboards = Leaderboard.global_leaderboards.filter(gamemode=gamemode)
         elif leaderboard_type == "community":
-            leaderboards = Leaderboard.community_leaderboards.filter(gamemode=gamemode).visible_to(osu_user_id).select_related("owner").order_by("-member_count")
-            paginator = Paginator(leaderboards, 10)
-            if page > paginator.num_pages:
-                raise NotFound("Page does not exist")
-            leaderboards = paginator.get_page(page)
-        else:
-            raise ParseError("Unknown value for type parameter.")
+            leaderboards = Leaderboard.community_leaderboards.filter(gamemode=gamemode).visible_to(osu_user_id).order_by("-member_count")
 
-        serialiser = LeaderboardSerialiser(leaderboards, many=True)
-        return Response(serialiser.data)
+        serialiser = LeaderboardSerialiser(leaderboards[offset:offset + limit], many=True)
+        return Response(OrderedDict(
+            count=leaderboards.count(),
+            results=serialiser.data
+        ))
 
-    def post(self, request):
+    def post(self, request, leaderboard_type, gamemode):
         user_id = request.user.osu_user_id
         if user_id is None:
             raise PermissionDenied("Must be authenticated with an osu! account.")
 
+        if leaderboard_type == "global":
+            raise PermissionDenied("Cannot create global leaderboards.")
+
         # Check required parameters
-        gamemode = request.data.get("gamemode")
-        if gamemode is None:
-            raise ParseError("Missing gamemode parameter.")
-        
         score_set = request.data.get("score_set")
         if score_set is None:
             raise ParseError("Missing score_set parameter.")
@@ -126,53 +119,41 @@ class GetLeaderboard(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, leaderboard_id):
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        
+
+        if leaderboard_type == "global":
+            leaderboards = Leaderboard.global_leaderboards
+        elif leaderboard_type == "community":
+            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
+
         try:
-            leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
+            leaderboard = leaderboards.get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
         serialiser = LeaderboardSerialiser(leaderboard)
         return Response(serialiser.data)
 
-    def delete(self, request, leaderboard_id):
-        user_id = request.user.osu_user_id
-        if user_id is None:
+    def delete(self, request, leaderboard_type, gamemode, leaderboard_id):
+        osu_user_id = request.user.osu_user_id
+        if osu_user_id is None:
             raise PermissionDenied("Must be authenticated with an osu! account.")
+
+        if leaderboard_type == "global":
+            raise PermissionDenied("Cannot delete global leaderboards.")
 
         try:
             leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
             
-        if leaderboard.owner_id != user_id:
+        if leaderboard.owner_id != osu_user_id:
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
 
         leaderboard.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-class ListLeaderboardMembers(APIView):
-    """
-    API endpoint for listing Memberships
-    """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
-
-    def get(self, request, leaderboard_id):
-        memberships = Membership.objects.non_restricted().filter(leaderboard_id=leaderboard_id).select_related("user").order_by("-pp")
-        serialiser = LeaderboardMembershipSerialiser(memberships[:100], many=True)
-        return Response(serialiser.data)
-
-    def post(self, request, leaderboard_id):
-        user_id = request.user.osu_user_id
-        if user_id is None:
-            raise PermissionDenied("Must be authenticated with an osu! account.")
-            
-        membership = create_membership(leaderboard_id, user_id)
-        serialiser = LeaderboardMembershipSerialiser(membership)
-        return Response(serialiser.data)
 
 class ListLeaderboardScores(APIView):
     """
@@ -180,11 +161,51 @@ class ListLeaderboardScores(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, leaderboard_id):
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
+
+        if leaderboard_type == "global":
+            leaderboards = Leaderboard.global_leaderboards
+        elif leaderboard_type == "community":
+            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
+
+        try:
+            leaderboard = leaderboards.get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+        
         scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=leaderboard_id).select_related("user_stats", "user_stats__user", "beatmap").order_by("-pp", "date").get_score_set(score_set=leaderboard.score_set)
         serialiser = LeaderboardScoreSerialiser(scores[:5], many=True)
+        return Response(serialiser.data)
+
+class ListLeaderboardMembers(APIView):
+    """
+    API endpoint for listing Memberships
+    """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+
+        if leaderboard_type == "global":
+            memberships = Membership.global_memberships
+        elif leaderboard_type == "community":
+            memberships = Membership.community_memberships.visible_to(osu_user_id)
+
+        memberships = memberships.non_restricted().filter(leaderboard_id=leaderboard_id).select_related("user").order_by("-pp")
+        serialiser = LeaderboardMembershipSerialiser(memberships[:100], many=True)
+        return Response(serialiser.data)
+
+    def post(self, request, leaderboard_type, gamemode, leaderboard_id):
+        if leaderboard_type == "global":
+            raise PermissionDenied("Cannot create memberships with global leaderboards.")
+
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        if osu_user_id is None:
+            raise PermissionDenied("Must be authenticated with an osu! account.")
+            
+        membership = create_membership(leaderboard_id, osu_user_id)
+        serialiser = LeaderboardMembershipSerialiser(membership)
         return Response(serialiser.data)
 
 class GetLeaderboardMember(APIView):
@@ -193,16 +214,28 @@ class GetLeaderboardMember(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, leaderboard_id, user_id):
-        membership = Membership.objects.select_related("user").get(leaderboard_id=leaderboard_id, user_id=user_id)
-        if membership.user.disabled:
-            return None
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+
+        if leaderboard_type == "global":
+            memberships = Membership.global_memberships
+        elif leaderboard_type == "community":
+            memberships = Membership.community_memberships.visible_to(osu_user_id)
+
+        try:
+            membership = memberships.non_restricted().select_related("user").get(leaderboard_id=leaderboard_id, user_id=user_id)
+        except Membership.DoesNotExist:
+            raise NotFound("Membership not found.")
+
         serialiser = LeaderboardMembershipSerialiser(membership)
         return Response(serialiser.data)
 
-    def delete(self, request, leaderboard_id, user_id):
-        if request.user.osu_user_id != user_id:
+    def delete(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+
+        if osu_user_id != user_id:
             raise PermissionDenied("You can only remove yourself from leaderboards.")
+
         delete_membership(leaderboard_id, user_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -212,21 +245,39 @@ class ListLeaderboardInvites(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, leaderboard_id):
-        invites = Invite.objects.filter(leaderboard_id=leaderboard_id).select_related("user")
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
+        if leaderboard_type == "global":
+            raise NotFound
+
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        if osu_user_id is None:
+            raise PermissionDenied("Must be authenticated with an osu! account.")
+
+        try:
+            leaderboard = Leaderboard.community_leaderboards.visible_to(osu_user_id).get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+
+        invites = leaderboard.invites.select_related("user")
         serialiser = LeaderboardInviteSerialiser(invites, many=True)
         return Response(serialiser.data)
 
-    def post(self, request, leaderboard_id):
-        user_id = request.user.osu_user_id
-        if user_id is None:
+    def post(self, request, leaderboard_type, gamemode, leaderboard_id):
+        if leaderboard_type == "global":
+            raise PermissionDenied("Cannot create invites for global leaderboards.")
+
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        if osu_user_id is None:
             raise PermissionDenied("Must be authenticated with an osu! account.")
-        
-        leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
-        if not leaderboard.owner_id == user_id:
+
+        try:
+            leaderboard = Leaderboard.community_leaderboards.visible_to(osu_user_id).get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+        if not leaderboard.owner_id == osu_user_id:
             raise PermissionDenied("Must be the leaderboard owner to perform this action.")
 
-        invitee_ids = request.data.get("user_ids")
+        invitee_ids = request.data.get("user_ids", [])
         message = request.data.get("message", "")
 
         invites = []
@@ -235,11 +286,11 @@ class ListLeaderboardInvites(APIView):
                 continue
 
             try:
-                invite = Invite.objects.get(user_id=invitee_id, leaderboard_id=leaderboard_id)
+                invite = leaderboard.invites.get(user_id=invitee_id)
             except Invite.DoesNotExist:
                 invite = Invite(user_id=invitee_id, leaderboard_id=leaderboard_id, message=message)
                 invite.save()
-            
+
             invites.append(invite)
 
         serialiser = LeaderboardInviteSerialiser(invites, many=True)
@@ -251,13 +302,45 @@ class GetLeaderboardInvite(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, leaderboard_id, user_id):
-        invite = Invite.objects.select_related("user").get(leaderboard_id=leaderboard_id, user_id=user_id)
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
+        if leaderboard_type == "global":
+            raise NotFound
+
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        if osu_user_id is None:
+            raise PermissionDenied("Must be authenticated with an osu! account.")
+
+        try:
+            leaderboard = Leaderboard.community_leaderboards.visible_to(osu_user_id).get(leaderboard_id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+
+        try:
+            invite = leaderboard.invites.select_related("user").get(user_id=user_id)
+        except:
+            raise NotFound("Invite not found.")
+
         serialiser = LeaderboardInviteSerialiser(invite)
         return Response(serialiser.data)
 
-    def delete(self, request, leaderboard_id, user_id):
-        invite = Invite.objects.get(leaderboard_id=leaderboard_id, user_id=user_id)
+    def delete(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
+        if leaderboard_type == "global":
+            raise PermissionDenied("Cannot delete invites for global leaderboards.")
+
+        osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
+        if osu_user_id is None:
+            raise PermissionDenied("Must be authenticated with an osu! account.")
+
+        try:
+            leaderboard = Leaderboard.community_leaderboards.visible_to(osu_user_id).get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+
+        try:
+            invite = leaderboard.invites.get(user_id=user_id)
+        except Invite.DoesNotExist:
+            raise NotFound("Invite not found.")
+
         invite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -267,9 +350,19 @@ class ListLeaderboardBeatmapScores(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, leaderboard_id, beatmap_id):
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id, beatmap_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
+
+        if leaderboard_type == "global":
+            leaderboards = Leaderboard.global_leaderboards
+        elif leaderboard_type == "community":
+            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
+
+        try:
+            leaderboard = leaderboards.get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+
         scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id).select_related("user_stats", "user_stats__user").order_by("-pp", "date").get_score_set(score_set=leaderboard.score_set)
         serialiser = BeatmapScoreSerialiser(scores[:50], many=True)
         return Response(serialiser.data)
@@ -280,9 +373,21 @@ class ListLeaderboardMemberScores(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, leaderboard_id, user_id):
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-        leaderboard = Leaderboard.objects.visible_to(osu_user_id).get(id=leaderboard_id)
+
+        if leaderboard_type == "global":
+            leaderboards = Leaderboard.global_leaderboards
+        elif leaderboard_type == "community":
+            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
+
+        try:
+            leaderboard = leaderboards.get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
+
         scores = Score.objects.non_restricted().distinct().filter(membership__leaderboard_id=leaderboard_id, membership__user_id=user_id).select_related("beatmap").order_by("-pp", "date").get_score_set(score_set=leaderboard.score_set)
         serialiser = UserScoreSerialiser(scores[:100], many=True)
         return Response(serialiser.data)
+
+# TODO: check where owner selects are actually needed

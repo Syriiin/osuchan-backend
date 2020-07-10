@@ -6,6 +6,8 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ParseError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from collections import OrderedDict
+
 from common.utils import parse_int_or_none, parse_float_or_none
 from common.osu.enums import BeatmapStatus, Mods, Gamemode
 from osuauth.permissions import BetaPermission
@@ -118,27 +120,24 @@ class ListUserMemberships(APIView):
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
 
-    def get(self, request, user_id):
+    def get(self, request, user_id, leaderboard_type, gamemode):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
-
-        gamemode = request.query_params.get("gamemode")
-        if gamemode is None:
-            raise ParseError("Missing gamemode parameter")
-        membership_type = request.query_params.get("type")
-        if membership_type is None:
-            raise ParseError("Missing type parameter")
-
-        if membership_type == "global":
-            memberships = Membership.global_memberships
-        elif membership_type == "community":
-            memberships = Membership.community_memberships.visible_to(osu_user_id).select_related("leaderboard", "leaderboard__owner").order_by("-leaderboard__member_count")
-        else:
-            raise ParseError("Unknown value for type parameter.")
-
-        memberships = memberships.filter(leaderboard__gamemode=gamemode, user_id=user_id)
         
-        serialiser = UserMembershipSerialiser(memberships, many=True)
-        return Response(serialiser.data)
+        limit = parse_int_or_none(request.query_params.get("limit", 5))
+        offset = parse_int_or_none(request.query_params.get("offset", 0))
+        if limit > 25:
+            limit = 25
+
+        if leaderboard_type == "global":
+            memberships = Membership.global_memberships.filter(leaderboard__gamemode=gamemode, user_id=user_id)
+        elif leaderboard_type == "community":
+            memberships = Membership.community_memberships.filter(leaderboard__gamemode=gamemode, user_id=user_id).visible_to(osu_user_id).select_related("leaderboard", "leaderboard__owner").order_by("-leaderboard__member_count")
+        
+        serialiser = UserMembershipSerialiser(memberships[offset:offset + limit], many=True)
+        return Response(OrderedDict(
+            count=memberships.count(),
+            results=serialiser.data
+        ))
 
 class ListUserInvites(APIView):
     """
