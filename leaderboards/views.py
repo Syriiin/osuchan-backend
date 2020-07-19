@@ -63,16 +63,16 @@ class ListLeaderboards(APIView):
         access_type = request.data.get("access_type")
         if access_type is None:
             raise ParseError("Missing access_type parameter.")
-        elif access_type == LeaderboardAccessType.GLOBAL:
+        elif access_type not in [LeaderboardAccessType.PUBLIC, LeaderboardAccessType.PUBLIC_INVITE_ONLY, LeaderboardAccessType.PRIVATE]:
             raise ParseError("Parameter access_type must be either 1 for public, 2 for invite-only public, or 3 for private.")
         
         name = request.data.get("name")
         if name is None:
             raise ParseError("Missing name parameter.")
 
-        user_owned_leaderboards = Leaderboard.community_leaderboards.filter(owner_id=user_id)
+        user_owned_leaderboards = Leaderboard.community_leaderboards.filter(owner_id=user_id, archived=False)
         if user_owned_leaderboards.count() >= 10:
-            raise PermissionDenied("Each user is limited to owning 10 leaderboards.")
+            raise PermissionDenied("Each user is limited to owning 10 active leaderboards. You must archive or delete another leaderboard first.")
 
         description = request.data.get("description")
         
@@ -163,6 +163,50 @@ class GetLeaderboard(APIView):
         leaderboard.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def patch(self, request, leaderboard_type, gamemode, leaderboard_id):
+        osu_user_id = request.user.osu_user_id
+        if osu_user_id is None:
+            raise PermissionDenied("Must be authenticated with an osu! account.")
+
+        access_type = request.data.get("access_type")
+        if access_type is not None and access_type not in [LeaderboardAccessType.PUBLIC, LeaderboardAccessType.PUBLIC_INVITE_ONLY, LeaderboardAccessType.PRIVATE]:
+            raise ParseError("Parameter access_type must be either 1 for public, 2 for invite-only public, or 3 for private.")
+
+        name = request.data.get("name")
+        description = request.data.get("description")
+
+        icon_url = request.data.get("icon_url")
+        if icon_url is not None:
+            validator = URLValidator()
+            try:
+                validator(icon_url)
+            except ValidationError:
+                icon_url = ""
+
+        archived = request.data.get("archived")
+        if archived == False:
+            user_owned_leaderboards = Leaderboard.community_leaderboards.filter(owner_id=osu_user_id, archived=False)
+            if user_owned_leaderboards.count() >= 10:
+                raise PermissionDenied("Each user is limited to owning 10 active leaderboards. You must archive or delete another leaderboard first.")
+
+        leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
+
+        if access_type is not None:
+            leaderboard.access_type = access_type
+        if name is not None:
+            leaderboard.name = name
+        if description is not None:
+            leaderboard.description = description
+        if icon_url is not None:
+            leaderboard.icon_url = icon_url
+        if archived is not None:
+            leaderboard.archived = archived
+
+        leaderboard.save()
+
+        serialiser = LeaderboardSerialiser(leaderboard)
+        return Response(serialiser.data)
 
 class ListLeaderboardScores(APIView):
     """
