@@ -19,6 +19,7 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "icon_url",
             "allow_past_scores",
             "member_count",
+            "archived",
             # relations
             "score_filter",
             "owner",

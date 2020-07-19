@@ -40,6 +40,7 @@ class Leaderboard(models.Model):
     icon_url = models.CharField(max_length=250, blank=True)
     allow_past_scores = models.BooleanField(default=True)   # allow scores set before membership started
     member_count = models.IntegerField(null=True)   # global leaderboards will have null member count
+    archived = models.BooleanField(default=False)
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
