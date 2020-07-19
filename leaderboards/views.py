@@ -1,3 +1,6 @@
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
 from rest_framework import permissions, status
 from rest_framework.exceptions import ParseError, PermissionDenied, NotFound
 from rest_framework.views import APIView
@@ -72,7 +75,13 @@ class ListLeaderboards(APIView):
             raise PermissionDenied("Each user is limited to owning 10 leaderboards.")
 
         description = request.data.get("description")
-        icon_url = request.data.get("icon_url")
+        
+        validator = URLValidator()
+        try:
+            icon_url = request.data.get("icon_url")
+            validator(icon_url)
+        except ValidationError:
+            icon_url = None
 
         score_filter_data = request.data.get("score_filter")
         if score_filter_data is None:
