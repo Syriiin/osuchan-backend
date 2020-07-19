@@ -233,10 +233,14 @@ class GetLeaderboardMember(APIView):
     def delete(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
 
-        if osu_user_id != user_id:
-            raise PermissionDenied("You can only remove yourself from leaderboards.")
+        membership = Membership.community_memberships.select_related("leaderboard", "leaderboard__owner").get(leaderboard_id=leaderboard_id, user_id=user_id)
 
-        delete_membership(leaderboard_id, user_id)
+        if osu_user_id != membership.user_id and osu_user_id != membership.leaderboard.owner_id:
+            raise PermissionDenied("You can only remove yourself from leaderboards.")
+        elif osu_user_id == membership.user_id and osu_user_id == membership.leaderboard.owner_id:
+            raise PermissionDenied("Owners cannot leave their leaderboards.")
+
+        delete_membership(membership)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ListLeaderboardInvites(APIView):

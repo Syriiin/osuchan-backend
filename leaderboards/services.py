@@ -27,12 +27,10 @@ def create_membership(leaderboard_id, user_id):
     return membership
 
 @transaction.atomic
-def delete_membership(leaderboard_id, user_id):
+def delete_membership(membership):
     """
-    Delete a membership of a community leaderboard and update Leaderboard.member_count
+    Delete a membership of a leaderboard and update Leaderboard.member_count
     """
-    leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
-    membership = leaderboard.memberships.get(user_id=user_id)
     membership.delete()
-    leaderboard.update_member_count()
+    membership.leaderboard.update_member_count()
     return True
