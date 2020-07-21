@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Server maintenance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #17171C;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        a {
+            color: #FFAF2E;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .message-container {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .twitter-container {
+            height: 80vh;
+            flex-grow: 1;
+            overflow-y: scroll;
+        }
+    </style>
+
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="message-container">
+            <h1>We're currently offline for maintenance.</h1>
+            <h2>We'll be back shortly!</h2>
+            <p>For more information probably check <a href="https://twitter.com/Syriiins">@Syriiins</a> twitter or join the <a href="https://discord.gg/z7c9tD6">discord server</a>.</p>
+        </div>
+        <div class="twitter-container">
+            <a class="twitter-timeline" data-theme="dark" href="https://twitter.com/Syriiins?ref_src=twsrc%5Etfw">Tweets by Syriiins</a>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -117,4 +117,7 @@ OSU_API_V1_KEY = ''
 BEATMAP_CACHE_PATH = ''
 
 # Beta status
-BETA = True
+BETA = False
+
+# Maintenance status
+MAINTENANCE = False
