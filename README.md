@@ -4,17 +4,20 @@
 
 - Python 3
 
-## Setup (bash)
+## Setup
 
 0. Setup and build osuchan-frontend submodule
     ```shell
     $ cd osuchan-frontend
     $ npm install
     $ npm run build
+    $ cd ..
     ```
-1. Initialise project environment with `pipenv`
+1. Setup virtual environment and install dependancies
     ```shell
-    $ pipenv install
+    $ python3 -m venv env
+    $ source env/bin/activate
+    $ pip install -r requirements.txt
     ```
 2. Setup new PostgreSQL database
     1. Install PostgreSQL (if using local database)
@@ -43,13 +46,13 @@
 6. Make a copy of `local_settings.template.py` named `local_settings.py` and modify contents for sensitive/environment-specific info (and ensure it isn't being committed)
 7. Run migrations
     ```shell
-    $ pipenv run python manage.py migrate
+    $ python manage.py migrate
     ```
 8. Start celery worker (use `--pool solo` on windows)
     ```shell
-    $ pipenv run celery --app osuchan worker --loglevel info
+    $ celery --app osuchan worker --loglevel info
     ```
 9. Start development server
     ```shell
-    $ pipenv run python manage.py runserver
+    $ python manage.py runserver
     ```
