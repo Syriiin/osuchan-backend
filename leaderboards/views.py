@@ -192,6 +192,9 @@ class GetLeaderboard(APIView):
 
         leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
 
+        if leaderboard.owner_id != osu_user_id:
+            raise PermissionDenied("You must be the owner of a leaderboard to edit it.")
+
         if access_type is not None:
             leaderboard.access_type = access_type
         if name is not None:
