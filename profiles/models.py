@@ -115,7 +115,8 @@ class UserStats(models.Model):
             beatmap = next((beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None)
             if beatmap is None:
                 beatmap = Beatmap.from_data(apiv1.get_beatmaps(beatmap_id=beatmap_id)[0])
-                if beatmap.status not in [BeatmapStatus.APPROVED, BeatmapStatus.RANKED, BeatmapStatus.LOVED]:
+                if beatmap.status not in [BeatmapStatus.APPROVED, BeatmapStatus.RANKED, BeatmapStatus.LOVED] or score.mods & Mods.UNRANKED != 0:
+                    # Skip unranked/unloved scores
                     continue
                 beatmaps.append(beatmap)    # add to beatmaps incase another score is on this map
                 beatmaps_to_create.append(beatmap)
