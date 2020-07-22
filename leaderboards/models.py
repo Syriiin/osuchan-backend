@@ -59,6 +59,10 @@ class Leaderboard(models.Model):
         """
         Update a membership for a user_id ensuring all scores that fit the criteria are added
         """
+        # Dont't update memberships for archived leaderboards
+        if leaderboard.archived:
+            return
+
         # Get or create Membership model
         try:
             membership = self.memberships.select_for_update().get(user_id=user_id)
