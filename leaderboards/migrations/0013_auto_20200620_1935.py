@@ -15,7 +15,7 @@ def set_rank(apps, schema_editor):
 
     memberships = Membership.objects.all()
     for membership in memberships:
-        membership.rank = Membership.objects.filter(leaderboard_id=membership.leaderboard_id, pp__gt=membership.pp).count() + 1
+        membership.rank = Membership.objects.filter(leaderboard_id=membership.leaderboard_id, pp__gte=membership.pp).count() + 1
         membership.save()
 
 def set_score_count(apps, schema_editor):

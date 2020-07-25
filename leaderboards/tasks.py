@@ -34,7 +34,7 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         elif leaderboard.score_set == ScoreSet.ALWAYS_FULL_COMBO:
             membership.pp = calculate_pp_total(score.nochoke_pp for score in scores)
 
-        membership.rank = leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
+        membership.rank = leaderboard.memberships.filter(pp__gte=membership.pp).count() + 1
 
         membership.save()
         
