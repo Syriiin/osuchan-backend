@@ -60,7 +60,7 @@ class Leaderboard(models.Model):
         Update a membership for a user_id ensuring all scores that fit the criteria are added
         """
         # Dont't update memberships for archived leaderboards
-        if leaderboard.archived:
+        if self.archived:
             return
 
         # Get or create Membership model
