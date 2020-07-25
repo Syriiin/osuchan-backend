@@ -129,7 +129,7 @@ class ListUserMemberships(APIView):
             limit = 25
 
         if leaderboard_type == "global":
-            memberships = Membership.global_memberships.filter(leaderboard__gamemode=gamemode, user_id=user_id).order_by("-rank")
+            memberships = Membership.global_memberships.filter(leaderboard__gamemode=gamemode, user_id=user_id).order_by("rank")
         elif leaderboard_type == "community":
             memberships = Membership.community_memberships.filter(leaderboard__gamemode=gamemode, user_id=user_id).visible_to(osu_user_id).select_related("leaderboard", "leaderboard__owner").order_by("-leaderboard__member_count")
         
