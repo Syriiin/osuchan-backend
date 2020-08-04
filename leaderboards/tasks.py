@@ -11,7 +11,7 @@ from leaderboards.models import Membership
 @transaction.atomic
 def update_memberships(user_id, gamemode=Gamemode.STANDARD):
     """
-    Updates all non-archived the memberships for a given user and gamemode
+    Updates all non-archived memberships for a given user and gamemode
     """
     memberships = Membership.objects.select_related("leaderboard", "leaderboard__score_filter").filter(user_id=user_id, leaderboard__gamemode=gamemode, leaderboard__archived=False)
     user_stats = UserStats.objects.get(user_id=user_id, gamemode=gamemode)
