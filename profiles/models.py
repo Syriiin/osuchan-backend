@@ -279,7 +279,7 @@ class Beatmap(models.Model):
         beatmap.health_drain = float(beatmap_data["diff_drain"])
         beatmap.star_rating = float(beatmap_data["difficultyrating"])
         beatmap.submission_date = datetime.strptime(beatmap_data["submit_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
-        beatmap.approval_date = datetime.strptime(beatmap_data["approved_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
+        beatmap.approval_date = datetime.strptime(beatmap_data["approved_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC) if beatmap_data["approved_date"] is not None else None
         beatmap.last_updated = datetime.strptime(beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
         
         # Update foreign key ids
