@@ -46,7 +46,7 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     full_score_data_list = []
     for beatmap_id in beatmap_ids:
         # Fetch score data from osu api
-        score_data_list = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode)
+        score_data_list = apiv1.get_scores(beatmap_id=beatmap_id, user_id=user_id, gamemode=gamemode.value)
 
         # Add beatmap id to turn it into the common json format
         for score_data in score_data_list:
