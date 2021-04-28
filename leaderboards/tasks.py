@@ -23,6 +23,9 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         else:
             scores = user_stats.scores.all()
 
+        if not leaderboard.allow_past_scores:
+            scores = scores.filter(date__gte=membership.join_date)
+
         scores = scores.get_score_set(score_set=leaderboard.score_set)
         membership.scores.set(scores)
         membership.score_count = scores.count()
