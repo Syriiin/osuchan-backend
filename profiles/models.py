@@ -93,6 +93,10 @@ class UserStats(models.Model):
         beatmaps_to_create = []
         scores_from_data = []
         for score_data in score_data_list:
+            # Only process "high scores" (highest scorev1 per mod per map per user) (need to make this distinction to prevent lazer scores from being treated as real)
+            if score_data.get("score_id", None) is None:
+                continue
+
             score = Score()
             
             # Update Score fields
