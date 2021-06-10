@@ -4,7 +4,7 @@ billiard==3.6.3.0
 celery==4.4.5
 certifi==2020.4.5.2
 chardet==3.0.4
-Django==3.0.7
+Django==3.1.12
 django-debug-toolbar==2.2
 djangorestframework==3.11.0
 future==0.18.2
