@@ -43,6 +43,7 @@ class UserStats(models.Model):
     """
     Model representing an osu! user's data relating to a specific gamemode
     """
+    id = models.BigAutoField(primary_key=True)
 
     # osu! data
     gamemode = models.IntegerField()
@@ -380,6 +381,7 @@ class Score(models.Model):
     """
     Model representing an osu! score
     """
+    id = models.BigAutoField(primary_key=True)
 
     # osu! data
     # auto pk because some legacy osu! api endpoints dont return score ids
@@ -463,6 +465,7 @@ class Score(models.Model):
         ]
 
 class ScoreFilter(models.Model):
+    id = models.BigAutoField(primary_key=True)
     allowed_beatmap_status = models.IntegerField(default=AllowedBeatmapStatus.RANKED_ONLY)
     oldest_beatmap_date = models.DateTimeField(null=True, blank=True)
     newest_beatmap_date = models.DateTimeField(null=True, blank=True)

@@ -31,6 +31,7 @@ class Leaderboard(models.Model):
     """
     Model representing a leaderboard
     """
+    id = models.BigAutoField(primary_key=True)
 
     gamemode = models.IntegerField()
     score_set = models.IntegerField()
@@ -154,6 +155,7 @@ class Membership(models.Model):
     """
     Model representing the membership of a OsuUser to a Leaderboard
     """
+    id = models.BigAutoField(primary_key=True)
 
     pp = models.FloatField()
     score_count = models.IntegerField()
@@ -184,6 +186,7 @@ class Invite(models.Model):
     """
     Model representing an invitation of a OsuUser to a Leaderboard
     """
+    id = models.BigAutoField(primary_key=True)
 
     message = models.TextField(blank=True)
 

@@ -7,6 +7,7 @@ class User(AbstractUser):
     """
     Custom user model
     """
+    id = models.BigAutoField(primary_key=True)
     
     is_beta_tester = models.BooleanField(default=False)
 
