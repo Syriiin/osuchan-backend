@@ -7,7 +7,6 @@ from rest_framework import permissions
 
 from common.osu.enums import Mods
 from osuauth.serialisers import UserSerialiser
-from osuauth.permissions import BetaPermission
 from users.models import ScoreFilterPreset
 from users.serialisers import ScoreFilterPresetSerialiser
 from profiles.services import fetch_user
@@ -19,7 +18,7 @@ class GetMe(APIView):
     """
     API Endpoint for checking the currently authenticated user
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         # if user isn't logged in, 404
@@ -38,7 +37,7 @@ class ListScoreFilterPresets(APIView):
     """
     API endpoint for listing ScoreFilterPresets for the currently authenticated user
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         if not request.user.is_authenticated:
@@ -96,7 +95,7 @@ class GetScoreFilterPreset(APIView):
     """
     API endpoint for getting ScoreFilterPresets for the currently authenticated user
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, score_filter_preset_id):
         if not request.user.is_authenticated:
@@ -158,7 +157,7 @@ class ListInvites(APIView):
     """
     API endpoint for listing Invites for the currently authenticated user
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         if not request.user.is_authenticated:

@@ -115,9 +115,3 @@ OSU_API_V1_KEY = ''
 
 # Beatmap cache directory
 BEATMAP_CACHE_PATH = ''
-
-# Beta status
-BETA = False
-
-# Maintenance status
-MAINTENANCE = False

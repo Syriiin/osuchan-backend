@@ -10,7 +10,6 @@ from collections import OrderedDict
 
 from common.utils import parse_int_or_none
 from common.osu.enums import Mods, Gamemode
-from osuauth.permissions import BetaPermission
 from profiles.enums import ScoreSet
 from profiles.models import Score, ScoreFilter
 from profiles.serialisers import UserScoreSerialiser, BeatmapScoreSerialiser
@@ -23,7 +22,7 @@ class ListLeaderboards(APIView):
     """
     API endpoint for listing Leaderboards
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
@@ -126,7 +125,7 @@ class GetLeaderboard(APIView):
     """
     API endpoint for specific Leaderboards
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
@@ -215,7 +214,7 @@ class ListLeaderboardScores(APIView):
     """
     API endpoint for listing scores from all members of a leaderboard
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
@@ -238,7 +237,7 @@ class ListLeaderboardMembers(APIView):
     """
     API endpoint for listing Memberships
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
@@ -268,7 +267,7 @@ class GetLeaderboardMember(APIView):
     """
     API endpoint for specific Members
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
@@ -303,7 +302,7 @@ class ListLeaderboardInvites(APIView):
     """
     API endpoint for listing Invites for a Leaderboard
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id):
         if leaderboard_type == "global":
@@ -360,7 +359,7 @@ class GetLeaderboardInvite(APIView):
     """
     API endpoint for getting specific Invites
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
         if leaderboard_type == "global":
@@ -408,7 +407,7 @@ class ListLeaderboardBeatmapScores(APIView):
     """
     API endpoint for listing Scores on Beatmaps
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id, beatmap_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
@@ -431,7 +430,7 @@ class ListLeaderboardMemberScores(APIView):
     """
     API endpoint for listing Scores on Memberships
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, leaderboard_type, gamemode, leaderboard_id, user_id):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None

@@ -10,7 +10,6 @@ from collections import OrderedDict
 
 from common.utils import parse_int_or_none, parse_float_or_none
 from common.osu.enums import BeatmapStatus, Mods, Gamemode
-from osuauth.permissions import BetaPermission
 from profiles.enums import ScoreSet, AllowedBeatmapStatus
 from profiles.models import UserStats, Beatmap, Score, ScoreFilter
 from profiles.serialisers import UserStatsSerialiser, BeatmapSerialiser, UserScoreSerialiser
@@ -23,7 +22,7 @@ class GetUserStats(APIView):
     """
     API endpoint for getting UserStats
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, user_string, gamemode):
         """
@@ -52,7 +51,7 @@ class GetBeatmap(APIView):
     """
     API endpoint for getting Beatmaps
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, beatmap_id):
         """
@@ -71,7 +70,7 @@ class ListUserScores(APIView):
     """
     API endpoint for Scores
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, user_id, gamemode):
         """
@@ -118,7 +117,7 @@ class ListUserMemberships(APIView):
     """
     API endpoint for listing Memberships for an OsuUser
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, BetaPermission)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, user_id, leaderboard_type, gamemode):
         osu_user_id = request.user.osu_user_id if request.user.is_authenticated else None
