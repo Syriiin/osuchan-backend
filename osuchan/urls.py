@@ -1,9 +1,16 @@
 from django.contrib import admin
 from django.urls import path, re_path
+from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls import include
 
-from main.views import main, getBeatmapFile
+from common.utils import get_beatmap_path
+
+def getBeatmapFile(request, beatmap_id):
+    with open(get_beatmap_path(beatmap_id), encoding="utf8") as fp:
+        response = HttpResponse(fp.read())
+        response["Content-Type"] = "text/plain"
+        return response
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,7 +27,3 @@ if settings.DEBUG:
     urlpatterns.append(
         path('__debug__/', include(debug_toolbar.urls))
     )
-
-urlpatterns.append(
-    re_path(r"^.*", main, name="main")
-)
