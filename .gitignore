@@ -60,3 +60,6 @@ target/
 
 # Static files
 static/
+
+# Volumes
+data/

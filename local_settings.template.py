@@ -29,16 +29,15 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'warning.log')
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler'
         }
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': 'WARNING',
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': True
         }
     }
@@ -98,7 +97,7 @@ REST_FRAMEWORK = {
 # Celery
 # https://docs.celeryproject.org/en/latest/userguide/configuration.html
 
-CELERY_BROKER_URL = "amqp://"
+CELERY_BROKER_URL = "amqp://queue"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
@@ -114,4 +113,4 @@ OSU_CLIENT_REDIRECT_URI = ''
 OSU_API_V1_KEY = ''
 
 # Beatmap cache directory
-BEATMAP_CACHE_PATH = ''
+BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, 'data/beatmaps')
