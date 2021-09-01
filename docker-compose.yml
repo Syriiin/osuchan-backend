@@ -10,9 +10,10 @@ services:
       - POSTGRES_USER=osuchan
       - POSTGRES_PASSWORD=osuchan
   queue:
-    image: rabbitmq:3
+    image: rabbitmq:3-management
     ports:
       - 5672:5672
+      - 15672:15672
   api:
     image: osuchan-backend
     build:
