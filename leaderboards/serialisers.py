@@ -1,7 +1,14 @@
 from rest_framework import serializers
 
-from profiles.serialisers import OsuUserSerialiser, ScoreSerialiser, UserStatsSerialiser, BeatmapSerialiser, ScoreFilterSerialiser
-from leaderboards.models import Leaderboard, Membership, Invite
+from leaderboards.models import Invite, Leaderboard, Membership
+from profiles.serialisers import (
+    BeatmapSerialiser,
+    OsuUserSerialiser,
+    ScoreFilterSerialiser,
+    ScoreSerialiser,
+    UserStatsSerialiser,
+)
+
 
 class LeaderboardSerialiser(serializers.ModelSerializer):
     score_filter = ScoreFilterSerialiser()
@@ -24,8 +31,9 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "score_filter",
             "owner",
             # dates
-            "creation_time"
+            "creation_time",
         )
+
 
 class MembershipSerialiser(serializers.ModelSerializer):
     class Meta:
@@ -39,14 +47,17 @@ class MembershipSerialiser(serializers.ModelSerializer):
             "leaderboard",
             "user",
             # dates
-            "join_date"
+            "join_date",
         )
+
 
 class LeaderboardMembershipSerialiser(MembershipSerialiser):
     user = OsuUserSerialiser()
 
+
 class UserMembershipSerialiser(MembershipSerialiser):
     leaderboard = LeaderboardSerialiser()
+
 
 class InviteSerialiser(serializers.ModelSerializer):
     class Meta:
@@ -58,14 +69,17 @@ class InviteSerialiser(serializers.ModelSerializer):
             "leaderboard",
             "user",
             # dates
-            "invite_date"
+            "invite_date",
         )
+
 
 class LeaderboardInviteSerialiser(InviteSerialiser):
     user = OsuUserSerialiser()
 
+
 class UserInviteSerialiser(InviteSerialiser):
     leaderboard = LeaderboardSerialiser()
+
 
 class LeaderboardScoreSerialiser(ScoreSerialiser):
     user_stats = UserStatsSerialiser()

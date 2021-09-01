@@ -6,68 +6,68 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0008_auto_20200328_1236'),
+        ("leaderboards", "0008_auto_20200328_1236"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='allowed_beatmap_status',
+            model_name="leaderboard",
+            name="allowed_beatmap_status",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='disqualified_mods',
+            model_name="leaderboard",
+            name="disqualified_mods",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='highest_accuracy',
+            model_name="leaderboard",
+            name="highest_accuracy",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='highest_ar',
+            model_name="leaderboard",
+            name="highest_ar",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='highest_cs',
+            model_name="leaderboard",
+            name="highest_cs",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='highest_od',
+            model_name="leaderboard",
+            name="highest_od",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='lowest_accuracy',
+            model_name="leaderboard",
+            name="lowest_accuracy",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='lowest_ar',
+            model_name="leaderboard",
+            name="lowest_ar",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='lowest_cs',
+            model_name="leaderboard",
+            name="lowest_cs",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='lowest_od',
+            model_name="leaderboard",
+            name="lowest_od",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='newest_beatmap_date',
+            model_name="leaderboard",
+            name="newest_beatmap_date",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='newest_score_date',
+            model_name="leaderboard",
+            name="newest_score_date",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='oldest_beatmap_date',
+            model_name="leaderboard",
+            name="oldest_beatmap_date",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='oldest_score_date',
+            model_name="leaderboard",
+            name="oldest_score_date",
         ),
         migrations.RemoveField(
-            model_name='leaderboard',
-            name='required_mods',
+            model_name="leaderboard",
+            name="required_mods",
         ),
     ]

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osuauth', '0001_initial'),
+        ("osuauth", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='is_beta_tester',
+            model_name="user",
+            name="is_beta_tester",
             field=models.BooleanField(default=False),
         ),
     ]

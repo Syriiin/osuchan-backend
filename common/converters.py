@@ -1,5 +1,6 @@
 from common.osu.enums import Gamemode
 
+
 class GamemodeConverter:
     regex = r"([0-3]|osu|taiko|catch|mania)"
 
@@ -18,6 +19,7 @@ class GamemodeConverter:
 
     def to_url(self, value):
         return value
+
 
 class LeaderboardTypeConverter:
     regex = r"(global|community)"

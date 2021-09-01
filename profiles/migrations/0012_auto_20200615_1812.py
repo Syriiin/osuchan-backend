@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0011_remove_userstats_nochoke_pp'),
+        ("profiles", "0011_remove_userstats_nochoke_pp"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='scorefilter',
-            name='highest_length',
+            model_name="scorefilter",
+            name="highest_length",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='scorefilter',
-            name='lowest_length',
+            model_name="scorefilter",
+            name="lowest_length",
             field=models.FloatField(blank=True, null=True),
         ),
     ]

@@ -2,6 +2,7 @@
 
 from django.db import migrations
 
+
 def create_score_filters(apps, schema_editor):
     Leaderboard = apps.get_model("leaderboards", "Leaderboard")
     ScoreFilter = apps.get_model("profiles", "ScoreFilter")
@@ -22,27 +23,27 @@ def create_score_filters(apps, schema_editor):
             required_mods=leaderboard.required_mods,
             disqualified_mods=leaderboard.disqualified_mods,
             lowest_accuracy=leaderboard.lowest_accuracy,
-            highest_accuracy=leaderboard.highest_accuracy
+            highest_accuracy=leaderboard.highest_accuracy,
         )
 
         leaderboard.save()
 
+
 def delete_score_filters(apps, schema_editor):
     Leaderboard = apps.get_model("leaderboards", "Leaderboard")
-    
+
     for leaderboard in Leaderboard.objects.all():
         if leaderboard.score_filter is not None:
             leaderboard.score_filter.delete()
             leaderboard.score_filter = None
             leaderboard.save()
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0010_scorefilter'),
-        ('leaderboards', '0007_auto_20200328_1236'),
+        ("profiles", "0010_scorefilter"),
+        ("leaderboards", "0007_auto_20200328_1236"),
     ]
 
-    operations = [
-        migrations.RunPython(create_score_filters, delete_score_filters)
-    ]
+    operations = [migrations.RunPython(create_score_filters, delete_score_filters)]

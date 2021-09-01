@@ -1,9 +1,10 @@
-from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 
-from profiles.models import OsuUser
-from leaderboards.models import Leaderboard, Membership
 from leaderboards.enums import LeaderboardAccessType
+from leaderboards.models import Leaderboard, Membership
+from profiles.models import OsuUser
+
 
 class Command(BaseCommand):
     help = "Refreshes the specified global leaderboards for all users"
@@ -17,11 +18,17 @@ class Command(BaseCommand):
             try:
                 leaderboard = Leaderboard.global_leaderboards.get(pk=leaderboard_id)
             except Leaderboard.DoesNotExist:
-                raise CommandError(f"Global leaderboard {leaderboard_id} does not exist")
+                raise CommandError(
+                    f"Global leaderboard {leaderboard_id} does not exist"
+                )
 
             # Refresh leaderboard
             with transaction.atomic():
                 for osu_user in osu_users:
                     leaderboard.update_membership(osu_user["id"])
 
-            self.stdout.write(self.style.SUCCESS(f"Successfully refreshed leaderboard {leaderboard_id}"))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Successfully refreshed leaderboard {leaderboard_id}"
+                )
+            )

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0008_auto_20191210_2222'),
+        ("profiles", "0008_auto_20191210_2222"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='score',
-            name='gamemode',
+            model_name="score",
+            name="gamemode",
             field=models.IntegerField(default=0),
             preserve_default=False,
         ),

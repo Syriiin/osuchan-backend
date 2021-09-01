@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0004_leaderboard_icon_url'),
+        ("leaderboards", "0004_leaderboard_icon_url"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='leaderboard',
-            name='icon_url',
+            model_name="leaderboard",
+            name="icon_url",
             field=models.CharField(blank=True, max_length=250),
         ),
     ]

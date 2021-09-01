@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from profiles.models import OsuUser, UserStats, Beatmap, Score, ScoreFilter
+from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
 
 admin.site.register(OsuUser)
 admin.site.register(UserStats)

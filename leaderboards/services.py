@@ -1,7 +1,8 @@
 from django.db import transaction
 
-from leaderboards.models import Leaderboard
 from leaderboards.enums import LeaderboardAccessType
+from leaderboards.models import Leaderboard
+
 
 @transaction.atomic
 def create_leaderboard(owner_id, leaderboard):
@@ -16,6 +17,7 @@ def create_leaderboard(owner_id, leaderboard):
     leaderboard.update_membership(owner_id)
     return leaderboard
 
+
 @transaction.atomic
 def create_membership(leaderboard_id, user_id):
     """
@@ -25,6 +27,7 @@ def create_membership(leaderboard_id, user_id):
     membership = leaderboard.update_membership(user_id)
     leaderboard.update_member_count()
     return membership
+
 
 @transaction.atomic
 def delete_membership(membership):

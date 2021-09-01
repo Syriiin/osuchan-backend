@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 
+
 def set_member_count(apps, schema_editor):
     Leaderboard = apps.get_model("leaderboards", "Leaderboard")
 
@@ -10,13 +11,20 @@ def set_member_count(apps, schema_editor):
         leaderboard.member_count = leaderboard.memberships.count()
         leaderboard.save()
 
+
 def set_rank(apps, schema_editor):
     Membership = apps.get_model("leaderboards", "Membership")
 
     memberships = Membership.objects.all()
     for membership in memberships:
-        membership.rank = Membership.objects.filter(leaderboard_id=membership.leaderboard_id, pp__gte=membership.pp).count() + 1
+        membership.rank = (
+            Membership.objects.filter(
+                leaderboard_id=membership.leaderboard_id, pp__gte=membership.pp
+            ).count()
+            + 1
+        )
         membership.save()
+
 
 def set_score_count(apps, schema_editor):
     Membership = apps.get_model("leaderboards", "Membership")
@@ -26,29 +34,30 @@ def set_score_count(apps, schema_editor):
         membership.score_count = membership.scores.count()
         membership.save()
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0012_auto_20200617_1918'),
+        ("leaderboards", "0012_auto_20200617_1918"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='leaderboard',
-            name='member_count',
+            model_name="leaderboard",
+            name="member_count",
             field=models.IntegerField(null=True),
         ),
         migrations.RunPython(set_member_count, migrations.RunPython.noop),
         migrations.AddField(
-            model_name='membership',
-            name='rank',
+            model_name="membership",
+            name="rank",
             field=models.IntegerField(default=0),
             preserve_default=False,
         ),
         migrations.RunPython(set_rank, migrations.RunPython.noop),
         migrations.AddField(
-            model_name='membership',
-            name='score_count',
+            model_name="membership",
+            name="score_count",
             field=models.IntegerField(default=0),
             preserve_default=False,
         ),

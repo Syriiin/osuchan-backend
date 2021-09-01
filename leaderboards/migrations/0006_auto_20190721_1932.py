@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0005_auto_20190718_0841'),
+        ("leaderboards", "0005_auto_20190718_0841"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='leaderboard',
-            name='newest_score_date',
+            model_name="leaderboard",
+            name="newest_score_date",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='leaderboard',
-            name='oldest_score_date',
+            model_name="leaderboard",
+            name="oldest_score_date",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

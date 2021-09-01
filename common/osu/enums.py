@@ -5,6 +5,7 @@ from enum import IntEnum
 # Mods
 # https://github.com/ppy/osu-api/wiki#mods
 
+
 class Mods(IntEnum):
     NONE = 0
     NOFAIL = 1
@@ -39,15 +40,33 @@ class Mods(IntEnum):
     SCORE_V2 = 536870912
     MIRROR = 1073741824
 
-    KEY_MOD = KEY_1 | KEY_2 | KEY_3 | KEY_4 | KEY_5 | KEY_6 | KEY_7 | KEY_8 | KEY_9 | KEY_COOP
-    FREEMOD_ALLOWED = NOFAIL | EASY | HIDDEN | HARDROCK | SUDDEN_DEATH | FLASHLIGHT | FADE_IN | RELAX | AUTOPILOT | SPUN_OUT | KEY_MOD
+    KEY_MOD = (
+        KEY_1 | KEY_2 | KEY_3 | KEY_4 | KEY_5 | KEY_6 | KEY_7 | KEY_8 | KEY_9 | KEY_COOP
+    )
+    FREEMOD_ALLOWED = (
+        NOFAIL
+        | EASY
+        | HIDDEN
+        | HARDROCK
+        | SUDDEN_DEATH
+        | FLASHLIGHT
+        | FADE_IN
+        | RELAX
+        | AUTOPILOT
+        | SPUN_OUT
+        | KEY_MOD
+    )
     SCORE_INCREASING = HIDDEN | HARDROCK | DOUBLETIME | FLASHLIGHT | AUTOPILOT | FADE_IN
 
     SPEED_CHANGING = DOUBLETIME | HALFTIME | NIGHTCORE
     MAP_CHANGING = SPEED_CHANGING | HARDROCK | EASY
-    UNRANKED = RELAX | AUTO | AUTOPILOT | KEY_1 | KEY_2 | KEY_3 | KEY_COOP | RANDOM | SCORE_V2
+    UNRANKED = (
+        RELAX | AUTO | AUTOPILOT | KEY_1 | KEY_2 | KEY_3 | KEY_COOP | RANDOM | SCORE_V2
+    )
+
 
 # Gamemodes
+
 
 class Gamemode(IntEnum):
     STANDARD = 0
@@ -55,7 +74,9 @@ class Gamemode(IntEnum):
     CATCH = 2
     MANIA = 3
 
+
 # Beatmap Status
+
 
 class BeatmapStatus(IntEnum):
     GRAVEYARD = -2

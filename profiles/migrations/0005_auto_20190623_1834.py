@@ -6,12 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0004_userstats_last_updated'),
+        ("profiles", "0004_userstats_last_updated"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='score',
-            constraint=models.UniqueConstraint(fields=('user_stats_id', 'beatmap_id', 'mods'), name='unique_score'),
+            model_name="score",
+            constraint=models.UniqueConstraint(
+                fields=("user_stats_id", "beatmap_id", "mods"), name="unique_score"
+            ),
         ),
     ]

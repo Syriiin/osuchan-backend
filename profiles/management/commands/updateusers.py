@@ -1,10 +1,11 @@
-from django.db import transaction
-from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
-
 import os
 
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+
 from profiles.services import fetch_user
+
 
 class Command(BaseCommand):
     help = "Runs user update for given users"
@@ -27,4 +28,8 @@ class Command(BaseCommand):
         for user_id in user_ids:
             user_stats = fetch_user(user_id=user_id, gamemode=gamemode)
 
-            self.stdout.write(self.style.SUCCESS(f"Successfully updated user {user_stats.user.username} ({user_stats.user_id})"))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Successfully updated user {user_stats.user.username} ({user_stats.user_id})"
+                )
+            )

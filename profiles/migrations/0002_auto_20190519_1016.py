@@ -6,79 +6,79 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0001_initial'),
+        ("profiles", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='score',
-            name='accuracy',
+            model_name="score",
+            name="accuracy",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='score',
-            name='approach_rate',
+            model_name="score",
+            name="approach_rate",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='score',
-            name='bpm',
+            model_name="score",
+            name="bpm",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='score',
-            name='circle_size',
+            model_name="score",
+            name="circle_size",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='score',
-            name='length',
+            model_name="score",
+            name="length",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='score',
-            name='overall_difficulty',
+            model_name="score",
+            name="overall_difficulty",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='score',
-            name='star_rating',
+            model_name="score",
+            name="star_rating",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='userstats',
-            name='score_style_accuracy',
+            model_name="userstats",
+            name="score_style_accuracy",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='userstats',
-            name='score_style_ar',
+            model_name="userstats",
+            name="score_style_ar",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='userstats',
-            name='score_style_bpm',
+            model_name="userstats",
+            name="score_style_bpm",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='userstats',
-            name='score_style_cs',
+            model_name="userstats",
+            name="score_style_cs",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='userstats',
-            name='score_style_length',
+            model_name="userstats",
+            name="score_style_length",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='userstats',
-            name='score_style_od',
+            model_name="userstats",
+            name="score_style_od",
             field=models.FloatField(null=True),
         ),
     ]

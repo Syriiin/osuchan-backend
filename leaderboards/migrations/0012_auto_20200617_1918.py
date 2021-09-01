@@ -6,12 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0011_leaderboard_score_set'),
+        ("leaderboards", "0011_leaderboard_score_set"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='invite',
-            constraint=models.UniqueConstraint(fields=('leaderboard_id', 'user_id'), name='unique_invites'),
+            model_name="invite",
+            constraint=models.UniqueConstraint(
+                fields=("leaderboard_id", "user_id"), name="unique_invites"
+            ),
         ),
     ]

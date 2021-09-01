@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
-from users.models import ScoreFilterPreset
 from profiles.serialisers import ScoreFilterSerialiser
+from users.models import ScoreFilterPreset
+
 
 class ScoreFilterPresetSerialiser(serializers.ModelSerializer):
     score_filter = ScoreFilterSerialiser()
@@ -13,5 +14,5 @@ class ScoreFilterPresetSerialiser(serializers.ModelSerializer):
             "name",
             # relations
             "user",
-            "score_filter"
+            "score_filter",
         )

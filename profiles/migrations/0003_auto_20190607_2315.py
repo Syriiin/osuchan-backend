@@ -6,49 +6,49 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0002_auto_20190519_1016'),
+        ("profiles", "0002_auto_20190519_1016"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='userstats',
-            name='extra_pp',
+            model_name="userstats",
+            name="extra_pp",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='userstats',
-            name='score_style_accuracy',
+            model_name="userstats",
+            name="score_style_accuracy",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='userstats',
-            name='score_style_ar',
+            model_name="userstats",
+            name="score_style_ar",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='userstats',
-            name='score_style_bpm',
+            model_name="userstats",
+            name="score_style_bpm",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='userstats',
-            name='score_style_cs',
+            model_name="userstats",
+            name="score_style_cs",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='userstats',
-            name='score_style_length',
+            model_name="userstats",
+            name="score_style_length",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='userstats',
-            name='score_style_od',
+            model_name="userstats",
+            name="score_style_od",
             field=models.FloatField(default=0),
             preserve_default=False,
         ),

@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # NOTE: use django.core.management.utils.get_random_secret_key() to generate a suitable key
-SECRET_KEY = ''
+SECRET_KEY = ""
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -20,27 +20,18 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 # IPs allowed to use debug toolbar
-INTERNAL_IPS = ['127.0.0.1']
+INTERNAL_IPS = ["127.0.0.1"]
 
 
 # Logging
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler'
-        }
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"level": "INFO", "class": "logging.StreamHandler"}},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "INFO", "propagate": True}
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True
-        }
-    }
 }
 
 
@@ -48,13 +39,13 @@ LOGGING = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': ''
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "",
+        "USER": "",
+        "PASSWORD": "",
+        "HOST": "",
+        "PORT": "",
     }
 }
 
@@ -63,9 +54,9 @@ DATABASES = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#caches
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': ''
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.MemcachedCache",
+        "LOCATION": "",
     }
 }
 
@@ -74,23 +65,23 @@ CACHES = {
 # https://www.django-rest-framework.org/api-guide/settings/
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly"
     ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
         # 'rest_framework.renderers.BrowsableAPIRenderer'
     ],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '30/minute',
-        'user': '45/minute',
-        'anon': '1000/day',
-        'user': '1500/day'
-    }
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/minute",
+        "user": "45/minute",
+        "anon": "1000/day",
+        "user": "1500/day",
+    },
 }
 
 
@@ -105,12 +96,12 @@ CELERY_TASK_SERIALIZER = "json"
 # osu! API
 
 # v2
-OSU_CLIENT_ID = ''
-OSU_CLIENT_SECRET = ''
-OSU_CLIENT_REDIRECT_URI = ''
+OSU_CLIENT_ID = ""
+OSU_CLIENT_SECRET = ""
+OSU_CLIENT_REDIRECT_URI = ""
 
 # v1
-OSU_API_V1_KEY = ''
+OSU_API_V1_KEY = ""
 
 # Beatmap cache directory
-BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, 'data/beatmaps')
+BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "data/beatmaps")

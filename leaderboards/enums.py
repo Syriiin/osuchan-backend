@@ -1,7 +1,8 @@
 # leaderboards related enums
 
 from enum import IntEnum
-    
+
+
 class LeaderboardAccessType(IntEnum):
     GLOBAL = 0
     PUBLIC = 1

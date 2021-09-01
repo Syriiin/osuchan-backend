@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from profiles.models import OsuUser, UserStats, Beatmap, Score, ScoreFilter
+from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
+
 
 class OsuUserSerialiser(serializers.ModelSerializer):
     class Meta:
@@ -10,8 +11,9 @@ class OsuUserSerialiser(serializers.ModelSerializer):
             "id",
             "username",
             "country",
-            "join_date"
+            "join_date",
         )
+
 
 class UserStatsSerialiser(serializers.ModelSerializer):
     user = OsuUserSerialiser()
@@ -37,8 +39,9 @@ class UserStatsSerialiser(serializers.ModelSerializer):
             "score_style_od",
             "score_style_length",
             # relations
-            "user"
+            "user",
         )
+
 
 class BeatmapSerialiser(serializers.ModelSerializer):
     class Meta:
@@ -66,8 +69,9 @@ class BeatmapSerialiser(serializers.ModelSerializer):
             "approval_date",
             "last_updated",
             # relations
-            "creator"
+            "creator",
         )
+
 
 class ScoreSerialiser(serializers.ModelSerializer):
     class Meta:
@@ -102,14 +106,17 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "length",
             "circle_size",
             "approach_rate",
-            "overall_difficulty"
+            "overall_difficulty",
         )
+
 
 class UserScoreSerialiser(ScoreSerialiser):
     beatmap = BeatmapSerialiser()
 
+
 class BeatmapScoreSerialiser(ScoreSerialiser):
     user_stats = UserStatsSerialiser()
+
 
 class ScoreFilterSerialiser(serializers.ModelSerializer):
     class Meta:
@@ -133,5 +140,5 @@ class ScoreFilterSerialiser(serializers.ModelSerializer):
             "lowest_accuracy",
             "highest_accuracy",
             "lowest_length",
-            "highest_length"
+            "highest_length",
         )

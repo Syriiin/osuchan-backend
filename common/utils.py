@@ -1,10 +1,11 @@
-from django.conf import settings
-
 import os
 import urllib.request
 
+from django.conf import settings
+
 beatmap_cache_path = settings.BEATMAP_CACHE_PATH
 beatmap_dl_url = settings.BEATMAP_DL_URL
+
 
 def get_beatmap_path(beatmap_id):
     # get beatmap path
@@ -18,15 +19,16 @@ def get_beatmap_path(beatmap_id):
 
     return beatmap_path
 
+
 def parse_int_or_none(input):
     try:
         return int(input)
     except (ValueError, TypeError):
         return None
 
+
 def parse_float_or_none(input):
     try:
         return float(input)
     except (ValueError, TypeError):
         return None
-    

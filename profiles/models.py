@@ -1,20 +1,21 @@
-from django.db import models
-from django.db.models import Subquery, Case, When, F
-
 import math
 from datetime import datetime
 
-import pytz
 import oppaipy
+import pytz
+from django.db import models
+from django.db.models import Case, F, Subquery, When
 
-from common.utils import get_beatmap_path
 from common.osu import apiv1, utils
-from common.osu.enums import Gamemode, BeatmapStatus, Mods
-from profiles.enums import ScoreResult, ScoreSet, AllowedBeatmapStatus
+from common.osu.enums import BeatmapStatus, Gamemode, Mods
+from common.utils import get_beatmap_path
+from profiles.enums import AllowedBeatmapStatus, ScoreResult, ScoreSet
+
 
 class OsuUserQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(disabled=False)
+
 
 class OsuUser(models.Model):
     """
@@ -35,14 +36,17 @@ class OsuUser(models.Model):
     def __str__(self):
         return self.username
 
+
 class UserStatsQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user__disabled=False)
+
 
 class UserStats(models.Model):
     """
     Model representing an osu! user's data relating to a specific gamemode
     """
+
     id = models.BigAutoField(primary_key=True)
 
     # osu! data
@@ -99,7 +103,7 @@ class UserStats(models.Model):
                 continue
 
             score = Score()
-            
+
             # Update Score fields
             score.score = int(score_data["score"])
             score.count_300 = int(score_data["count300"])
@@ -112,18 +116,34 @@ class UserStats(models.Model):
             score.perfect = bool(int(score_data["perfect"]))
             score.mods = int(score_data["enabled_mods"])
             score.rank = score_data["rank"]
-            score.date = datetime.strptime(score_data["date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
+            score.date = datetime.strptime(
+                score_data["date"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=pytz.UTC)
 
             # Update foreign keys
             # Search for beatmap in fetched, else create it
             beatmap_id = int(score_data["beatmap_id"])
-            beatmap = next((beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None)
+            beatmap = next(
+                (beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None
+            )
             if beatmap is None:
-                beatmap = Beatmap.from_data(apiv1.get_beatmaps(beatmap_id=beatmap_id)[0])
-                if beatmap.status not in [BeatmapStatus.APPROVED, BeatmapStatus.RANKED, BeatmapStatus.LOVED] or score.mods & Mods.UNRANKED != 0:
+                beatmap = Beatmap.from_data(
+                    apiv1.get_beatmaps(beatmap_id=beatmap_id)[0]
+                )
+                if (
+                    beatmap.status
+                    not in [
+                        BeatmapStatus.APPROVED,
+                        BeatmapStatus.RANKED,
+                        BeatmapStatus.LOVED,
+                    ]
+                    or score.mods & Mods.UNRANKED != 0
+                ):
                     # Skip unranked/unloved scores
                     continue
-                beatmaps.append(beatmap)    # add to beatmaps incase another score is on this map
+                beatmaps.append(
+                    beatmap
+                )  # add to beatmaps incase another score is on this map
                 beatmaps_to_create.append(beatmap)
             score.beatmap = beatmap
             score.user_stats = self
@@ -138,21 +158,35 @@ class UserStats(models.Model):
                     continue
                 # Use oppai to calculate pp
                 with oppaipy.Calculator(get_beatmap_path(beatmap_id)) as calc:
-                        calc.set_accuracy(count_100=score.count_100, count_50=score.count_50)
-                        calc.set_misses(score.count_miss)
-                        calc.set_combo(score.best_combo)
-                        calc.set_mods(score.mods)
-                        calc.calculate()
-                        score.pp = calc.pp if math.isfinite(calc.pp) else 0
-            
+                    calc.set_accuracy(
+                        count_100=score.count_100, count_50=score.count_50
+                    )
+                    calc.set_misses(score.count_miss)
+                    calc.set_combo(score.best_combo)
+                    calc.set_mods(score.mods)
+                    calc.calculate()
+                    score.pp = calc.pp if math.isfinite(calc.pp) else 0
+
             # Update convenience fields
             score.gamemode = self.gamemode
-            score.accuracy = utils.get_accuracy(score.count_300, score.count_100, score.count_50, score.count_miss, score.count_katu, score.count_geki, gamemode=self.gamemode)
+            score.accuracy = utils.get_accuracy(
+                score.count_300,
+                score.count_100,
+                score.count_50,
+                score.count_miss,
+                score.count_katu,
+                score.count_geki,
+                gamemode=self.gamemode,
+            )
             score.bpm = utils.get_bpm(beatmap.bpm, score.mods)
             score.length = utils.get_length(beatmap.drain_time, score.mods)
-            score.circle_size = utils.get_cs(beatmap.circle_size, score.mods, score.gamemode)
+            score.circle_size = utils.get_cs(
+                beatmap.circle_size, score.mods, score.gamemode
+            )
             score.approach_rate = utils.get_ar(beatmap.approach_rate, score.mods)
-            score.overall_difficulty = utils.get_od(beatmap.overall_difficulty, score.mods)
+            score.overall_difficulty = utils.get_od(
+                beatmap.overall_difficulty, score.mods
+            )
 
             # Process score
             score.process()
@@ -160,16 +194,20 @@ class UserStats(models.Model):
             scores_from_data.append(score)
 
         # Remove potential duplicates from a top 100 play also being in the recent 50
-        scores_from_data = [score for score in scores_from_data if score == next(s for s in scores_from_data if s.date == score.date)]
+        scores_from_data = [
+            score
+            for score in scores_from_data
+            if score == next(s for s in scores_from_data if s.date == score.date)
+        ]
 
         # Process scores for user stats values
         all_scores, scores_to_create = self.__process_scores(*scores_from_data)
         self.save()
-        
+
         # Update new scores with newly saved UserStats id
         for score in scores_to_create:
             score.user_stats_id = self.id
-        
+
         # Bulk add and update beatmaps and scores
         Beatmap.objects.bulk_create(beatmaps_to_create, ignore_conflicts=True)
         Score.objects.bulk_create(scores_to_create)
@@ -182,10 +220,26 @@ class UserStats(models.Model):
         Calculates pp totals (extra pp, nochoke pp) and scores style using unique maps, and returns all scores for UserStats and the scores that need to be added
         """
         # Fetch all scores currently in database and add to new_scores ensuring no duplicate scores
-        database_scores = self.scores.select_related("beatmap").filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED])
+        database_scores = self.scores.select_related("beatmap").filter(
+            beatmap__status__in=[
+                BeatmapStatus.RANKED,
+                BeatmapStatus.APPROVED,
+                BeatmapStatus.LOVED,
+            ]
+        )
         database_score_dates = [score.date for score in database_scores]
-        scores_to_create = [score for score in new_scores if score.date not in database_score_dates]
-        scores = [*[score for score in scores_to_create if score.beatmap.status in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED]], *database_scores]
+        scores_to_create = [
+            score for score in new_scores if score.date not in database_score_dates
+        ]
+        scores = [
+            *[
+                score
+                for score in scores_to_create
+                if score.beatmap.status
+                in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED]
+            ],
+            *database_scores,
+        ]
 
         # Sort all scores by pp
         scores.sort(key=lambda s: s.pp, reverse=True)
@@ -201,17 +255,48 @@ class UserStats(models.Model):
                 beatmap_ids.append(score.beatmap_id)
 
         # Calculate bonus pp (+ pp from non-top100 scores)
-        self.extra_pp = self.pp - utils.calculate_pp_total(score.pp for score in unique_map_scores[:100])
+        self.extra_pp = self.pp - utils.calculate_pp_total(
+            score.pp for score in unique_map_scores[:100]
+        )
 
         # Calculate score style
-        top_100_scores = unique_map_scores[:100]  # score style limited to top 100 scores
+        top_100_scores = unique_map_scores[
+            :100
+        ]  # score style limited to top 100 scores
         weighting_value = sum(0.95 ** i for i in range(100))
-        self.score_style_accuracy = sum(score.accuracy * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
-        self.score_style_bpm = sum(score.bpm * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
-        self.score_style_length = sum(score.length * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
-        self.score_style_cs = sum(score.circle_size * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
-        self.score_style_ar = sum(score.approach_rate * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
-        self.score_style_od = sum(score.overall_difficulty * (0.95 ** i) for i, score in enumerate(top_100_scores)) / weighting_value
+        self.score_style_accuracy = (
+            sum(score.accuracy * (0.95 ** i) for i, score in enumerate(top_100_scores))
+            / weighting_value
+        )
+        self.score_style_bpm = (
+            sum(score.bpm * (0.95 ** i) for i, score in enumerate(top_100_scores))
+            / weighting_value
+        )
+        self.score_style_length = (
+            sum(score.length * (0.95 ** i) for i, score in enumerate(top_100_scores))
+            / weighting_value
+        )
+        self.score_style_cs = (
+            sum(
+                score.circle_size * (0.95 ** i)
+                for i, score in enumerate(top_100_scores)
+            )
+            / weighting_value
+        )
+        self.score_style_ar = (
+            sum(
+                score.approach_rate * (0.95 ** i)
+                for i, score in enumerate(top_100_scores)
+            )
+            / weighting_value
+        )
+        self.score_style_od = (
+            sum(
+                score.overall_difficulty * (0.95 ** i)
+                for i, score in enumerate(top_100_scores)
+            )
+            / weighting_value
+        )
 
         return scores, scores_to_create
 
@@ -221,7 +306,9 @@ class UserStats(models.Model):
     class Meta:
         constraints = [
             # each user can only have 1 stats row per gamemode
-            models.UniqueConstraint(fields=["user_id", "gamemode"], name="unique_user_stats")
+            models.UniqueConstraint(
+                fields=["user_id", "gamemode"], name="unique_user_stats"
+            )
         ]
 
         indexes = [
@@ -229,6 +316,7 @@ class UserStats(models.Model):
             #   (not sure if this works as intended with the foreign key but i imagine so)
             models.Index(fields=["user", "gamemode"])
         ]
+
 
 class Beatmap(models.Model):
     """
@@ -247,7 +335,9 @@ class Beatmap(models.Model):
     bpm = models.FloatField()
     drain_time = models.IntegerField()
     total_time = models.IntegerField()
-    max_combo = models.IntegerField(null=True)  # max_combo can be null for non-standard gamemodes
+    max_combo = models.IntegerField(
+        null=True
+    )  # max_combo can be null for non-standard gamemodes
     circle_size = models.FloatField()
     overall_difficulty = models.FloatField()
     approach_rate = models.FloatField()
@@ -256,11 +346,16 @@ class Beatmap(models.Model):
     submission_date = models.DateTimeField()
     approval_date = models.DateTimeField()
     last_updated = models.DateTimeField()
-    
+
     # Relations
     # db_constraint=False because the creator might be restricted or otherwise not in the database
     # not using nullable, because we still want to have the creator_id field
-    creator = models.ForeignKey(OsuUser, on_delete=models.DO_NOTHING, db_constraint=False, related_name="beatmaps")
+    creator = models.ForeignKey(
+        OsuUser,
+        on_delete=models.DO_NOTHING,
+        db_constraint=False,
+        related_name="beatmaps",
+    )
 
     @classmethod
     def from_data(cls, beatmap_data):
@@ -275,7 +370,11 @@ class Beatmap(models.Model):
         beatmap.status = int(beatmap_data["approved"])
         beatmap.creator_name = beatmap_data["creator"]
         beatmap.bpm = float(beatmap_data["bpm"])
-        beatmap.max_combo = int(beatmap_data["max_combo"]) if beatmap_data["max_combo"] != None else None
+        beatmap.max_combo = (
+            int(beatmap_data["max_combo"])
+            if beatmap_data["max_combo"] != None
+            else None
+        )
         beatmap.drain_time = int(beatmap_data["hit_length"])
         beatmap.total_time = int(beatmap_data["total_length"])
         beatmap.circle_size = float(beatmap_data["diff_size"])
@@ -283,17 +382,30 @@ class Beatmap(models.Model):
         beatmap.approach_rate = float(beatmap_data["diff_approach"])
         beatmap.health_drain = float(beatmap_data["diff_drain"])
         beatmap.star_rating = float(beatmap_data["difficultyrating"])
-        beatmap.submission_date = datetime.strptime(beatmap_data["submit_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
-        beatmap.approval_date = datetime.strptime(beatmap_data["approved_date"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC) if beatmap_data["approved_date"] is not None else None
-        beatmap.last_updated = datetime.strptime(beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC)
-        
+        beatmap.submission_date = datetime.strptime(
+            beatmap_data["submit_date"], "%Y-%m-%d %H:%M:%S"
+        ).replace(tzinfo=pytz.UTC)
+        beatmap.approval_date = (
+            datetime.strptime(
+                beatmap_data["approved_date"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=pytz.UTC)
+            if beatmap_data["approved_date"] is not None
+            else None
+        )
+        beatmap.last_updated = datetime.strptime(
+            beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S"
+        ).replace(tzinfo=pytz.UTC)
+
         # Update foreign key ids
         beatmap.creator_id = int(beatmap_data["creator_id"])
 
         return beatmap
 
     def __str__(self):
-        return "{} - {} [{}] (by {})".format(self.artist, self.title, self.difficulty_name, self.creator_name)
+        return "{} - {} [{}] (by {})".format(
+            self.artist, self.title, self.difficulty_name, self.creator_name
+        )
+
 
 class ScoreQuerySet(models.QuerySet):
     def non_restricted(self):
@@ -303,20 +415,26 @@ class ScoreQuerySet(models.QuerySet):
         # Mods
         scores = self.filter(
             mods__allbits=score_filter.required_mods,
-            mods__nobits=score_filter.disqualified_mods
+            mods__nobits=score_filter.disqualified_mods,
         )
 
         # Beatmap Status
         if score_filter.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY:
             scores = scores.filter(beatmap__status=BeatmapStatus.LOVED)
         elif score_filter.allowed_beatmap_status == AllowedBeatmapStatus.RANKED_ONLY:
-            scores = scores.filter(beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED])
+            scores = scores.filter(
+                beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED]
+            )
 
         # Optional filters
         if score_filter.oldest_beatmap_date:
-            scores = scores.filter(beatmap__approval_date__gte=score_filter.oldest_beatmap_date)
+            scores = scores.filter(
+                beatmap__approval_date__gte=score_filter.oldest_beatmap_date
+            )
         if score_filter.newest_beatmap_date:
-            scores = scores.filter(beatmap__approval_date__lte=score_filter.newest_beatmap_date)
+            scores = scores.filter(
+                beatmap__approval_date__lte=score_filter.newest_beatmap_date
+            )
         if score_filter.oldest_score_date:
             scores = scores.filter(date__gte=score_filter.oldest_score_date)
         if score_filter.newest_score_date:
@@ -341,7 +459,7 @@ class ScoreQuerySet(models.QuerySet):
             scores = scores.filter(length__gte=score_filter.lowest_length)
         if score_filter.highest_length:
             scores = scores.filter(length__lte=score_filter.highest_length)
-        
+
         return scores
 
     def get_score_set(self, score_set=ScoreSet.NORMAL):
@@ -351,36 +469,42 @@ class ScoreQuerySet(models.QuerySet):
         """
         if score_set == ScoreSet.NORMAL:
             # always use pp
-            scores = self.annotate(
-                sorting_pp=F("pp")
-            )
+            scores = self.annotate(sorting_pp=F("pp"))
         elif score_set == ScoreSet.NEVER_CHOKE:
             # if choke use nochoke_pp, else use pp
             scores = self.annotate(
                 sorting_pp=Case(
-                    When(result=F("result").bitand(ScoreResult.CHOKE), then=F("nochoke_pp")),
+                    When(
+                        result=F("result").bitand(ScoreResult.CHOKE),
+                        then=F("nochoke_pp"),
+                    ),
                     default=F("pp"),
-                    output_field=models.FloatField()
+                    output_field=models.FloatField(),
                 )
             )
         elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
             # always use nochoke_pp
-            scores = self.annotate(
-                sorting_pp=F("nochoke_pp")
-            )
+            scores = self.annotate(sorting_pp=F("nochoke_pp"))
 
         # I do not like this query, but i cannot for the life of me figure out how to get django to SELECT FROM (...subquery...)
         # It seems after testing, the raw sql of these two queries (current one vs select from subquery), they were generally the same speed (on a tiny dataset)
         # I simply want to `return self.order_by("beatmap_id", "-pp").distinct("beatmap_id").order_by("-pp", "date")`, but this doesnt translate to a subquery
         # TODO: figure this out
         return scores.filter(
-            id__in=Subquery(scores.all().order_by("beatmap_id", "-sorting_pp").distinct("beatmap_id").values("id"))
+            id__in=Subquery(
+                scores.all()
+                .order_by("beatmap_id", "-sorting_pp")
+                .distinct("beatmap_id")
+                .values("id")
+            )
         ).order_by("-sorting_pp", "date")
+
 
 class Score(models.Model):
     """
     Model representing an osu! score
     """
+
     id = models.BigAutoField(primary_key=True)
 
     # osu! data
@@ -400,8 +524,12 @@ class Score(models.Model):
     date = models.DateTimeField()
 
     # Relations
-    beatmap = models.ForeignKey(Beatmap, on_delete=models.CASCADE, related_name="scores")
-    user_stats = models.ForeignKey(UserStats, on_delete=models.CASCADE, related_name="scores")
+    beatmap = models.ForeignKey(
+        Beatmap, on_delete=models.CASCADE, related_name="scores"
+    )
+    user_stats = models.ForeignKey(
+        UserStats, on_delete=models.CASCADE, related_name="scores"
+    )
 
     # Convenience fields (derived from above fields)
     gamemode = models.IntegerField()
@@ -424,7 +552,7 @@ class Score(models.Model):
         if self.count_miss == 1:
             self.result = ScoreResult.ONE_MISS
             return
-        
+
         pct_combo = self.best_combo / self.beatmap.max_combo
 
         if pct_combo == 1:
@@ -457,16 +585,19 @@ class Score(models.Model):
     class Meta:
         constraints = [
             # Scores are unique on user + date, so multiple scores from the same beatmaps + mods are allowed per user
-            models.UniqueConstraint(fields=["user_stats_id", "date"], name="unique_score")
+            models.UniqueConstraint(
+                fields=["user_stats_id", "date"], name="unique_score"
+            )
         ]
 
-        indexes = [
-            models.Index(fields=["pp"])
-        ]
+        indexes = [models.Index(fields=["pp"])]
+
 
 class ScoreFilter(models.Model):
     id = models.BigAutoField(primary_key=True)
-    allowed_beatmap_status = models.IntegerField(default=AllowedBeatmapStatus.RANKED_ONLY)
+    allowed_beatmap_status = models.IntegerField(
+        default=AllowedBeatmapStatus.RANKED_ONLY
+    )
     oldest_beatmap_date = models.DateTimeField(null=True, blank=True)
     newest_beatmap_date = models.DateTimeField(null=True, blank=True)
     oldest_score_date = models.DateTimeField(null=True, blank=True)
@@ -484,7 +615,9 @@ class ScoreFilter(models.Model):
     lowest_length = models.FloatField(null=True, blank=True)
     highest_length = models.FloatField(null=True, blank=True)
 
+
 # Custom lookups
+
 
 @models.fields.Field.register_lookup
 class AllBits(models.Lookup):
@@ -495,6 +628,7 @@ class AllBits(models.Lookup):
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params + rhs_params
         return f"{lhs} & {rhs} = {rhs}", params
+
 
 @models.fields.Field.register_lookup
 class NoBits(models.Lookup):

@@ -6,28 +6,34 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0002_auto_20190708_0504'),
+        ("leaderboards", "0002_auto_20190708_0504"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='invite',
-            index=models.Index(fields=['leaderboard'], name='leaderboard_leaderb_064cca_idx'),
+            model_name="invite",
+            index=models.Index(
+                fields=["leaderboard"], name="leaderboard_leaderb_064cca_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='invite',
-            index=models.Index(fields=['user'], name='leaderboard_user_id_f72a40_idx'),
+            model_name="invite",
+            index=models.Index(fields=["user"], name="leaderboard_user_id_f72a40_idx"),
         ),
         migrations.AddIndex(
-            model_name='leaderboard',
-            index=models.Index(fields=['gamemode'], name='leaderboard_gamemod_5e7ff7_idx'),
+            model_name="leaderboard",
+            index=models.Index(
+                fields=["gamemode"], name="leaderboard_gamemod_5e7ff7_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='membership',
-            index=models.Index(fields=['leaderboard'], name='leaderboard_leaderb_30c946_idx'),
+            model_name="membership",
+            index=models.Index(
+                fields=["leaderboard"], name="leaderboard_leaderb_30c946_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='membership',
-            index=models.Index(fields=['user'], name='leaderboard_user_id_150ec3_idx'),
+            model_name="membership",
+            index=models.Index(fields=["user"], name="leaderboard_user_id_150ec3_idx"),
         ),
     ]

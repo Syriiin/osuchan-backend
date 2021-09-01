@@ -1,23 +1,24 @@
 from django.http import Http404
-
+from rest_framework import permissions
+from rest_framework.exceptions import NotAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import NotAuthenticated
-from rest_framework import permissions
 
 from common.osu.enums import Mods
-from osuauth.serialisers import UserSerialiser
-from users.models import ScoreFilterPreset
-from users.serialisers import ScoreFilterPresetSerialiser
-from profiles.services import fetch_user
-from profiles.models import ScoreFilter
 from leaderboards.models import Invite
 from leaderboards.serialisers import UserInviteSerialiser
+from osuauth.serialisers import UserSerialiser
+from profiles.models import ScoreFilter
+from profiles.services import fetch_user
+from users.models import ScoreFilterPreset
+from users.serialisers import ScoreFilterPresetSerialiser
+
 
 class GetMe(APIView):
     """
     API Endpoint for checking the currently authenticated user
     """
+
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
@@ -28,24 +29,30 @@ class GetMe(APIView):
         # user might still not have osu_user if not they are a non-linked account (ie. admin)
         user = request.user
         if user.osu_user is not None:
-            fetch_user(user_id=user.osu_user_id)    # TODO: specify gamemode based on user preferences
+            fetch_user(
+                user_id=user.osu_user_id
+            )  # TODO: specify gamemode based on user preferences
 
         serialiser = UserSerialiser(user)
         return Response(serialiser.data)
+
 
 class ListScoreFilterPresets(APIView):
     """
     API endpoint for listing ScoreFilterPresets for the currently authenticated user
     """
+
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         if not request.user.is_authenticated:
             raise Http404
-        presets = ScoreFilterPreset.objects.select_related("score_filter").filter(user_id=request.user.id)
+        presets = ScoreFilterPreset.objects.select_related("score_filter").filter(
+            user_id=request.user.id
+        )
         serialiser = ScoreFilterPresetSerialiser(presets, many=True)
         return Response(serialiser.data)
-    
+
     def post(self, request):
         if not request.user.is_authenticated:
             raise NotAuthenticated
@@ -63,7 +70,7 @@ class ListScoreFilterPresets(APIView):
         score_filter_data = request.data.get("score_filter")
         if score_filter_data is None:
             raise ParseError("Missing score_filter parameter.")
-        
+
         score_filter_preset = ScoreFilterPreset.objects.create(
             name=name,
             user=request.user,
@@ -84,23 +91,27 @@ class ListScoreFilterPresets(APIView):
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
                 highest_accuracy=score_filter_data.get("highest_accuracy"),
                 lowest_length=score_filter_data.get("lowest_length"),
-                highest_length=score_filter_data.get("highest_length")
-            )
+                highest_length=score_filter_data.get("highest_length"),
+            ),
         )
 
         serialiser = ScoreFilterPresetSerialiser(score_filter_preset)
         return Response(serialiser.data)
 
+
 class GetScoreFilterPreset(APIView):
     """
     API endpoint for getting ScoreFilterPresets for the currently authenticated user
     """
+
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, score_filter_preset_id):
         if not request.user.is_authenticated:
             raise Http404
-        preset = ScoreFilterPreset.objects.select_related("score_filter").get(id=score_filter_preset_id)
+        preset = ScoreFilterPreset.objects.select_related("score_filter").get(
+            id=score_filter_preset_id
+        )
         serialiser = ScoreFilterPresetSerialiser(preset)
         return Response(serialiser.data)
 
@@ -118,11 +129,15 @@ class GetScoreFilterPreset(APIView):
         if score_filter_data is None:
             raise ParseError("Missing score_filter parameter.")
 
-        preset = ScoreFilterPreset.objects.select_related("score_filter").get(id=score_filter_preset_id)
+        preset = ScoreFilterPreset.objects.select_related("score_filter").get(
+            id=score_filter_preset_id
+        )
         preset.name = name
-        
+
         score_filter = preset.score_filter
-        score_filter.allowed_beatmap_status = score_filter_data.get("allowed_beatmap_status")
+        score_filter.allowed_beatmap_status = score_filter_data.get(
+            "allowed_beatmap_status"
+        )
         score_filter.oldest_beatmap_date = score_filter_data.get("oldest_beatmap_date")
         score_filter.newest_beatmap_date = score_filter_data.get("newest_beatmap_date")
         score_filter.oldest_score_date = score_filter_data.get("oldest_score_date")
@@ -134,7 +149,9 @@ class GetScoreFilterPreset(APIView):
         score_filter.lowest_cs = score_filter_data.get("lowest_cs")
         score_filter.highest_cs = score_filter_data.get("highest_cs")
         score_filter.required_mods = score_filter_data.get("required_mods", Mods.NONE)
-        score_filter.disqualified_mods = score_filter_data.get("disqualified_mods", Mods.NONE)
+        score_filter.disqualified_mods = score_filter_data.get(
+            "disqualified_mods", Mods.NONE
+        )
         score_filter.lowest_accuracy = score_filter_data.get("lowest_accuracy")
         score_filter.highest_accuracy = score_filter_data.get("highest_accuracy")
         score_filter.lowest_length = score_filter_data.get("lowest_length")
@@ -149,19 +166,25 @@ class GetScoreFilterPreset(APIView):
     def delete(self, request, score_filter_preset_id):
         if not request.user.is_authenticated:
             raise Http404
-        preset = ScoreFilterPreset.objects.get(id=score_filter_preset_id, user=request.user)
+        preset = ScoreFilterPreset.objects.get(
+            id=score_filter_preset_id, user=request.user
+        )
         preset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ListInvites(APIView):
     """
     API endpoint for listing Invites for the currently authenticated user
     """
+
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         if not request.user.is_authenticated:
             raise Http404
-        invites = Invite.objects.select_related("leaderboard", "leaderboard__owner").filter(user_id=request.user.osu_user_id)
+        invites = Invite.objects.select_related(
+            "leaderboard", "leaderboard__owner"
+        ).filter(user_id=request.user.osu_user_id)
         serialiser = UserInviteSerialiser(invites, many=True)
         return Response(serialiser.data)

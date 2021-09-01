@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0003_auto_20190712_1401'),
+        ("leaderboards", "0003_auto_20190712_1401"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='leaderboard',
-            name='icon_url',
-            field=models.CharField(default='', max_length=250),
+            model_name="leaderboard",
+            name="icon_url",
+            field=models.CharField(default="", max_length=250),
             preserve_default=False,
         ),
     ]

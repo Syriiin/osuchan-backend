@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0014_leaderboard_archived'),
+        ("leaderboards", "0014_leaderboard_archived"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='invite',
-            name='id',
+            model_name="invite",
+            name="id",
             field=models.BigAutoField(primary_key=True, serialize=False),
         ),
         migrations.AlterField(
-            model_name='leaderboard',
-            name='id',
+            model_name="leaderboard",
+            name="id",
             field=models.BigAutoField(primary_key=True, serialize=False),
         ),
         migrations.AlterField(
-            model_name='membership',
-            name='id',
+            model_name="membership",
+            name="id",
             field=models.BigAutoField(primary_key=True, serialize=False),
         ),
     ]

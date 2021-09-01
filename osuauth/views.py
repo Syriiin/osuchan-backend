@@ -1,7 +1,8 @@
-from django.shortcuts import redirect
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.http import Http404
+from django.shortcuts import redirect
+
 
 def login_redirect(request):
     """
@@ -11,16 +12,20 @@ def login_redirect(request):
         # User is already logged in
         return redirect("main")
 
-    return redirect("{authorise_url}?scope={scope}&response_type=code&redirect_uri={redirect_uri}&client_id={client_id}".format(
-        authorise_url=settings.OSU_OAUTH_AUTHORISE_URL,
-        scope=settings.OSU_OAUTH_SCOPE,
-        redirect_uri=settings.OSU_CLIENT_REDIRECT_URI,
-        client_id=settings.OSU_CLIENT_ID
-    ))
+    return redirect(
+        "{authorise_url}?scope={scope}&response_type=code&redirect_uri={redirect_uri}&client_id={client_id}".format(
+            authorise_url=settings.OSU_OAUTH_AUTHORISE_URL,
+            scope=settings.OSU_OAUTH_SCOPE,
+            redirect_uri=settings.OSU_CLIENT_REDIRECT_URI,
+            client_id=settings.OSU_CLIENT_ID,
+        )
+    )
+
 
 def logout_view(request):
     logout(request)
     return redirect("/")
+
 
 def callback(request):
     """
@@ -36,7 +41,7 @@ def callback(request):
 
     # User approved auth
     user = authenticate(request, authorisation_code=authorisation_code)
-    
+
     if user is None:
         # authentication error, something bad probably happened because
         #   at this stage it's just between osuchan and osu to complete the auth

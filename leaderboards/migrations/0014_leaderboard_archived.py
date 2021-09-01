@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('leaderboards', '0013_auto_20200620_1935'),
+        ("leaderboards", "0013_auto_20200620_1935"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='leaderboard',
-            name='archived',
+            model_name="leaderboard",
+            name="archived",
             field=models.BooleanField(default=False),
         ),
     ]

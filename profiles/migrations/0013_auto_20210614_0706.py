@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0012_auto_20200615_1812'),
+        ("profiles", "0012_auto_20200615_1812"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='score',
-            name='id',
+            model_name="score",
+            name="id",
             field=models.BigAutoField(primary_key=True, serialize=False),
         ),
         migrations.AlterField(
-            model_name='scorefilter',
-            name='id',
+            model_name="scorefilter",
+            name="id",
             field=models.BigAutoField(primary_key=True, serialize=False),
         ),
         migrations.AlterField(
-            model_name='userstats',
-            name='id',
+            model_name="userstats",
+            name="id",
             field=models.BigAutoField(primary_key=True, serialize=False),
         ),
     ]

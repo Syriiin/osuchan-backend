@@ -6,11 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osuauth', '0004_scorefilterpreset'),
+        ("osuauth", "0004_scorefilterpreset"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='ScoreFilterPreset',
+            name="ScoreFilterPreset",
         ),
     ]
