@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo -e "Missing path argument.\neg. formatcode.sh ."
+    exit 1
+fi
+
+python -m black $1
+python -m isort $1 --gitignore --profile black
