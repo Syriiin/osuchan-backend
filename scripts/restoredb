@@ -6,10 +6,19 @@ if [ -z "${1+x}" ]; then
     exit 1
 fi
 
+docker-compose exec -T db dropdb \
+    --username=osuchan \
+    osuchan
+
+docker-compose exec -T db createdb \
+    --username=osuchan \
+    --template=template0 \
+    osuchan
+
 docker-compose exec -T db pg_restore \
     --username=osuchan \
     --dbname=osuchan \
     --format=custom \
-    --clean \
+    --exit-on-error \
     --verbose \
     < $1
