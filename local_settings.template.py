@@ -41,11 +41,11 @@ LOGGING = {
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "",
-        "USER": "",
-        "PASSWORD": "",
-        "HOST": "",
-        "PORT": "",
+        "NAME": "osuchan",
+        "USER": "osuchan",
+        "PASSWORD": "osuchan",
+        "HOST": "db",
+        "PORT": "5432",
     }
 }
 
@@ -55,8 +55,8 @@ DATABASES = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.memcached.MemcachedCache",
-        "LOCATION": "",
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": "cache:11211",
     }
 }
 
