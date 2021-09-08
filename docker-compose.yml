@@ -16,8 +16,6 @@ services:
       - 15672:15672
   cache:
     image: memcached:1
-    ports:
-      - 11211:11211
   api:
     image: osuchan-backend
     build:
