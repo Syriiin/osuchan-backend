@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+
+if [ -z "${1+x}" ]; then
+    echo -e "Missing dump output path.\neg. scripts/backupdb ~/backups/osuchan.dump"
+    exit 1
+fi
+
+docker-compose exec -T db pg_dump \
+    --username=osuchan \
+    --format=custom \
+    osuchan > $1

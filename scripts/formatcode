@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ -z "${1+x}" ]; then
-    echo -e "Missing path argument.\neg. formatcode.sh ."
+    echo -e "Missing path argument.\neg. scripts/formatcode ."
     exit 1
 fi
 
