@@ -10,10 +10,14 @@ docker-compose exec -T db dropdb \
     --username=osuchan \
     osuchan
 
+echo "Database dropped"
+
 docker-compose exec -T db createdb \
     --username=osuchan \
     --template=template0 \
     osuchan
+
+echo "Database created"
 
 docker-compose exec -T db pg_restore \
     --username=osuchan \
@@ -22,3 +26,5 @@ docker-compose exec -T db pg_restore \
     --exit-on-error \
     --verbose \
     < $1
+
+echo "Database restored"

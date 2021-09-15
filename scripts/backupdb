@@ -10,3 +10,5 @@ docker-compose exec -T db pg_dump \
     --username=osuchan \
     --format=custom \
     osuchan > $1
+
+echo "Database dumped"
