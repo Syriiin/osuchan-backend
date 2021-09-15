@@ -13,7 +13,7 @@
     ```shell
     $ mkdir -p data/beatmaps    # create volume directory
     $ chown 5678 data/beatmaps  # change ownership to uid 5678 (explicit id of user running api inside container)
-    $ chmod 600 data/beatmaps   # change permissions to only allow read/write for owner
+    $ chmod 700 data/beatmaps   # give full permiissions for owner
     ```
 5. Run migrations
     ```shell

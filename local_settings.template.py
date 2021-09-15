@@ -104,4 +104,4 @@ OSU_CLIENT_REDIRECT_URI = ""
 OSU_API_V1_KEY = ""
 
 # Beatmap cache directory
-BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "data/beatmaps")
+BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "beatmaps")
