@@ -103,7 +103,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/dev/howto/static-files/
 
-STATIC_URL = "/apistatic/"
+STATIC_URL = "/backendstatic/"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 

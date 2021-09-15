@@ -35,4 +35,4 @@ If you get permission issues about the `data` directory when building the image,
 
 ### Static files
 
-When running with the production config `docker-compose.prod.yml` gunicorn will be used instead of djangos development server, so static files will need to be manually set up (ie. with a reverse proxy).
+When running with the production config `docker-compose.prod.yml` gunicorn will be used instead of djangos development server, so static files will need to be manually set up (ie. with a reverse proxy) to be served under the route `/backendstatic/`.
