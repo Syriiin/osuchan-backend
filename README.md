@@ -26,5 +26,13 @@
 
 ## Common Issues
 
-- If you get permission issues about the `data` directory when building the image:
-    - Ensure the `data` directory itself is owned by the running user or atleast has permissions allowing the running user to read, and only have docker volume specific permissions set for the sub directories
+### Permission issues
+
+If you get permission issues about the `data` directory when building the image, ensure the `data` directory itself is owned by the running user or atleast has permissions allowing the running user to read, and only have docker volume specific permissions set for the sub directories.
+
+
+## Additional Notes
+
+### Static files
+
+When running with the production config `docker-compose.prod.yml` gunicorn will be used instead of djangos development server, so static files will need to be manually set up (ie. with a reverse proxy).
