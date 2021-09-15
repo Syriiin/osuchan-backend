@@ -23,3 +23,8 @@
     ```shell
     $ docker-compose up
     ```
+
+## Common Issues
+
+- If you get permission issues about the `data` directory when building the image:
+    - Ensure the `data` directory itself is owned by the running user or atleast has permissions allowing the running user to read, and only have docker volume specific permissions set for the sub directories
