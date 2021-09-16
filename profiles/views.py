@@ -43,6 +43,9 @@ class GetUserStats(APIView):
             else:
                 raise NotFound("User not found.")
 
+            if user_stats is None:
+                raise NotFound("User not found.")
+
             # Show not found for disabled (restricted) users
             if user_stats.user.disabled:
                 raise NotFound("User not found.")
