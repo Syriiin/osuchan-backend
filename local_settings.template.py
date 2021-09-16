@@ -103,5 +103,11 @@ OSU_CLIENT_REDIRECT_URI = ""
 # v1
 OSU_API_V1_KEY = ""
 
+
 # Beatmap cache directory
 BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "beatmaps")
+
+
+# Discord webhooks
+
+DISCORD_WEBHOOK_URL_ERROR_LOG = ""
