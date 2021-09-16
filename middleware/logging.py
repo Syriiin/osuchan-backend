@@ -12,9 +12,7 @@ class DiscordErrorLoggingMiddleware:
         return self.get_response(request)
 
     def process_exception(self, request, exception):
-        exception_string = (
-            f"Exception occured in request '{request.method} {request.path}':\n"
-        )
+        exception_string = f"Exception occured in request '{request.method} {request.get_full_path()}':\n"
         exception_string += "".join(traceback.format_tb(exception.__traceback__))
         exception_string += f"{exception.__class__.__name__}: {exception}"
 
