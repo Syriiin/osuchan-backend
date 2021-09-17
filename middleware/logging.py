@@ -12,16 +12,22 @@ class DiscordErrorLoggingMiddleware:
         return self.get_response(request)
 
     def process_exception(self, request, exception):
-        exception_string = f"Exception occured in request '{request.method} {request.get_full_path()}':\n"
-        exception_string += "".join(traceback.format_tb(exception.__traceback__))
-        exception_string += f"{exception.__class__.__name__}: {exception}"
+        error_report = f"Exception occured in request '{request.method} {request.get_full_path()}'\n\n"
+        if request.method == "POST":
+            error_report += f"POST data:\n{request.POST}\n\n"
+        error_report += "Traceback:\n"
+        error_report += "".join(traceback.format_tb(exception.__traceback__))
+        error_report += f"{exception.__class__.__name__}: {exception}"
 
         httpx.post(
             settings.DISCORD_WEBHOOK_URL_ERROR_LOG,
+            data={
+                "content": f"Exception occured in request `{request.method} {request.get_full_path()}`\n`{exception.__class__.__name__}: {exception}`"
+            },
             files={
                 "upload-file": (
                     "error.log",
-                    exception_string.encode("utf8"),
+                    error_report.encode("utf8"),
                     "text/plain",
                 )
             },

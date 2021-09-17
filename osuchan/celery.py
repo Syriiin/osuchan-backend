@@ -37,16 +37,22 @@ def task_failure_handler(
     einfo,
     **akwargs,
 ):
-    exception_string = f'Exception occured in task "{sender.name}":\n'
-    exception_string += "".join(tb.format_tb(traceback))
-    exception_string += f"{exception.__class__.__name__}: {exception}"
+    error_report = f"Exception occured in task '{sender.name}':\n\n"
+    error_report += f"args:\n{args}\n\n"
+    error_report += f"kwargs:\n{kwargs}\n\n"
+    error_report += "Traceback:\n"
+    error_report += "".join(tb.format_tb(traceback))
+    error_report += f"{exception.__class__.__name__}: {exception}"
 
     httpx.post(
         settings.DISCORD_WEBHOOK_URL_ERROR_LOG,
+        data={
+            "content": f"Exception occured in task `{sender.name}`\n`{exception.__class__.__name__}: {exception}`"
+        },
         files={
             "upload-file": (
                 "error.log",
-                exception_string.encode("utf8"),
+                error_report.encode("utf8"),
                 "text/plain",
             )
         },
