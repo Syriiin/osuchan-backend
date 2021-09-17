@@ -10,7 +10,7 @@ def login_redirect(request):
     """
     if request.user.is_authenticated:
         # User is already logged in
-        return redirect("main")
+        return redirect("/")
 
     return redirect(
         "{authorise_url}?scope={scope}&response_type=code&redirect_uri={redirect_uri}&client_id={client_id}".format(
@@ -37,7 +37,7 @@ def callback(request):
     if error == "access_denied" or not authorisation_code:
         # User denied auth or something went wrong
         # TODO: error handle page
-        return redirect("main")
+        return redirect("/")
 
     # User approved auth
     user = authenticate(request, authorisation_code=authorisation_code)
@@ -46,7 +46,7 @@ def callback(request):
         # authentication error, something bad probably happened because
         #   at this stage it's just between osuchan and osu to complete the auth
         # TODO: error handle page
-        return redirect("main")
+        return redirect("/")
 
     login(request, user)
 
