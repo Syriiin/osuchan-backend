@@ -191,6 +191,10 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     user_stats.add_scores_from_data(score_data_list)
 
     # Update memberships
-    update_memberships.delay(user_id=user_stats.user_id, gamemode=user_stats.gamemode)
+    transaction.on_commit(
+        lambda: update_memberships.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+    )
 
     return user_stats
