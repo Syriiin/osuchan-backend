@@ -12,6 +12,9 @@ class DiscordErrorLoggingMiddleware:
         return self.get_response(request)
 
     def process_exception(self, request, exception):
+        if settings.DISCORD_WEBHOOK_URL_ERROR_LOG == "":
+            return
+
         error_report = f"Exception occured in request '{request.method} {request.get_full_path()}'\n\n"
         if request.method == "POST":
             error_report += f"POST data:\n{request.POST}\n\n"

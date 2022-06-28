@@ -37,6 +37,9 @@ def task_failure_handler(
     einfo,
     **akwargs,
 ):
+    if settings.DISCORD_WEBHOOK_URL_ERROR_LOG == "":
+        return
+
     error_report = f"Exception occured in task '{sender.name}':\n\n"
     error_report += f"args:\n{args}\n\n"
     error_report += f"kwargs:\n{kwargs}\n\n"
