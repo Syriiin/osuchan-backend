@@ -1,4 +1,4 @@
 #!/bin/bash
 set -euo pipefail
 
-docker-compose run api python manage.py shell
+docker compose run api python manage.py shell

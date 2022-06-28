@@ -9,13 +9,16 @@ services:
       - POSTGRES_DB=osuchan
       - POSTGRES_USER=osuchan
       - POSTGRES_PASSWORD=osuchan
+
   queue:
     image: rabbitmq:3-management
     ports:
       - 5672:5672
       - 15672:15672
+
   cache:
     image: memcached:1
+
   api:
     image: osuchan-backend
     build:
@@ -29,6 +32,7 @@ services:
     depends_on:
       - db
       - cache
+
   worker:
     image: osuchan-backend
     build:

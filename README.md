@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Docker (and docker-compose)
+- Docker
 
 ## Setup
 
@@ -13,7 +13,7 @@
     ```shell
     $ mkdir -p data/beatmaps    # create volume directory
     $ chown 5678 data/beatmaps  # change ownership to uid 5678 (explicit id of user running api inside container)
-    $ chmod 700 data/beatmaps   # give full permiissions for owner
+    $ chmod 600 data/beatmaps   # give atleast read/write permissions for owner
     ```
 5. Run migrations
     ```shell
@@ -21,7 +21,7 @@
     ```
 6. Start server
     ```shell
-    $ docker-compose up
+    $ docker compose up
     ```
 
 ## Common Issues

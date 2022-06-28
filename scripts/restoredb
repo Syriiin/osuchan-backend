@@ -6,20 +6,20 @@ if [ -z "${1+x}" ]; then
     exit 1
 fi
 
-docker-compose exec -T db dropdb \
+docker compose exec -T db dropdb \
     --username=osuchan \
     osuchan
 
 echo "Database dropped"
 
-docker-compose exec -T db createdb \
+docker compose exec -T db createdb \
     --username=osuchan \
     --template=template0 \
     osuchan
 
 echo "Database created"
 
-docker-compose exec -T db pg_restore \
+docker compose exec -T db pg_restore \
     --username=osuchan \
     --dbname=osuchan \
     --format=custom \
