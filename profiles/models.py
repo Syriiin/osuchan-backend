@@ -486,14 +486,13 @@ class ScoreQuerySet(models.QuerySet):
             # always use nochoke_pp
             scores = self.annotate(sorting_pp=F("nochoke_pp"))
 
-        # I do not like this query, but i cannot for the life of me figure out how to get django to SELECT FROM (...subquery...)
-        # It seems after testing, the raw sql of these two queries (current one vs select from subquery), they were generally the same speed (on a tiny dataset)
-        # I simply want to `return self.order_by("beatmap_id", "-pp").distinct("beatmap_id").order_by("-pp", "date")`, but this doesnt translate to a subquery
-        # TODO: figure this out
         return scores.filter(
             id__in=Subquery(
                 scores.all()
-                .order_by("beatmap_id", "-sorting_pp")
+                .order_by(
+                    "beatmap_id",  # ordering first by beatmap_id is required for distinct
+                    "-sorting_pp",  # TODO: check if this sort makes any difference to performance. can probably remove it
+                )
                 .distinct("beatmap_id")
                 .values("id")
             )
