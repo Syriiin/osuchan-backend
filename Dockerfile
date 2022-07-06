@@ -16,6 +16,9 @@ WORKDIR /app
 RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
 
+# Add home local bin to PATH (pip installed binaries will be here)
+ENV PATH="$PATH:/home/appuser/.local/bin"
+
 # Install pip requirements
 COPY requirements.txt /app/
 RUN python -m pip install -r requirements.txt
