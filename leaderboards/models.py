@@ -136,14 +136,20 @@ class Leaderboard(models.Model):
 
         # Add scores to membership
         if self.score_set == ScoreSet.NORMAL:
-            membership.pp = calculate_pp_total(score.pp for score in scores)
+            membership.pp = calculate_pp_total(
+                score.performance_total for score in scores
+            )
         elif self.score_set == ScoreSet.NEVER_CHOKE:
             membership.pp = calculate_pp_total(
-                score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp
+                score.nochoke_performance_total
+                if score.result & ScoreResult.CHOKE
+                else score.performance_total
                 for score in scores
             )
         elif self.score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            membership.pp = calculate_pp_total(score.nochoke_pp for score in scores)
+            membership.pp = calculate_pp_total(
+                score.nochoke_performance_total for score in scores
+            )
 
         # Fetch rank
         membership.rank = self.memberships.filter(pp__gte=membership.pp).count() + 1

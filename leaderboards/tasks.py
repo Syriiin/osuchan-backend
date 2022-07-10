@@ -36,14 +36,20 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         membership.score_count = scores.count()
 
         if leaderboard.score_set == ScoreSet.NORMAL:
-            membership.pp = calculate_pp_total(score.pp for score in scores)
+            membership.pp = calculate_pp_total(
+                score.performance_total for score in scores
+            )
         elif leaderboard.score_set == ScoreSet.NEVER_CHOKE:
             membership.pp = calculate_pp_total(
-                score.nochoke_pp if score.result & ScoreResult.CHOKE else score.pp
+                score.nochoke_performance_total
+                if score.result & ScoreResult.CHOKE
+                else score.performance_total
                 for score in scores
             )
         elif leaderboard.score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            membership.pp = calculate_pp_total(score.nochoke_pp for score in scores)
+            membership.pp = calculate_pp_total(
+                score.nochoke_performance_total for score in scores
+            )
 
         membership.rank = (
             leaderboard.memberships.filter(pp__gte=membership.pp).count() + 1

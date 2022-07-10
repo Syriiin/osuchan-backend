@@ -64,10 +64,11 @@ class BeatmapSerialiser(serializers.ModelSerializer):
             "overall_difficulty",
             "approach_rate",
             "health_drain",
-            "star_rating",
             "submission_date",
             "approval_date",
             "last_updated",
+            # difficulty
+            "difficulty_total",
             # relations
             "creator",
         )
@@ -90,12 +91,13 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "perfect",
             "mods",
             "rank",
-            "pp",
             "date",
             # osuchan data
-            "nochoke_pp",
-            "star_rating",
             "result",
+            # difficulty
+            "performance_total",
+            "nochoke_performance_total",
+            "difficulty_total",
             # relations
             "beatmap",
             "user_stats",

@@ -1,5 +1,6 @@
 import math
 from datetime import datetime
+from typing import Type
 
 import oppaipy
 import pytz
@@ -7,6 +8,7 @@ from django.db import models
 from django.db.models import Case, F, Subquery, When
 
 from common.osu import apiv1, utils
+from common.osu.difficultycalculator import DifficultyCalculator
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from common.utils import get_beatmap_path
 from profiles.enums import AllowedBeatmapStatus, ScoreResult, ScoreSet
@@ -150,7 +152,9 @@ class UserStats(models.Model):
 
             # Update pp
             if "pp" in score_data and score_data["pp"] is not None:
-                score.pp = float(score_data["pp"])
+                score.performance_total = float(score_data["pp"])
+                score.difficulty_calculator_engine = "legacy"
+                score.difficulty_calculator_version = "legacy"
             else:
                 # Check for gamemode
                 if self.gamemode != Gamemode.STANDARD:
@@ -165,7 +169,9 @@ class UserStats(models.Model):
                     calc.set_combo(score.best_combo)
                     calc.set_mods(score.mods)
                     calc.calculate()
-                    score.pp = calc.pp if math.isfinite(calc.pp) else 0
+                    score.performance_total = calc.pp if math.isfinite(calc.pp) else 0
+                    score.difficulty_calculator_engine = "legacy"
+                    score.difficulty_calculator_version = "legacy"
 
             # Update convenience fields
             score.gamemode = self.gamemode
@@ -215,6 +221,9 @@ class UserStats(models.Model):
         # Return new scores
         return scores_to_create
 
+    def recalculate(self):
+        self.__process_scores()
+
     def __process_scores(self, *new_scores):
         """
         Calculates pp totals (extra pp, nochoke pp) and scores style using unique maps, and returns all scores for UserStats and the scores that need to be added
@@ -242,7 +251,7 @@ class UserStats(models.Model):
         ]
 
         # Sort all scores by pp
-        scores.sort(key=lambda s: s.pp, reverse=True)
+        scores.sort(key=lambda s: s.performance_total, reverse=True)
 
         # Filter to be unique on maps (cant use .unique_maps() because duplicate maps might come from new scores)
         #   (also this 1 liner is really inefficient for some reason so lets do it the standard way)
@@ -256,7 +265,7 @@ class UserStats(models.Model):
 
         # Calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - utils.calculate_pp_total(
-            score.pp for score in unique_map_scores[:100]
+            score.performance_total for score in unique_map_scores[:100]
         )
 
         # Calculate score style
@@ -342,10 +351,14 @@ class Beatmap(models.Model):
     overall_difficulty = models.FloatField()
     approach_rate = models.FloatField()
     health_drain = models.FloatField()
-    star_rating = models.FloatField()
     submission_date = models.DateTimeField()
     approval_date = models.DateTimeField()
     last_updated = models.DateTimeField()
+
+    # Difficulty values
+    difficulty_total = models.FloatField()
+    difficulty_calculator_engine = models.CharField(max_length=100)
+    difficulty_calculator_version = models.CharField(max_length=100)
 
     # Relations
     # db_constraint=False because the creator might be restricted or otherwise not in the database
@@ -381,7 +394,6 @@ class Beatmap(models.Model):
         beatmap.overall_difficulty = float(beatmap_data["diff_overall"])
         beatmap.approach_rate = float(beatmap_data["diff_approach"])
         beatmap.health_drain = float(beatmap_data["diff_drain"])
-        beatmap.star_rating = float(beatmap_data["difficultyrating"])
         beatmap.submission_date = datetime.strptime(
             beatmap_data["submit_date"], "%Y-%m-%d %H:%M:%S"
         ).replace(tzinfo=pytz.UTC)
@@ -396,10 +408,23 @@ class Beatmap(models.Model):
             beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S"
         ).replace(tzinfo=pytz.UTC)
 
+        beatmap.difficulty_total = float(beatmap_data["difficultyrating"])
+        beatmap.difficulty_calculator_engine = "legacy"
+        beatmap.difficulty_calculator_version = "legacy"
+
         # Update foreign key ids
         beatmap.creator_id = int(beatmap_data["creator_id"])
 
         return beatmap
+
+    def update_difficulty_values(
+        self, difficulty_calculator: Type[DifficultyCalculator]
+    ):
+        with difficulty_calculator(get_beatmap_path(self.id)) as calculator:
+            calculator.calculate()
+            self.difficulty_total = calculator.difficulty_total
+            self.difficulty_calculator_engine = calculator.engine
+            self.difficulty_calculator_version = calculator.version
 
     def __str__(self):
         return "{} - {} [{}] (by {})".format(
@@ -468,23 +493,23 @@ class ScoreQuerySet(models.QuerySet):
         Remember to use at end of query to not unintentionally filter out scores before primary filtering.
         """
         if score_set == ScoreSet.NORMAL:
-            # always use pp
-            scores = self.annotate(sorting_pp=F("pp"))
+            # always use performance_total
+            scores = self.annotate(sorting_pp=F("performance_total"))
         elif score_set == ScoreSet.NEVER_CHOKE:
-            # if choke use nochoke_pp, else use pp
+            # if choke use nochoke_performance_total, else use performance_total
             scores = self.annotate(
                 sorting_pp=Case(
                     When(
                         result=F("result").bitand(ScoreResult.CHOKE),
-                        then=F("nochoke_pp"),
+                        then=F("nochoke_performance_total"),
                     ),
-                    default=F("pp"),
+                    default=F("performance_total"),
                     output_field=models.FloatField(),
                 )
             )
         elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
             # always use nochoke_pp
-            scores = self.annotate(sorting_pp=F("nochoke_pp"))
+            scores = self.annotate(sorting_pp=F("nochoke_performance_total"))
 
         return scores.filter(
             id__in=Subquery(
@@ -519,7 +544,6 @@ class Score(models.Model):
     perfect = models.BooleanField()
     mods = models.IntegerField()
     rank = models.CharField(max_length=3)
-    pp = models.FloatField()
     date = models.DateTimeField()
 
     # Relations
@@ -539,10 +563,16 @@ class Score(models.Model):
     approach_rate = models.FloatField()
     overall_difficulty = models.FloatField()
 
+    # Difficulty values
+    # null=True because oppai only supports standard, and rosu-pp doesnt support converts
+    performance_total = models.FloatField()
+    nochoke_performance_total = models.FloatField(null=True)
+    difficulty_total = models.FloatField(null=True)
+    difficulty_calculator_engine = models.CharField(max_length=100)
+    difficulty_calculator_version = models.CharField(max_length=100)
+
     # osu!chan calculated data
-    # null=True because currently only osu standard supports nochoke/stars (since oppai only does)
-    nochoke_pp = models.FloatField(null=True)
-    star_rating = models.FloatField(null=True)
+    # null=True because result types are only supported by standard at the moment
     result = models.IntegerField(null=True)
 
     objects = ScoreQuerySet.as_manager()
@@ -575,11 +605,34 @@ class Score(models.Model):
                 calc.set_accuracy(count_100=self.count_100, count_50=self.count_50)
                 calc.set_mods(self.mods)
                 calc.calculate()
-                self.nochoke_pp = calc.pp if math.isfinite(calc.pp) else 0
-                self.star_rating = calc.stars if math.isfinite(calc.stars) else 0
+                self.nochoke_performance_total = (
+                    calc.pp if math.isfinite(calc.pp) else 0
+                )
+                self.difficulty_total = calc.stars if math.isfinite(calc.stars) else 0
+                self.difficulty_calculator_engine = "legacy"
+                self.difficulty_calculator_version = "legacy"
+
+    def update_performance_values(
+        self, difficulty_calculator: Type[DifficultyCalculator]
+    ):
+        with difficulty_calculator(get_beatmap_path(self.beatmap_id)) as calculator:
+            # calculate nochoke
+            calculator.set_accuracy(count_100=self.count_100, count_50=self.count_50)
+            calculator.set_mods(self.mods)
+            calculator.calculate()
+            self.nochoke_performance_total = calculator.performance_total
+            self.difficulty_total = calculator.difficulty_total
+            self.difficulty_calculator_engine = calculator.engine
+            self.difficulty_calculator_version = calculator.version
+
+            # calculate actual
+            calculator.set_misses(self.count_miss)
+            calculator.set_combo(self.best_combo)
+            calculator.calculate()
+            self.performance_total = calculator.performance_total
 
     def __str__(self):
-        return "{}: {:.0f}pp".format(self.beatmap_id, self.pp)
+        return "{}: {:.0f}pp".format(self.beatmap_id, self.performance_total)
 
     class Meta:
         constraints = [
@@ -589,7 +642,7 @@ class Score(models.Model):
             )
         ]
 
-        indexes = [models.Index(fields=["pp"])]
+        indexes = [models.Index(fields=["performance_total"])]
 
 
 class ScoreFilter(models.Model):
