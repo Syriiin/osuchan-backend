@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from tqdm import tqdm
 
-from common.osu.difficultycalculator import OppaiDifficultyCalculator
+from common.osu.difficultycalculator import RosuppDifficultyCalculator
 from common.osu.enums import Gamemode
 from profiles.models import Beatmap, Score, UserStats
 
@@ -48,7 +48,7 @@ class Command(BaseCommand):
         with tqdm(desc="Beatmaps", total=beatmaps.count()) as pbar:
             for page in paginator:
                 for beatmap in page:
-                    beatmap.update_difficulty_values(OppaiDifficultyCalculator)
+                    beatmap.update_difficulty_values(RosuppDifficultyCalculator)
                     pbar.update()
 
                 Beatmap.objects.bulk_update(
@@ -72,7 +72,7 @@ class Command(BaseCommand):
         with tqdm(desc="Scores", total=scores.count()) as pbar:
             for page in paginator:
                 for score in page:
-                    score.update_performance_values(OppaiDifficultyCalculator)
+                    score.update_performance_values(RosuppDifficultyCalculator)
                     pbar.update()
 
                 Score.objects.bulk_update(
