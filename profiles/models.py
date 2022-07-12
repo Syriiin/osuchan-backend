@@ -8,7 +8,10 @@ from django.db import models
 from django.db.models import Case, F, Subquery, When
 
 from common.osu import apiv1, utils
-from common.osu.difficultycalculator import DifficultyCalculator
+from common.osu.difficultycalculator import (
+    DifficultyCalculator,
+    DifficultyCalculatorException,
+)
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from common.utils import get_beatmap_path
 from profiles.enums import AllowedBeatmapStatus, ScoreResult, ScoreSet
@@ -420,11 +423,18 @@ class Beatmap(models.Model):
     def update_difficulty_values(
         self, difficulty_calculator: Type[DifficultyCalculator]
     ):
-        with difficulty_calculator(get_beatmap_path(self.id)) as calculator:
-            calculator.calculate()
-            self.difficulty_total = calculator.difficulty_total
-            self.difficulty_calculator_engine = calculator.engine
-            self.difficulty_calculator_version = calculator.version
+        try:
+            with difficulty_calculator(get_beatmap_path(self.id)) as calculator:
+                calculator.calculate()
+                self.difficulty_total = calculator.difficulty_total
+                self.difficulty_calculator_engine = difficulty_calculator.engine()
+                self.difficulty_calculator_version = difficulty_calculator.version()
+        except DifficultyCalculatorException as e:
+            # TODO: handle this properly
+            self.difficulty_total = 0
+            self.difficulty_calculator_engine = difficulty_calculator.engine()
+            self.difficulty_calculator_version = difficulty_calculator.version()
+            print(e)
 
     def __str__(self):
         return "{} - {} [{}] (by {})".format(
@@ -615,21 +625,32 @@ class Score(models.Model):
     def update_performance_values(
         self, difficulty_calculator: Type[DifficultyCalculator]
     ):
-        with difficulty_calculator(get_beatmap_path(self.beatmap_id)) as calculator:
-            # calculate nochoke
-            calculator.set_accuracy(count_100=self.count_100, count_50=self.count_50)
-            calculator.set_mods(self.mods)
-            calculator.calculate()
-            self.nochoke_performance_total = calculator.performance_total
-            self.difficulty_total = calculator.difficulty_total
-            self.difficulty_calculator_engine = calculator.engine
-            self.difficulty_calculator_version = calculator.version
+        try:
+            with difficulty_calculator(get_beatmap_path(self.beatmap_id)) as calculator:
+                # calculate nochoke
+                calculator.set_accuracy(
+                    count_100=self.count_100, count_50=self.count_50
+                )
+                calculator.set_mods(self.mods)
+                calculator.calculate()
+                self.nochoke_performance_total = calculator.performance_total
+                self.difficulty_total = calculator.difficulty_total
+                self.difficulty_calculator_engine = calculator.engine()
+                self.difficulty_calculator_version = calculator.version()
 
-            # calculate actual
-            calculator.set_misses(self.count_miss)
-            calculator.set_combo(self.best_combo)
-            calculator.calculate()
-            self.performance_total = calculator.performance_total
+                # calculate actual
+                calculator.set_misses(self.count_miss)
+                calculator.set_combo(self.best_combo)
+                calculator.calculate()
+                self.performance_total = calculator.performance_total
+        except DifficultyCalculatorException as e:
+            # TODO: handle this properly
+            self.nochoke_performance_total = 0
+            self.performance_total = 0
+            self.difficulty_total = 0
+            self.difficulty_calculator_engine = difficulty_calculator.engine()
+            self.difficulty_calculator_version = difficulty_calculator.version()
+            print(e)
 
     def __str__(self):
         return "{}: {:.0f}pp".format(self.beatmap_id, self.performance_total)

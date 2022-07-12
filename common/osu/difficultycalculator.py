@@ -76,14 +76,14 @@ class DifficultyCalculator(AbstractContextManager, ABC):
     def performance_total(self) -> float:
         pass
 
-    @property
+    @staticmethod
     @abstractmethod
-    def engine(self) -> str:
+    def engine() -> str:
         pass
 
-    @property
+    @staticmethod
     @abstractmethod
-    def version(self) -> str:
+    def version() -> str:
         pass
 
 
@@ -121,12 +121,12 @@ class OppaiDifficultyCalculator(DifficultyCalculator):
     def performance_total(self):
         return self.oppai_calc.pp
 
-    @property
-    def engine(self):
+    @staticmethod
+    def engine():
         return "oppaipy"
 
-    @property
-    def version(self):
+    @staticmethod
+    def version():
         return OPPAIPY_VERSION
 
 
@@ -173,10 +173,10 @@ class RosuppDifficultyCalculator(DifficultyCalculator):
     def performance_total(self) -> float:
         return self.calc_result.pp if self.calc_result is not None else 0.0
 
-    @property
-    def engine(self):
+    @staticmethod
+    def engine():
         return "rosu-pp-py"
 
-    @property
-    def version(self):
+    @staticmethod
+    def version():
         return ROSUPP_VERSION
