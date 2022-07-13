@@ -178,14 +178,25 @@ class Command(BaseCommand):
         )
 
     def recalculate_user_stats(self, all_user_stats: QuerySet[UserStats]):
-        for user_stats in tqdm(
-            all_user_stats.iterator(),
-            desc="User Stats",
-            total=all_user_stats.count(),
-            smoothing=0,
-        ):
-            user_stats.recalculate()
-            user_stats.save()
+        paginator = Paginator(all_user_stats.order_by("pk"), per_page=2000)
+
+        with tqdm(desc="User Stats", total=all_user_stats.count(), smoothing=0) as pbar:
+            for page in paginator:
+                for user_stats in page:
+                    user_stats.recalculate()
+                    pbar.update()
+                UserStats.objects.bulk_update(
+                    page,
+                    [
+                        "extra_pp",
+                        "score_style_accuracy",
+                        "score_style_bpm",
+                        "score_style_length",
+                        "score_style_cs",
+                        "score_style_ar",
+                        "score_style_od",
+                    ],
+                )
 
         self.stdout.write(
             self.style.SUCCESS(
