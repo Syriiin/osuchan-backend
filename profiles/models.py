@@ -2,7 +2,6 @@ import math
 from datetime import datetime
 from typing import Type
 
-import oppaipy
 import pytz
 from django.db import models
 from django.db.models import Case, F, Subquery, When
@@ -10,6 +9,7 @@ from django.db.models import Case, F, Subquery, When
 from common.osu import apiv1, utils
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
+    DifficultyCalculator,
     DifficultyCalculatorException,
 )
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
@@ -163,8 +163,8 @@ class UserStats(models.Model):
                 if self.gamemode != Gamemode.STANDARD:
                     # We cant calculate pp for this mode yet so we need to disregard this score
                     continue
-                # Use oppai to calculate pp
-                with oppaipy.Calculator(get_beatmap_path(beatmap_id)) as calc:
+
+                with DifficultyCalculator(get_beatmap_path(beatmap_id)) as calc:
                     calc.set_accuracy(
                         count_100=score.count_100, count_50=score.count_50
                     )
@@ -172,9 +172,9 @@ class UserStats(models.Model):
                     calc.set_combo(score.best_combo)
                     calc.set_mods(score.mods)
                     calc.calculate()
-                    score.performance_total = calc.pp if math.isfinite(calc.pp) else 0
-                    score.difficulty_calculator_engine = "legacy"
-                    score.difficulty_calculator_version = "legacy"
+                    score.performance_total = calc.performance_total
+                    score.difficulty_calculator_engine = DifficultyCalculator.engine()
+                    score.difficulty_calculator_version = DifficultyCalculator.version()
 
             # Update convenience fields
             score.gamemode = self.gamemode
@@ -611,15 +611,13 @@ class Score(models.Model):
             # determine score result
             self.__process_score_result()
             # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
-            with oppaipy.Calculator(get_beatmap_path(self.beatmap_id)) as calc:
+            with DifficultyCalculator(get_beatmap_path(self.beatmap_id)) as calc:
                 calc.set_accuracy(count_100=self.count_100, count_50=self.count_50)
                 calc.set_mods(self.mods)
                 calc.calculate()
-                self.nochoke_performance_total = (
-                    calc.pp if math.isfinite(calc.pp) else 0
-                )
-                self.difficulty_total = calc.stars if math.isfinite(calc.stars) else 0
-                self.difficulty_calculator_engine = "legacy"
+                self.nochoke_performance_total = calc.performance_total
+                self.difficulty_total = calc.difficulty_total
+                self.difficulty_calculator_engine = "legacy"  # legacy because performance_total is still coming from the api response
                 self.difficulty_calculator_version = "legacy"
 
     def update_performance_values(
