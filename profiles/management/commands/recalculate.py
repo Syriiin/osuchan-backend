@@ -85,7 +85,7 @@ class Command(BaseCommand):
 
             paginator = Paginator(beatmaps.order_by("pk"), per_page=2000)
 
-            with tqdm(desc="Beatmaps", total=beatmaps.count()) as pbar:
+            with tqdm(desc="Beatmaps", total=beatmaps.count(), smoothing=0) as pbar:
                 for page in paginator:
                     self.recalculate_beatmap_page(page, pbar)
         else:
@@ -106,7 +106,10 @@ class Command(BaseCommand):
                 )
 
             with tqdm(
-                desc="Beatmaps", total=beatmaps.count(), initial=count_up_to_date
+                desc="Beatmaps",
+                total=beatmaps.count(),
+                initial=count_up_to_date,
+                smoothing=0,
             ) as pbar:
                 while len(page := beatmaps_to_recalculate[:2000]) > 0:
                     self.recalculate_beatmap_page(page, pbar)
@@ -139,7 +142,7 @@ class Command(BaseCommand):
 
             paginator = Paginator(scores.order_by("pk"), per_page=2000)
 
-            with tqdm(desc="Scores", total=scores.count()) as pbar:
+            with tqdm(desc="Scores", total=scores.count(), smoothing=0) as pbar:
                 for page in paginator:
                     self.recalculate_score_page(page, pbar)
         else:
@@ -160,7 +163,10 @@ class Command(BaseCommand):
                 )
 
             with tqdm(
-                desc="Scores", total=scores.count(), initial=count_up_to_date
+                desc="Scores",
+                total=scores.count(),
+                initial=count_up_to_date,
+                smoothing=0,
             ) as pbar:
                 while len(page := scores_to_recalculate[:2000]) > 0:
                     self.recalculate_score_page(page, pbar)
@@ -173,7 +179,10 @@ class Command(BaseCommand):
 
     def recalculate_user_stats(self, all_user_stats: QuerySet[UserStats]):
         for user_stats in tqdm(
-            all_user_stats.iterator(), desc="User Stats", total=all_user_stats.count()
+            all_user_stats.iterator(),
+            desc="User Stats",
+            total=all_user_stats.count(),
+            smoothing=0,
         ):
             user_stats.recalculate()
             user_stats.save()
@@ -187,7 +196,7 @@ class Command(BaseCommand):
     def recalculate_memberships(self, memberships: QuerySet[Membership]):
         paginator = Paginator(memberships.order_by("pk"), per_page=2000)
 
-        with tqdm(desc="Memberships", total=memberships.count()) as pbar:
+        with tqdm(desc="Memberships", total=memberships.count(), smoothing=0) as pbar:
             for page in paginator:
                 for membership in page:
                     membership.recalculate()
