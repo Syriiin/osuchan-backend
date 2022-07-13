@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
 from importlib import metadata
+from typing import Type
 
 import oppaipy
 import rosu_pp_py
+from django.conf import settings
+from django.utils.module_loading import import_string
 
 from common.osu.enums import Mods
 
@@ -23,7 +26,7 @@ class CalculationException(DifficultyCalculatorException):
     pass
 
 
-class DifficultyCalculator(AbstractContextManager, ABC):
+class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     def __init__(self, beatmap_path: str):
         self.beatmap_path = beatmap_path
 
@@ -87,7 +90,7 @@ class DifficultyCalculator(AbstractContextManager, ABC):
         pass
 
 
-class OppaiDifficultyCalculator(DifficultyCalculator):
+class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
     def __init__(self, beatmap_path: str):
         super().__init__(beatmap_path)
         self.oppai_calc = oppaipy.Calculator(beatmap_path)
@@ -130,7 +133,7 @@ class OppaiDifficultyCalculator(DifficultyCalculator):
         return OPPAIPY_VERSION
 
 
-class RosuppDifficultyCalculator(DifficultyCalculator):
+class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
     def __init__(self, beatmap_path: str):
         super().__init__(beatmap_path)
         try:
@@ -180,3 +183,8 @@ class RosuppDifficultyCalculator(DifficultyCalculator):
     @staticmethod
     def version():
         return ROSUPP_VERSION
+
+
+DifficultyCalculator: Type[AbstractDifficultyCalculator] = import_string(
+    settings.DIFFICULTY_CALCULATOR_CLASS
+)

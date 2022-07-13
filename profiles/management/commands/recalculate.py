@@ -5,11 +5,9 @@ from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from tqdm import tqdm
 
-from common.osu.difficultycalculator import RosuppDifficultyCalculator
+from common.osu.difficultycalculator import DifficultyCalculator
 from common.osu.enums import Gamemode
 from profiles.models import Beatmap, Score, UserStats
-
-DifficultyCalculator = RosuppDifficultyCalculator
 
 
 class Command(BaseCommand):

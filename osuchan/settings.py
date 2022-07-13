@@ -125,6 +125,12 @@ OSU_API_V1_BASE_URL = "https://osu.ppy.sh/api/"
 # Beatmaps
 BEATMAP_DL_URL = "https://osu.ppy.sh/osu/"
 
+
+# DifficultyCalculation
+DIFFICULTY_CALCULATOR_CLASS = (
+    "common.osu.difficultycalculator.RosuppDifficultyCalculator"
+)
+
 # Environment specific overrides and sensitive settings
 
 from local_settings import *

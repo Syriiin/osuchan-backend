@@ -9,7 +9,7 @@ from django.db.models import Case, F, Subquery, When
 
 from common.osu import apiv1, utils
 from common.osu.difficultycalculator import (
-    DifficultyCalculator,
+    AbstractDifficultyCalculator,
     DifficultyCalculatorException,
 )
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
@@ -421,7 +421,7 @@ class Beatmap(models.Model):
         return beatmap
 
     def update_difficulty_values(
-        self, difficulty_calculator: Type[DifficultyCalculator]
+        self, difficulty_calculator: Type[AbstractDifficultyCalculator]
     ):
         try:
             with difficulty_calculator(get_beatmap_path(self.id)) as calculator:
@@ -623,7 +623,7 @@ class Score(models.Model):
                 self.difficulty_calculator_version = "legacy"
 
     def update_performance_values(
-        self, difficulty_calculator: Type[DifficultyCalculator]
+        self, difficulty_calculator: Type[AbstractDifficultyCalculator]
     ):
         try:
             with difficulty_calculator(get_beatmap_path(self.beatmap_id)) as calculator:
