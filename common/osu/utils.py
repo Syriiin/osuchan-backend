@@ -5,7 +5,7 @@ from common.osu.enums import Gamemode, Mods
 
 def calculate_pp_total(sorted_pps):
     # sorted_pps should be a sorted generator but can be any iterable of floats
-    return sum(pp * (0.95 ** i) for i, pp in enumerate(sorted_pps))
+    return sum(pp * (0.95**i) for i, pp in enumerate(sorted_pps))
 
 
 def get_accuracy(

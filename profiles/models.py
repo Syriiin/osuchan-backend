@@ -5,8 +5,8 @@ from typing import Type
 import pytz
 from django.db import models
 from django.db.models import Case, F, Subquery, When
-from common.error_report import report_error
 
+from common.error_report import report_error
 from common.osu import apiv1, utils
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
@@ -276,36 +276,36 @@ class UserStats(models.Model):
         top_100_scores = unique_map_scores[
             :100
         ]  # score style limited to top 100 scores
-        weighting_value = sum(0.95 ** i for i in range(100))
+        weighting_value = sum(0.95**i for i in range(100))
         self.score_style_accuracy = (
-            sum(score.accuracy * (0.95 ** i) for i, score in enumerate(top_100_scores))
+            sum(score.accuracy * (0.95**i) for i, score in enumerate(top_100_scores))
             / weighting_value
         )
         self.score_style_bpm = (
-            sum(score.bpm * (0.95 ** i) for i, score in enumerate(top_100_scores))
+            sum(score.bpm * (0.95**i) for i, score in enumerate(top_100_scores))
             / weighting_value
         )
         self.score_style_length = (
-            sum(score.length * (0.95 ** i) for i, score in enumerate(top_100_scores))
+            sum(score.length * (0.95**i) for i, score in enumerate(top_100_scores))
             / weighting_value
         )
         self.score_style_cs = (
             sum(
-                score.circle_size * (0.95 ** i)
+                score.circle_size * (0.95**i)
                 for i, score in enumerate(top_100_scores)
             )
             / weighting_value
         )
         self.score_style_ar = (
             sum(
-                score.approach_rate * (0.95 ** i)
+                score.approach_rate * (0.95**i)
                 for i, score in enumerate(top_100_scores)
             )
             / weighting_value
         )
         self.score_style_od = (
             sum(
-                score.overall_difficulty * (0.95 ** i)
+                score.overall_difficulty * (0.95**i)
                 for i, score in enumerate(top_100_scores)
             )
             / weighting_value
