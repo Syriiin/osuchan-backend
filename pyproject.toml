@@ -7,23 +7,23 @@ license = "AGPL-3.0"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-celery = "4.4.5"
-Django = "3.2.4"
-djangorestframework = "3.12.4"
-django-debug-toolbar = "3.2.1"
-gunicorn = "20.1.0"
-httpx = "0.19.0"
-oppaipy = "1.0.4"
-psycopg2-binary = "2.9.1"
-pymemcache = "3.5.0"
-pytz = "2020.1"
-requests = "2.25.1"
-rosu-pp-py = "0.7.0"
-tqdm = "4.64.0"
+celery = "^4.4.5"
+Django = "^3.2.4"
+djangorestframework = "^3.12.4"
+django-debug-toolbar = "^3.2.1"
+gunicorn = "^20.1.0"
+httpx = "^0.19.0"
+oppaipy = "^1.0.4"
+psycopg2-binary = "^2.9.1"
+pymemcache = "^3.5.0"
+pytz = "^2020.1"
+requests = "^2.25.1"
+rosu-pp-py = "^0.7.0"
+tqdm = "^4.64.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
-isort = "5.9.3"
+isort = "^5.9.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
