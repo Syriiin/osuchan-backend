@@ -19,9 +19,13 @@ USER appuser
 # Add home local bin to PATH (pip installed binaries will be here)
 ENV PATH="$PATH:/home/appuser/.local/bin"
 
-# Install pip requirements
-COPY requirements.txt /app/
-RUN python -m pip install -r requirements.txt
+# Install poetry
+RUN python -m pip install poetry
+RUN poetry config virtualenvs.create false
+
+# Install dependencies
+COPY pyproject.toml poetry.lock /app/
+RUN poetry install
 
 COPY . /app/
 
