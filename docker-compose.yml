@@ -38,7 +38,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: celery worker --app osuchan --loglevel info
+    command: celery --app osuchan worker --loglevel info
     volumes:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
