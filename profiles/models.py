@@ -527,7 +527,7 @@ class ScoreQuerySet(models.QuerySet):
                 scores.all()
                 .order_by(
                     "beatmap_id",  # ordering first by beatmap_id is required for distinct
-                    "-sorting_pp",  # TODO: check if this sort makes any difference to performance. can probably remove it
+                    "-sorting_pp",  # required to make sure we dont distinct out the wrong scores
                 )
                 .distinct("beatmap_id")
                 .values("id")
