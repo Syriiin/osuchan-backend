@@ -26,6 +26,7 @@ from leaderboards.services import (
 from profiles.enums import ScoreSet
 from profiles.models import Score, ScoreFilter
 from profiles.serialisers import BeatmapScoreSerialiser, UserScoreSerialiser
+from profiles.services import fetch_user
 
 
 class ListLeaderboards(APIView):
@@ -426,10 +427,10 @@ class ListLeaderboardInvites(APIView):
         try:
             leaderboard = Leaderboard.community_leaderboards.visible_to(
                 osu_user_id
-            ).get(id=leaderboard_id)
+            ).get(id=leaderboard_id, gamemode=gamemode)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
-        if not leaderboard.owner_id == osu_user_id:
+        if leaderboard.owner_id != osu_user_id:
             raise PermissionDenied(
                 "Must be the leaderboard owner to perform this action."
             )
@@ -445,6 +446,9 @@ class ListLeaderboardInvites(APIView):
             try:
                 invite = leaderboard.invites.get(user_id=invitee_id)
             except Invite.DoesNotExist:
+                # update profile to ensure they are in the database
+                fetch_user(user_id=invitee_id, gamemode=gamemode)
+
                 invite = Invite(
                     user_id=invitee_id, leaderboard_id=leaderboard_id, message=message
                 )
