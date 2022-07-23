@@ -4,7 +4,6 @@ from django.db import models
 from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 
-from common.osu.enums import BeatmapStatus
 from common.osu.enums import Gamemode
 from common.osu.utils import calculate_pp_total
 from leaderboards.enums import LeaderboardAccessType

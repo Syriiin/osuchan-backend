@@ -1,6 +1,5 @@
 from django.db import transaction
 
-from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
 
 

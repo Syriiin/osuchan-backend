@@ -4,8 +4,6 @@ import requests
 from django.conf import settings
 from django.db import transaction
 
-from common.osu.enums import Gamemode
-from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
 from osuauth.models import User
 from profiles.models import OsuUser

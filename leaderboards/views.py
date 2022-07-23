@@ -16,7 +16,6 @@ from leaderboards.serialisers import (
     LeaderboardMembershipSerialiser,
     LeaderboardScoreSerialiser,
     LeaderboardSerialiser,
-    UserMembershipSerialiser,
 )
 from leaderboards.services import (
     create_leaderboard,

@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
-from django.http import Http404
 from django.shortcuts import redirect
 
 
