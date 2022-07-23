@@ -1,18 +1,9 @@
 from rest_framework import serializers
-from osuauth.models import User
 
 from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
 
 
-class UserSerialiser(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("is_staff", "is_beta_tester", "last_active")
-
-
 class OsuUserSerialiser(serializers.ModelSerializer):
-    user = UserSerialiser()
-
     class Meta:
         model = OsuUser
         fields = (
@@ -21,8 +12,6 @@ class OsuUserSerialiser(serializers.ModelSerializer):
             "username",
             "country",
             "join_date",
-            # relations
-            "user",
         )
 
 
