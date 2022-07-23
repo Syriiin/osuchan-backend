@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-import pytz
 from django.db import transaction
 
 from common.osu import apiv1
@@ -29,7 +28,7 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
             )
 
         if user_stats.last_updated < (
-            datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)
+            datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(minutes=5)
         ):
             # User was last updated more than 5 minutes ago, so enqueue another update
             update_user.delay(user_id=user_stats.user_id, gamemode=gamemode)

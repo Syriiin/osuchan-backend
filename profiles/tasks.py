@@ -1,12 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-import pytz
 from celery import shared_task
 from django.db import transaction
 
 from common.osu import apiv1
 from common.osu.enums import Gamemode
-from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.tasks import update_memberships
 from profiles.models import OsuUser, UserStats
@@ -71,7 +69,7 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
 
         # Check if user was updated recently (update enqueued multiple times before processing)
         if user_stats.last_updated > (
-            datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(minutes=5)
+            datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(minutes=5)
         ):
             return user_stats
 
@@ -106,7 +104,7 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     osu_user.country = user_data["country"]
     osu_user.join_date = datetime.strptime(
         user_data["join_date"], "%Y-%m-%d %H:%M:%S"
-    ).replace(tzinfo=pytz.UTC)
+    ).replace(tzinfo=timezone.utc)
     osu_user.disabled = False
 
     # Save OsuUser model

@@ -1,8 +1,6 @@
-import math
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Type
 
-import pytz
 from django.db import models
 from django.db.models import Case, F, Subquery, When
 
@@ -124,7 +122,7 @@ class UserStats(models.Model):
             score.rank = score_data["rank"]
             score.date = datetime.strptime(
                 score_data["date"], "%Y-%m-%d %H:%M:%S"
-            ).replace(tzinfo=pytz.UTC)
+            ).replace(tzinfo=timezone.utc)
 
             # Update foreign keys
             # Search for beatmap in fetched, else create it
@@ -400,17 +398,17 @@ class Beatmap(models.Model):
         beatmap.health_drain = float(beatmap_data["diff_drain"])
         beatmap.submission_date = datetime.strptime(
             beatmap_data["submit_date"], "%Y-%m-%d %H:%M:%S"
-        ).replace(tzinfo=pytz.UTC)
+        ).replace(tzinfo=timezone.utc)
         beatmap.approval_date = (
             datetime.strptime(
                 beatmap_data["approved_date"], "%Y-%m-%d %H:%M:%S"
-            ).replace(tzinfo=pytz.UTC)
+            ).replace(tzinfo=timezone.utc)
             if beatmap_data["approved_date"] is not None
             else None
         )
         beatmap.last_updated = datetime.strptime(
             beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S"
-        ).replace(tzinfo=pytz.UTC)
+        ).replace(tzinfo=timezone.utc)
 
         beatmap.difficulty_total = float(beatmap_data["difficultyrating"])
         beatmap.difficulty_calculator_engine = "legacy"
