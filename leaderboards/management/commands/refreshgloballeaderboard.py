@@ -1,8 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from tqdm import tqdm
 
-from leaderboards.enums import LeaderboardAccessType
-from leaderboards.models import Leaderboard, Membership
+from leaderboards.models import Leaderboard
 from profiles.models import OsuUser
 
 
@@ -23,9 +22,8 @@ class Command(BaseCommand):
                 )
 
             # Refresh leaderboard
-            with transaction.atomic():
-                for osu_user in osu_users:
-                    leaderboard.update_membership(osu_user["id"])
+            for osu_user in tqdm(osu_users):
+                leaderboard.update_membership(osu_user["id"])
 
             self.stdout.write(
                 self.style.SUCCESS(
