@@ -28,6 +28,7 @@ class UserAdmin(BaseUserAdmin):
         ("Important dates", {"fields": ("last_login", "date_joined")}),
         ("osu! user", {"fields": ("osu_user",)}),
     )
+    raw_id_fields = ("osu_user",)
 
     # NOTE: there seems to be some odd error when editing this class from __init__ which means we cant add to members:
     #   django.core.exceptions.ImproperlyConfigured: AUTH_USER_MODEL refers to model 'osuauth.User' that has not been installed
