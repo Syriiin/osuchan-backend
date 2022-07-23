@@ -312,7 +312,7 @@ class UserStats(models.Model):
         return scores, scores_to_create
 
     def __str__(self):
-        return "{}: {}".format(self.gamemode, self.user_id)
+        return f"{Gamemode(self.gamemode).name}: {self.user_id}"
 
     class Meta:
         constraints = [
@@ -650,7 +650,7 @@ class Score(models.Model):
             report_error(e)
 
     def __str__(self):
-        return "{}: {:.0f}pp".format(self.beatmap_id, self.performance_total)
+        return f"{self.beatmap_id}: {self.performance_total:.0f}pp"
 
     class Meta:
         constraints = [

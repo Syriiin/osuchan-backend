@@ -5,6 +5,7 @@ from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 
 from common.osu.enums import BeatmapStatus
+from common.osu.enums import Gamemode
 from common.osu.utils import calculate_pp_total
 from leaderboards.enums import LeaderboardAccessType
 from profiles.enums import ScoreResult, ScoreSet
@@ -167,7 +168,7 @@ class Leaderboard(models.Model):
         self.save()
 
     def __str__(self):
-        return self.name
+        return f"[{Gamemode(self.gamemode).name}] {self.name}"
 
     class Meta:
         indexes = [models.Index(fields=["gamemode"])]
@@ -265,7 +266,7 @@ class Membership(models.Model):
             )
 
     def __str__(self):
-        return f"{self.leaderboard.name}: {self.user.username}"
+        return f"{self.leaderboard}: {self.user.username}"
 
     class Meta:
         indexes = [models.Index(fields=["leaderboard"]), models.Index(fields=["user"])]
@@ -290,7 +291,7 @@ class Invite(models.Model):
     invite_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.leaderboard.name}: {self.user.username}"
+        return f"{self.leaderboard}: {self.user.username}"
 
     class Meta:
         constraints = [
