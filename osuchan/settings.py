@@ -34,6 +34,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "middleware.logging.DiscordErrorLoggingMiddleware",
+    "osuauth.middleware.LastActiveMiddleware",
 ]
 
 ROOT_URLCONF = "osuchan.urls"

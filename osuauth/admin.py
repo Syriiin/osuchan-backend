@@ -25,7 +25,7 @@ class UserAdmin(BaseUserAdmin):
                 ),
             },
         ),
-        ("Important dates", {"fields": ("last_login", "date_joined")}),
+        ("Important dates", {"fields": ("last_login", "date_joined", "last_active")}),
         ("osu! user", {"fields": ("osu_user",)}),
     )
     raw_id_fields = ("osu_user",)
