@@ -19,6 +19,8 @@ DEBUG = True
 # NOTE: must not be empty when DEBUG is False
 ALLOWED_HOSTS = []
 
+CSRF_TRUSTED_ORIGINS = []
+
 # IPs allowed to use debug toolbar (docker makes this a little more complicated)
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#configure-internal-ips
 if DEBUG:
