@@ -181,6 +181,7 @@ class Leaderboard(models.Model):
             leaderboard_top_score = self.get_top_score()
             if (
                 leaderboard_top_score is not None
+                and len(scores) > 0
                 and scores.first().performance_total
                 > leaderboard_top_score.performance_total
             ):

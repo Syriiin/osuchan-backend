@@ -70,6 +70,7 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
             leaderboard_top_score = leaderboard.get_top_score()
             if (
                 leaderboard_top_score is not None
+                and len(scores) > 0
                 and scores.first().performance_total
                 > leaderboard_top_score.performance_total
             ):
