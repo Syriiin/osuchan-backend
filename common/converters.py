@@ -1,21 +1,11 @@
-from common.osu.enums import Gamemode
+from common.osu.utils import get_gamemode_from_gamemode_string
 
 
 class GamemodeConverter:
     regex = r"([0-3]|osu|taiko|catch|mania)"
 
     def to_python(self, value):
-        try:
-            return Gamemode(int(value))
-        except ValueError:
-            if value == "osu":
-                return Gamemode.STANDARD
-            elif value == "taiko":
-                return Gamemode.TAIKO
-            elif value == "catch":
-                return Gamemode.CATCH
-            elif value == "mania":
-                return Gamemode.MANIA
+        return get_gamemode_from_gamemode_string(value)
 
     def to_url(self, value):
         return value

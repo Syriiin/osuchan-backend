@@ -203,3 +203,30 @@ def get_od(od, mods):
         od = ms_to_od(ms)
 
     return od
+
+
+def get_gamemode_from_gamemode_string(gamemode_string: str):
+    try:
+        return Gamemode(int(gamemode_string))
+    except ValueError:
+        if gamemode_string == "osu":
+            return Gamemode.STANDARD
+        elif gamemode_string == "taiko":
+            return Gamemode.TAIKO
+        elif gamemode_string == "catch":
+            return Gamemode.CATCH
+        elif gamemode_string == "mania":
+            return Gamemode.MANIA
+
+
+def get_gamemode_string_from_gamemode(gamemode: Gamemode):
+    if gamemode == Gamemode.STANDARD:
+        return "osu"
+    elif gamemode == Gamemode.TAIKO:
+        return "taiko"
+    elif gamemode == Gamemode.CATCH:
+        return "catch"
+    elif gamemode == Gamemode.MANIA:
+        return "mania"
+    else:
+        raise ValueError(f"{gamemode} is not a valid gamemode")
