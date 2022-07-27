@@ -327,6 +327,11 @@ class ListLeaderboardMembers(APIView):
         if osu_user_id is None:
             raise PermissionDenied("Must be authenticated with an osu! account.")
 
+        if Membership.objects.filter(
+            leaderboard_id=leaderboard_id, user_id=osu_user_id
+        ).exists():
+            raise ParseError("Membership already exists.")
+
         membership = create_membership(leaderboard_id, osu_user_id)
         serialiser = LeaderboardMembershipSerialiser(membership)
         return Response(serialiser.data)
