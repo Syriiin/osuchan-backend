@@ -1,5 +1,7 @@
 # osu! related utils
 
+from typing import Iterable
+
 from common.osu.enums import Gamemode, Mods
 
 
@@ -230,3 +232,47 @@ def get_gamemode_string_from_gamemode(gamemode: Gamemode):
         return "mania"
     else:
         raise ValueError(f"{gamemode} is not a valid gamemode")
+
+
+mod_short_names = {
+    Mods.NONE: "NONE",
+    Mods.NOFAIL: "NF",
+    Mods.EASY: "EZ",
+    Mods.TOUCH_DEVICE: "TD",
+    Mods.HIDDEN: "HD",
+    Mods.HARDROCK: "HR",
+    Mods.SUDDEN_DEATH: "SD",
+    Mods.DOUBLETIME: "DT",
+    Mods.RELAX: "RX",
+    Mods.HALFTIME: "HT",
+    Mods.NIGHTCORE: "NC",
+    Mods.FLASHLIGHT: "FL",
+    Mods.AUTO: "AUTO",
+    Mods.SPUN_OUT: "SO",
+    Mods.AUTOPILOT: "AP",
+    Mods.PERFECT: "PF",
+    Mods.KEY_4: "4K",
+    Mods.KEY_5: "5K",
+    Mods.KEY_6: "6K",
+    Mods.KEY_7: "7K",
+    Mods.KEY_8: "8K",
+    Mods.FADE_IN: "FI",
+    Mods.RANDOM: "RN",
+    Mods.CINEMA: "CN",
+    Mods.TARGET_PRACTICE: "TP",
+    Mods.KEY_9: "9K",
+    Mods.KEY_COOP: "COOP",
+    Mods.KEY_1: "1K",
+    Mods.KEY_2: "2K",
+    Mods.KEY_3: "3K",
+    Mods.SCORE_V2: "V2",
+    Mods.MIRROR: "MI",
+}
+
+
+def get_mods_string(mods: Mods):
+    mod_strings = []
+    for mod in mod_short_names:
+        if mod & mods:
+            mod_strings.append(mod_short_names[mod])
+    return ",".join(mod_strings)

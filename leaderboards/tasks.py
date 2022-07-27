@@ -5,8 +5,12 @@ from celery import shared_task
 from django.conf import settings
 from django.db import transaction
 
-from common.osu.enums import Gamemode
-from common.osu.utils import calculate_pp_total, get_gamemode_string_from_gamemode
+from common.osu.enums import Gamemode, Mods
+from common.osu.utils import (
+    calculate_pp_total,
+    get_gamemode_string_from_gamemode,
+    get_mods_string,
+)
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.utils import get_leaderboard_type_string_from_leaderboard_access_type
 from profiles.enums import ScoreResult, ScoreSet
@@ -91,16 +95,19 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
 
     leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
 
-    # TODO: add mods and star rating
     beatmap_details = f"[{score.beatmap}](https://osu.ppy.sh/beatmapsets/{score.beatmap.set_id}#{get_gamemode_string_from_gamemode(score.beatmap.gamemode)}/{score.beatmap.id})"
+    if score.mods != Mods.NONE:
+        beatmap_details += f" +{get_mods_string(score.mods)}"
+
+    beatmap_details += f" **{score.difficulty_total:.2f} stars**"
 
     # TODO: fix this for nochoke leaderboards. pp will display wrong
-    score_details = f"{score.performance_total:.0f}pp ({score.accuracy:.2f}%)"
+    score_details = f"**{score.performance_total:.0f}pp** ({score.accuracy:.2f}%)"
     if score.result & ScoreResult.FULL_COMBO:
         score_details += " FC"
     else:
         score_details += (
-            f"{score.best_combo}/{score.beatmap.max_combo} {score.count_miss}x misses"
+            f" {score.best_combo}/{score.beatmap.max_combo} {score.count_miss}x misses"
         )
 
     httpx.post(
@@ -109,7 +116,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
             "content": None,
             "embeds": [
                 {
-                    "title": f"New top score ({score.performance_total:.0f}pp by {score.user_stats.user.username})",
+                    "title": f"New top score ({score.performance_total:.0f}pp by {score.user_stats.user.username})!",
                     "description": f"[{leaderboard_link}]({leaderboard_link})",
                     "url": f"{leaderboard_link}",
                     "color": 3816140,  # #3A3ACC
