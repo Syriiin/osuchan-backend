@@ -54,6 +54,7 @@ class Leaderboard(models.Model):
         null=True
     )  # global leaderboards will have null member count
     archived = models.BooleanField(default=False)
+    notification_discord_webhook_url = models.CharField(max_length=250, blank=True)
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
@@ -79,6 +80,14 @@ class Leaderboard(models.Model):
     community_leaderboards = CommunityLeaderboardManager.from_queryset(
         CommunityLeaderboardQuerySet
     )()
+
+    def get_top_score(self) -> Score:
+        return (
+            Score.objects.non_restricted()
+            .filter(membership__leaderboard_id=self.id)
+            .order_by("-performance_total", "date")
+            .get_score_set(score_set=self.score_set)
+        ).first()
 
     def update_membership(self, user_id):
         """
@@ -153,6 +162,22 @@ class Leaderboard(models.Model):
 
         # Fetch rank
         membership.rank = self.memberships.filter(pp__gt=membership.pp).count() + 1
+
+        # Check for new top score
+        if self.notification_discord_webhook_url != "":
+            leaderboard_top_score = self.get_top_score()
+            if (
+                leaderboard_top_score is not None
+                and scores.first().performance_total
+                > leaderboard_top_score.performance_total
+            ):
+                # TODO: fix this being here. needs to be here to avoid a circular import at the moment
+                from leaderboards.tasks import send_leaderboard_top_score_notification
+
+                send_leaderboard_top_score_notification.delay(
+                    self.id,
+                    scores.first().id,
+                )
 
         membership.save()
         membership.scores.add(*scores)
