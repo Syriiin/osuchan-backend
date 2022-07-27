@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 
@@ -89,6 +89,19 @@ class Leaderboard(models.Model):
             .get_score_set(score_set=self.score_set)
         ).first()
 
+    def get_top_membership(self):
+        if self.access_type == LeaderboardAccessType.GLOBAL:
+            memberships = Membership.global_memberships
+        else:
+            memberships = Membership.community_memberships
+
+        return (
+            memberships.non_restricted()
+            .filter(leaderboard_id=self.id)
+            .select_related("user")
+            .order_by("-pp")
+        ).first()
+
     def update_membership(self, user_id):
         """
         Update a membership for a user_id ensuring all scores that fit the criteria are added
@@ -163,8 +176,8 @@ class Leaderboard(models.Model):
         # Fetch rank
         membership.rank = self.memberships.filter(pp__gt=membership.pp).count() + 1
 
-        # Check for new top score
         if self.notification_discord_webhook_url != "":
+            # Check for new top score
             leaderboard_top_score = self.get_top_score()
             if (
                 leaderboard_top_score is not None
@@ -174,9 +187,25 @@ class Leaderboard(models.Model):
                 # TODO: fix this being here. needs to be here to avoid a circular import at the moment
                 from leaderboards.tasks import send_leaderboard_top_score_notification
 
-                send_leaderboard_top_score_notification.delay(
-                    self.id,
-                    scores.first().id,
+                transaction.on_commit(
+                    lambda: send_leaderboard_top_score_notification.delay(
+                        self.id, scores.first().id
+                    )
+                )
+
+            # Check for new top player
+            leaderboard_top_player = self.get_top_membership()
+            if (
+                leaderboard_top_player is not None
+                and leaderboard_top_player.user_id != membership.user_id
+                and membership.rank == 1
+            ):
+                from leaderboards.tasks import send_leaderboard_top_player_notification
+
+                transaction.on_commit(
+                    lambda: send_leaderboard_top_player_notification.delay(
+                        self.id, membership.user_id
+                    )
                 )
 
         membership.save()

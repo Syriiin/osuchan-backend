@@ -1,4 +1,4 @@
-import json
+from datetime import datetime
 
 import httpx
 from celery import shared_task
@@ -11,6 +11,7 @@ from common.osu.utils import (
     get_gamemode_string_from_gamemode,
     get_mods_string,
 )
+from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.utils import get_leaderboard_type_string_from_leaderboard_access_type
 from profiles.enums import ScoreResult, ScoreSet
@@ -64,16 +65,31 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
             leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
         )
 
-        # Check for new top score
         if leaderboard.notification_discord_webhook_url != "":
+            # Check for new top score
             leaderboard_top_score = leaderboard.get_top_score()
             if (
                 leaderboard_top_score is not None
                 and scores.first().performance_total
                 > leaderboard_top_score.performance_total
             ):
-                send_leaderboard_top_score_notification.delay(
-                    leaderboard.id, scores.first().id
+                transaction.on_commit(
+                    lambda: send_leaderboard_top_score_notification.delay(
+                        leaderboard.id, scores.first().id
+                    )
+                )
+
+            # Check for new top player
+            leaderboard_top_player = leaderboard.get_top_membership()
+            if (
+                leaderboard_top_player is not None
+                and leaderboard_top_player.user_id != membership.user_id
+                and membership.rank == 1
+            ):
+                transaction.on_commit(
+                    lambda: send_leaderboard_top_player_notification.delay(
+                        leaderboard.id, membership.user_id
+                    )
                 )
 
         membership.scores.set(scores)
@@ -85,7 +101,7 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
 
 @shared_task
 def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
-    # passing score_id instead of querying for top score in case a new top score is set before the job is picked up
+    # passing score_id instead of querying for top score in case it changes before the job is picked up
 
     leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
     if leaderboard.notification_discord_webhook_url == "":
@@ -116,7 +132,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
             "content": None,
             "embeds": [
                 {
-                    "title": f"New top score ({score.performance_total:.0f}pp by {score.user_stats.user.username})!",
+                    "title": f"New pp record! ({score.performance_total:.0f}pp by {score.user_stats.user.username})",
                     "description": f"[{leaderboard_link}]({leaderboard_link})",
                     "url": f"{leaderboard_link}",
                     "color": 3816140,  # #3A3ACC
@@ -128,7 +144,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
                         {"name": "Score", "value": score_details},
                     ],
                     "author": {
-                        "name": f"{leaderboard.name}",
+                        "name": f"Leaderboard - {leaderboard.name}",
                         "url": f"{leaderboard_link}",
                         "icon_url": f"{leaderboard.icon_url}",
                     },
@@ -139,6 +155,64 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
                     "thumbnail": {
                         "url": f"https://a.ppy.sh/{score.user_stats.user_id}"
                     },
+                }
+            ],
+            "username": "osu!chan",
+            "avatar_url": f"{settings.FRONTEND_URL}/static/icon-128.png",
+            "attachments": [],
+        },
+    )
+
+
+@shared_task
+def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
+    # passing user_id instead of querying for top player in case it changes before the job is picked up
+
+    leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    if leaderboard.notification_discord_webhook_url == "":
+        return
+
+    membership: Membership = leaderboard.memberships.get(user_id=user_id)
+
+    if leaderboard.access_type == LeaderboardAccessType.GLOBAL:
+        memberships = Membership.global_memberships
+    else:
+        memberships = Membership.community_memberships
+
+    podium_memberships = (
+        memberships.non_restricted()
+        .filter(leaderboard_id=leaderboard_id)
+        .select_related("user")
+        .order_by("-pp")[:3]
+    )
+
+    leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
+
+    httpx.post(
+        leaderboard.notification_discord_webhook_url,
+        json={
+            "content": None,
+            "embeds": [
+                {
+                    "title": f"{membership.user.username} has reached #1!",
+                    "description": f"[{leaderboard_link}]({leaderboard_link})",
+                    "url": f"{leaderboard_link}",
+                    "color": 3816140,  # #3A3ACC
+                    "fields": [
+                        {
+                            "name": f"#{i + 1} {m.user.username}",
+                            "value": f"{m.pp:.0f}pp",
+                            "inline": True,
+                        }
+                        for i, m in enumerate(podium_memberships)
+                    ],
+                    "author": {
+                        "name": f"Leaderboard - {leaderboard.name}",
+                        "url": f"{leaderboard_link}",
+                        "icon_url": f"{leaderboard.icon_url}",
+                    },
+                    "timestamp": datetime.now().isoformat(),
+                    "thumbnail": {"url": f"https://a.ppy.sh/{membership.user_id}"},
                 }
             ],
             "username": "osu!chan",
