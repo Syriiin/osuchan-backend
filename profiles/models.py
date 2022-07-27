@@ -347,7 +347,7 @@ class Beatmap(models.Model):
     drain_time = models.IntegerField()
     total_time = models.IntegerField()
     max_combo = models.IntegerField(
-        null=True
+        null=True, blank=True
     )  # max_combo can be null for non-standard gamemodes
     circle_size = models.FloatField()
     overall_difficulty = models.FloatField()
@@ -575,14 +575,14 @@ class Score(models.Model):
     # Difficulty values
     # null=True because oppai only supports standard, and rosu-pp doesnt support converts
     performance_total = models.FloatField()
-    nochoke_performance_total = models.FloatField(null=True)
-    difficulty_total = models.FloatField(null=True)
+    nochoke_performance_total = models.FloatField(null=True, blank=True)
+    difficulty_total = models.FloatField(null=True, blank=True)
     difficulty_calculator_engine = models.CharField(max_length=100)
     difficulty_calculator_version = models.CharField(max_length=100)
 
     # osu!chan calculated data
     # null=True because result types are only supported by standard at the moment
-    result = models.IntegerField(null=True)
+    result = models.IntegerField(null=True, blank=True)
 
     objects = ScoreQuerySet.as_manager()
 

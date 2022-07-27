@@ -51,7 +51,7 @@ class Leaderboard(models.Model):
         default=True
     )  # allow scores set before membership started
     member_count = models.IntegerField(
-        null=True
+        null=True, blank=True
     )  # global leaderboards will have null member count
     archived = models.BooleanField(default=False)
     notification_discord_webhook_url = models.CharField(max_length=250, blank=True)
