@@ -19,7 +19,7 @@ def set_rank(apps, schema_editor):
     for membership in memberships:
         membership.rank = (
             Membership.objects.filter(
-                leaderboard_id=membership.leaderboard_id, pp__gte=membership.pp
+                leaderboard_id=membership.leaderboard_id, pp__gt=membership.pp
             ).count()
             + 1
         )

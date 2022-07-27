@@ -152,7 +152,7 @@ class Leaderboard(models.Model):
             )
 
         # Fetch rank
-        membership.rank = self.memberships.filter(pp__gte=membership.pp).count() + 1
+        membership.rank = self.memberships.filter(pp__gt=membership.pp).count() + 1
 
         membership.save()
         membership.scores.add(*scores)

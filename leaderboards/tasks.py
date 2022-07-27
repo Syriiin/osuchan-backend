@@ -52,7 +52,7 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
             )
 
         membership.rank = (
-            leaderboard.memberships.filter(pp__gte=membership.pp).count() + 1
+            leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
         )
 
         membership.save()
