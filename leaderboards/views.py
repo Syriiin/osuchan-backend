@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.views.decorators.cache import cache_page
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
@@ -262,7 +263,7 @@ class ListLeaderboardScores(APIView):
 
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
+    def _get(self, request, leaderboard_type, gamemode, leaderboard_id):
         osu_user_id = (
             request.user.osu_user_id if request.user.is_authenticated else None
         )
@@ -287,6 +288,14 @@ class ListLeaderboardScores(APIView):
         )
         serialiser = LeaderboardScoreSerialiser(scores[:5], many=True)
         return Response(serialiser.data)
+
+    # TODO: get rid of this cache by optimising
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
+        if leaderboard_type == "global":
+            cached_page = cache_page(60 * 60)(self._get)
+            return cached_page(request, leaderboard_type, gamemode, leaderboard_id)
+        else:
+            return self._get(request, leaderboard_type, gamemode, leaderboard_id)
 
 
 class ListLeaderboardMembers(APIView):
