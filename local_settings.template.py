@@ -100,7 +100,7 @@ REST_FRAMEWORK = {
 # Celery
 # https://docs.celeryproject.org/en/latest/userguide/configuration.html
 
-CELERY_BROKER_URL = "amqp://queue"
+CELERY_BROKER_URL = "amqp://osuchan:osuchan@queue"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 

@@ -12,9 +12,9 @@ services:
 
   queue:
     image: rabbitmq:3-management
-    ports:
-      - 5672:5672
-      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=osuchan
+      - RABBITMQ_DEFAULT_PASS=osuchan
 
   cache:
     image: memcached:1
@@ -44,3 +44,17 @@ services:
     depends_on:
       - db
       - queue
+
+  worker_monitor:
+    image: osuchan-backend
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: celery --app osuchan flower
+    ports:
+      - 5555:5555
+    environment:
+      - FLOWER_BROKER_API=http://osuchan:osuchan@queue:15672/api/
+      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
+    depends_on:
+      - worker

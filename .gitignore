@@ -63,3 +63,6 @@ static/
 
 # Volumes
 data/
+
+# Env vars
+.env
