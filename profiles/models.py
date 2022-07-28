@@ -496,15 +496,8 @@ class ScoreQuerySet(models.QuerySet):
 
         return scores
 
-    def get_score_set(self, score_set=ScoreSet.NORMAL):
-        """
-        Queryset that returns distinct on beatmap_id prioritising highest pp given the score_set.
-        Remember to use at end of query to not unintentionally filter out scores before primary filtering.
-        """
-        if score_set == ScoreSet.NORMAL:
-            # always use performance_total
-            scores = self.annotate(sorting_pp=F("performance_total"))
-        elif score_set == ScoreSet.NEVER_CHOKE:
+    def annotate_sorting_pp(self, score_set=ScoreSet.NORMAL):
+        if score_set == ScoreSet.NEVER_CHOKE:
             # if choke use nochoke_performance_total, else use performance_total
             scores = self.annotate(
                 sorting_pp=Case(
@@ -517,8 +510,18 @@ class ScoreQuerySet(models.QuerySet):
                 )
             )
         elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            # always use nochoke_pp
             scores = self.annotate(sorting_pp=F("nochoke_performance_total"))
+        else:
+            scores = self.annotate(sorting_pp=F("performance_total"))
+
+        return scores
+
+    def get_score_set(self, score_set=ScoreSet.NORMAL):
+        """
+        Queryset that returns distinct on beatmap_id prioritising highest pp given the score_set.
+        Remember to use at end of query to not unintentionally filter out scores before primary filtering.
+        """
+        scores = self.annotate_sorting_pp(score_set)
 
         return scores.filter(
             id__in=Subquery(

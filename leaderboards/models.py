@@ -82,12 +82,13 @@ class Leaderboard(models.Model):
     )()
 
     def get_top_score(self) -> Score:
-        return (
-            Score.objects.non_restricted()
-            .filter(membership__leaderboard_id=self.id)
-            .order_by("-performance_total", "date")
-            .get_score_set(score_set=self.score_set)
-        ).first()
+        scores = Score.objects.non_restricted().filter(
+            membership__leaderboard_id=self.id
+        )
+
+        scores = scores.annotate_sorting_pp(self.score_set)
+
+        return scores.order_by("-sorting_pp", "date").first()
 
     def get_top_membership(self):
         if self.access_type == LeaderboardAccessType.GLOBAL:
