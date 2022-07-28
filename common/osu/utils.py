@@ -85,7 +85,7 @@ def get_accuracy(
             accuracy = (points / (total_hits * 300)) * 100
 
         return accuracy
-    except DivisionByZero:
+    except ZeroDivisionError:
         return 0
 
 
