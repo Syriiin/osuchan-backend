@@ -1,5 +1,6 @@
 # osu! related utils
 
+from decimal import DivisionByZero
 from typing import Iterable
 
 from common.osu.enums import Gamemode, Mods
@@ -26,63 +27,66 @@ def get_accuracy(
 
     gamemode = Gamemode(gamemode)
 
-    if gamemode == Gamemode.STANDARD:
-        # standard acc
-        no_300 = int(count_300)
-        no_100 = int(count_100)
-        no_50 = int(count_50)
-        no_miss = int(count_miss)
+    try:
+        if gamemode == Gamemode.STANDARD:
+            # standard acc
+            no_300 = int(count_300)
+            no_100 = int(count_100)
+            no_50 = int(count_50)
+            no_miss = int(count_miss)
 
-        total_hits = no_300 + no_100 + no_50 + no_miss
-        points = (no_50 * 50) + (no_100 * 100) + (no_300 * 300)
+            total_hits = no_300 + no_100 + no_50 + no_miss
+            points = (no_50 * 50) + (no_100 * 100) + (no_300 * 300)
 
-        accuracy = (points / (total_hits * 300)) * 100
+            accuracy = (points / (total_hits * 300)) * 100
 
-    elif gamemode == Gamemode.TAIKO:
-        # taiko acc
-        no_300 = int(count_300)
-        no_100 = int(count_100)
-        no_miss = int(count_miss)
+        elif gamemode == Gamemode.TAIKO:
+            # taiko acc
+            no_300 = int(count_300)
+            no_100 = int(count_100)
+            no_miss = int(count_miss)
 
-        total_hits = no_300 + no_100 + no_miss
-        points = ((no_100 * 0.5) + (no_300 * 1)) * 300
+            total_hits = no_300 + no_100 + no_miss
+            points = ((no_100 * 0.5) + (no_300 * 1)) * 300
 
-        accuracy = (points / (total_hits * 300)) * 100
+            accuracy = (points / (total_hits * 300)) * 100
 
-    elif gamemode == Gamemode.CATCH:
-        # ctb acc
-        no_300 = int(count_300)
-        no_100 = int(count_100)
-        no_50 = int(count_50)
-        no_miss = int(count_miss)
-        no_drop_miss = int(count_katu)
+        elif gamemode == Gamemode.CATCH:
+            # ctb acc
+            no_300 = int(count_300)
+            no_100 = int(count_100)
+            no_50 = int(count_50)
+            no_miss = int(count_miss)
+            no_drop_miss = int(count_katu)
 
-        total_hits = no_300 + no_100 + no_50 + no_miss + no_drop_miss
-        caught = no_300 + no_100 + no_50
+            total_hits = no_300 + no_100 + no_50 + no_miss + no_drop_miss
+            caught = no_300 + no_100 + no_50
 
-        accuracy = (caught / total_hits) * 100
+            accuracy = (caught / total_hits) * 100
 
-    elif gamemode == Gamemode.MANIA:
-        # mania acc
-        no_MAX = int(count_geki)
-        no_300 = int(count_300)
-        no_200 = int(count_katu)
-        no_100 = int(count_100)
-        no_50 = int(count_50)
-        no_miss = int(count_miss)
+        elif gamemode == Gamemode.MANIA:
+            # mania acc
+            no_MAX = int(count_geki)
+            no_300 = int(count_300)
+            no_200 = int(count_katu)
+            no_100 = int(count_100)
+            no_50 = int(count_50)
+            no_miss = int(count_miss)
 
-        total_hits = no_50 + no_100 + no_200 + no_300 + no_MAX + no_miss
-        points = (
-            (no_50 * 50)
-            + (no_100 * 100)
-            + (no_200 * 200)
-            + (no_300 * 300)
-            + (no_MAX * 300)
-        )
+            total_hits = no_50 + no_100 + no_200 + no_300 + no_MAX + no_miss
+            points = (
+                (no_50 * 50)
+                + (no_100 * 100)
+                + (no_200 * 200)
+                + (no_300 * 300)
+                + (no_MAX * 300)
+            )
 
-        accuracy = (points / (total_hits * 300)) * 100
+            accuracy = (points / (total_hits * 300)) * 100
 
-    return accuracy
+        return accuracy
+    except DivisionByZero:
+        return 0
 
 
 def get_bpm(bpm, mods):
