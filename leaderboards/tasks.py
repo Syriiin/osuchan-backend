@@ -68,15 +68,16 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         if leaderboard.notification_discord_webhook_url != "":
             # Check for new top score
             leaderboard_top_score = leaderboard.get_top_score()
+            player_top_score = scores.first()
             if (
                 leaderboard_top_score is not None
-                and len(scores) > 0
-                and scores.first().performance_total
+                and player_top_score is not None
+                and player_top_score.performance_total
                 > leaderboard_top_score.performance_total
             ):
                 transaction.on_commit(
                     lambda: send_leaderboard_top_score_notification.delay(
-                        leaderboard.id, scores.first().id
+                        leaderboard.id, player_top_score.id
                     )
                 )
 

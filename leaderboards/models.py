@@ -180,10 +180,11 @@ class Leaderboard(models.Model):
         if self.notification_discord_webhook_url != "":
             # Check for new top score
             leaderboard_top_score = self.get_top_score()
+            player_top_score = scores.first()
             if (
                 leaderboard_top_score is not None
-                and len(scores) > 0
-                and scores.first().performance_total
+                and player_top_score is not None
+                and player_top_score.performance_total
                 > leaderboard_top_score.performance_total
             ):
                 # TODO: fix this being here. needs to be here to avoid a circular import at the moment
@@ -191,7 +192,7 @@ class Leaderboard(models.Model):
 
                 transaction.on_commit(
                     lambda: send_leaderboard_top_score_notification.delay(
-                        self.id, scores.first().id
+                        self.id, player_top_score.id
                     )
                 )
 
