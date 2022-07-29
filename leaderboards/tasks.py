@@ -222,3 +222,57 @@ def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
             "attachments": [],
         },
     )
+
+
+@shared_task
+def send_leaderboard_podium_notification(leaderboard_id: int):
+    leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    if leaderboard.notification_discord_webhook_url == "":
+        return
+
+    if leaderboard.access_type == LeaderboardAccessType.GLOBAL:
+        memberships = Membership.global_memberships
+    else:
+        memberships = Membership.community_memberships
+
+    podium_memberships = (
+        memberships.non_restricted()
+        .filter(leaderboard_id=leaderboard_id)
+        .select_related("user")
+        .order_by("-pp")[:3]
+    )
+
+    leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
+
+    httpx.post(
+        leaderboard.notification_discord_webhook_url,
+        json={
+            "content": None,
+            "embeds": [
+                {
+                    "title": f"{leaderboard.name} current podium rankings",
+                    "description": f"[{leaderboard_link}]({leaderboard_link})",
+                    "url": f"{leaderboard_link}",
+                    "color": 3816140,  # #3A3ACC
+                    "fields": [
+                        {
+                            "name": f"#{i + 1} {m.user.username}",
+                            "value": f"{m.pp:.0f}pp",
+                            "inline": True,
+                        }
+                        for i, m in enumerate(podium_memberships)
+                    ],
+                    "author": {
+                        "name": f"Leaderboard - {leaderboard.name}",
+                        "url": f"{leaderboard_link}",
+                        "icon_url": f"{leaderboard.icon_url}",
+                    },
+                    "timestamp": datetime.now().isoformat(),
+                    "thumbnail": {"url": leaderboard.icon_url},
+                }
+            ],
+            "username": "osu!chan",
+            "avatar_url": f"{settings.FRONTEND_URL}/static/icon-128.png",
+            "attachments": [],
+        },
+    )
