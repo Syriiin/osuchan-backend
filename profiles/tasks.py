@@ -11,6 +11,17 @@ from profiles.models import OsuUser, UserStats
 
 
 @shared_task
+def dispatch_update_all_global_leaderboard_top_members(limit: int = 100):
+    """
+    Dispatches update_user tasks for the top members of all global leaderboards
+    """
+    for leaderboard in Leaderboard.global_leaderboards.all():
+        members = leaderboard.memberships.order_by("-pp")[:limit].values("user_id")
+
+        for member in members:
+            update_user.delay(user_id=member["user_id"], gamemode=leaderboard.gamemode)
+
+@shared_task
 @transaction.atomic
 def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     """

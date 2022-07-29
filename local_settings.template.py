@@ -106,6 +106,7 @@ CELERY_TASK_SERIALIZER = "json"
 
 CELERY_BEAT_SCHEDULE = {}
 
+
 # osu! API
 
 # v2
