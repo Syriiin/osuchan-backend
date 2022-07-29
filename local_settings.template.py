@@ -104,6 +104,7 @@ CELERY_BROKER_URL = "amqp://osuchan:osuchan@queue"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
+CELERY_BEAT_SCHEDULE = {}
 
 # osu! API
 

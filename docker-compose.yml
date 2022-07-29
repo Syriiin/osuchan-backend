@@ -58,3 +58,12 @@ services:
       - FLOWER_BROKER_API=http://osuchan:osuchan@queue:15672/api/
     depends_on:
       - worker
+
+  scheduler:
+    image: osuchan-backend
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: celery --app osuchan beat --loglevel info
+    depends_on:
+      - queue
