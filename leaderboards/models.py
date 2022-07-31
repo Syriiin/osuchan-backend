@@ -1,4 +1,5 @@
 from datetime import datetime
+import typing
 
 from django.db import models, transaction
 from django.db.models import Q
@@ -81,10 +82,15 @@ class Leaderboard(models.Model):
         CommunityLeaderboardQuerySet
     )()
 
-    def get_top_score(self) -> Score:
+    def get_top_score(self) -> typing.Union[Score, None]:
         scores = Score.objects.non_restricted().filter(
             membership__leaderboard_id=self.id
         )
+
+        if scores.count() == 0:
+            # in the case there are no scores, we would end up scanning the whole table it seems
+            # TODO: investigate this. i assumed postgres would be able to optimise this
+            return None
 
         scores = scores.annotate_sorting_pp(self.score_set)
 
