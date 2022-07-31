@@ -87,6 +87,7 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
                 leaderboard_top_player is not None
                 and leaderboard_top_player.user_id != membership.user_id
                 and membership.rank == 1
+                and membership.pp > 0
             ):
                 transaction.on_commit(
                     lambda: send_leaderboard_top_player_notification.delay(

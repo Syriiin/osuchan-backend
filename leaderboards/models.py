@@ -208,6 +208,7 @@ class Leaderboard(models.Model):
                 leaderboard_top_player is not None
                 and leaderboard_top_player.user_id != membership.user_id
                 and membership.rank == 1
+                and membership.pp > 0
             ):
                 from leaderboards.tasks import send_leaderboard_top_player_notification
 
