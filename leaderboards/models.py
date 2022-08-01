@@ -2,7 +2,7 @@ from datetime import datetime
 import typing
 
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Q, Max
 from rest_framework.exceptions import PermissionDenied
 
 from common.osu.enums import Gamemode
@@ -82,19 +82,14 @@ class Leaderboard(models.Model):
         CommunityLeaderboardQuerySet
     )()
 
-    def get_top_score(self) -> typing.Union[Score, None]:
+    def get_pp_record(self) -> typing.Union[Score, None]:
         scores = Score.objects.non_restricted().filter(
             membership__leaderboard_id=self.id
         )
 
-        if scores.count() == 0:
-            # in the case there are no scores, we would end up scanning the whole table it seems
-            # TODO: investigate this. i assumed postgres would be able to optimise this
-            return None
-
         scores = scores.annotate_sorting_pp(self.score_set)
 
-        return scores.order_by("-sorting_pp", "date").first()
+        return scores.aggregate(Max("sorting_pp"))["sorting_pp__max"]
 
     def get_top_membership(self):
         if self.access_type == LeaderboardAccessType.GLOBAL:
@@ -185,13 +180,12 @@ class Leaderboard(models.Model):
 
         if self.notification_discord_webhook_url != "":
             # Check for new top score
-            leaderboard_top_score = self.get_top_score()
+            pp_record = self.get_pp_record()
             player_top_score = scores.first()
             if (
-                leaderboard_top_score is not None
+                pp_record is not None
                 and player_top_score is not None
-                and player_top_score.performance_total
-                > leaderboard_top_score.performance_total
+                and player_top_score.performance_total > pp_record
             ):
                 # TODO: fix this being here. needs to be here to avoid a circular import at the moment
                 from leaderboards.tasks import send_leaderboard_top_score_notification
