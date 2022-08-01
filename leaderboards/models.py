@@ -190,11 +190,16 @@ class Leaderboard(models.Model):
                 # TODO: fix this being here. needs to be here to avoid a circular import at the moment
                 from leaderboards.tasks import send_leaderboard_top_score_notification
 
-                transaction.on_commit(
-                    lambda: send_leaderboard_top_score_notification.delay(
-                        self.id, player_top_score.id
+                # NOTE: need to use a function with default params here so the closure has the correct variables
+                def send_notification(
+                    leaderboard_id=self.id,
+                    score_id=player_top_score.id,
+                ):
+                    send_leaderboard_top_score_notification.delay(
+                        leaderboard_id, score_id
                     )
-                )
+
+                transaction.on_commit(send_notification)
 
             # Check for new top player
             leaderboard_top_player = self.get_top_membership()
@@ -206,11 +211,16 @@ class Leaderboard(models.Model):
             ):
                 from leaderboards.tasks import send_leaderboard_top_player_notification
 
-                transaction.on_commit(
-                    lambda: send_leaderboard_top_player_notification.delay(
-                        self.id, membership.user_id
+                # NOTE: need to use a function with default params here so the closure has the correct variables
+                def send_notification(
+                    leaderboard_id=self.id,
+                    user_id=membership.user_id,
+                ):
+                    send_leaderboard_top_player_notification.delay(
+                        leaderboard_id, user_id
                     )
-                )
+
+                transaction.on_commit(send_notification)
 
         membership.save()
         membership.scores.add(*scores)

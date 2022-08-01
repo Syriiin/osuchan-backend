@@ -74,11 +74,16 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
                 and player_top_score is not None
                 and player_top_score.performance_total > pp_record
             ):
-                transaction.on_commit(
-                    lambda: send_leaderboard_top_score_notification.delay(
-                        leaderboard.id, player_top_score.id
+                # NOTE: need to use a function with default params here so the closure has the correct variables
+                def send_notification(
+                    leaderboard_id=leaderboard.id,
+                    score_id=player_top_score.id,
+                ):
+                    send_leaderboard_top_score_notification.delay(
+                        leaderboard_id, score_id
                     )
-                )
+
+                transaction.on_commit(send_notification)
 
             # Check for new top player
             leaderboard_top_player = leaderboard.get_top_membership()
@@ -88,11 +93,16 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
                 and membership.rank == 1
                 and membership.pp > 0
             ):
-                transaction.on_commit(
-                    lambda: send_leaderboard_top_player_notification.delay(
-                        leaderboard.id, membership.user_id
+                # NOTE: need to use a function with default params here so the closure has the correct variables
+                def send_notification(
+                    leaderboard_id=leaderboard.id,
+                    user_id=membership.user_id,
+                ):
+                    send_leaderboard_top_player_notification.delay(
+                        leaderboard_id, user_id
                     )
-                )
+
+                transaction.on_commit(send_notification)
 
         membership.scores.set(scores)
 
