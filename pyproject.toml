@@ -19,7 +19,7 @@ pymemcache = "^3.5.0"
 requests = "^2.25.1"
 rosu-pp-py = "^0.7.0"
 tqdm = "^4.64.0"
-flower = "^1.1.0"
+flower = "^1.2.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
