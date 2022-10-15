@@ -11,6 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # NOTE: use django.core.management.utils.get_random_secret_key() to generate a suitable key
+#   eg. docker run -it python sh -c 'pip install django && python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
 SECRET_KEY = ""
 
 # SECURITY WARNING: don't run with debug turned on in production!
