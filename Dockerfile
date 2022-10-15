@@ -20,7 +20,7 @@ USER appuser
 ENV PATH="$PATH:/home/appuser/.local/bin"
 
 # Install poetry
-RUN python -m pip install poetry
+RUN python -m pip install poetry==1.1.15
 RUN poetry config virtualenvs.create false
 
 # Install dependencies
