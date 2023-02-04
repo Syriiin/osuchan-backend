@@ -137,13 +137,13 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
     def __init__(self, beatmap_path: str):
         super().__init__(beatmap_path)
         try:
-            self.rosupp_calc = rosu_pp_py.Calculator(beatmap_path)
+            self.rosupp_calc = rosu_pp_py.Calculator()
+            self.beatmap = rosu_pp_py.Beatmap(path=beatmap_path)
         except Exception as e:
             raise InvalidBeatmapException(
                 f'An error occured in parsing the beatmap "{self.beatmap_path}"'
             ) from e
 
-        self.score_params = rosu_pp_py.ScoreParams()
         self.calc_result = None
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -153,28 +153,30 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
         pass
 
     def set_accuracy(self, count_100: int, count_50: int):
-        self.score_params.n100 = count_100
-        self.score_params.n50 = count_50
+        self.rosupp_calc.set_n100(count_100)
+        self.rosupp_calc.set_n50(count_50)
 
     def set_misses(self, count_miss: int):
-        self.score_params.nMisses = count_miss
+        self.rosupp_calc.set_n_misses(count_miss)
 
     def set_combo(self, combo: int):
-        self.score_params.combo = combo
+        self.rosupp_calc.set_combo(combo)
 
     def set_mods(self, mods: Mods):
-        self.score_params.mods = mods
+        self.rosupp_calc.set_mods(mods)
 
     def _calculate(self):
-        [self.calc_result] = self.rosupp_calc.calculate(self.score_params)
+        # rosu_pp_py does lazy calculations it seems
+        pass
 
     @property
     def difficulty_total(self) -> float:
-        return self.calc_result.stars if self.calc_result is not None else 0.0
+        # TODO: PR to rosu-pp-py to add real type hints here
+        return self.rosupp_calc.difficulty(self.beatmap).stars or 0.0  # type: ignore
 
     @property
     def performance_total(self) -> float:
-        return self.calc_result.pp if self.calc_result is not None else 0.0
+        return self.rosupp_calc.performance(self.beatmap).pp or 0.0  # type: ignore
 
     @staticmethod
     def engine():
