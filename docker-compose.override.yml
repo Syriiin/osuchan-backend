@@ -2,8 +2,25 @@ version: "3.9"
 
 services:
   api:
+    build:
+      target: development-runner
     volumes:
       - .:/app
+
   worker:
+    build:
+      target: development-runner
+    volumes:
+      - .:/app
+
+  worker_monitor:
+    build:
+      target: development-runner
+    volumes:
+      - .:/app
+
+  scheduler:
+    build:
+      target: development-runner
     volumes:
       - .:/app
