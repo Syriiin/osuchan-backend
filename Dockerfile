@@ -19,6 +19,10 @@ ENV PYTHONUNBUFFERED=1
 # Update PATH env var (prepend for precedence over global python)
 ENV PATH="${APPDEPS_PATH}/.venv/bin:${POETRY_PATH}/bin:$PATH"
 
+# Install tini
+RUN apt-get update
+RUN apt-get install tini
+
 # --------------------------------------------------------------------------------
 
 FROM python-base as builder
@@ -55,6 +59,7 @@ USER appuser
 WORKDIR ${APP_PATH}
 
 EXPOSE 8000
+ENTRYPOINT [ "tini", "--" ]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 # --------------------------------------------------------------------------------
@@ -76,4 +81,5 @@ COPY . ./
 RUN python manage.py collectstatic --no-input
 
 EXPOSE 8000
+ENTRYPOINT [ "tini", "--" ]
 CMD ["gunicorn", "--workers", "5", "--timeout", "120", "--bind", "0.0.0.0:8000", "osuchan.wsgi"]
