@@ -6,4 +6,5 @@ help:	## Show this help.
 checkformatting:	## Checks code formatting
 	$(COMPOSE_RUN_TOOLING) scripts/checkformatting
 
-
+fixformatting:	## Fixes code formatting
+	$(COMPOSE_RUN_TOOLING) scripts/fixformatting
