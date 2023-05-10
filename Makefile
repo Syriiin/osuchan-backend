@@ -23,3 +23,6 @@ start-dev: build	## Starts development environment
 
 clean-dev:	## Cleans development environment
 	docker compose down --remove-orphans
+
+test:	## Runs test suite
+	$(COMPOSE_RUN_TOOLING) python -Wa manage.py test
