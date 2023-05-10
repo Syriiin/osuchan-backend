@@ -1,0 +1,7 @@
+services:
+  tooling:
+    build:
+      context: .
+      target: development-tooling
+    volumes:
+      - .:/app

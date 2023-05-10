@@ -38,7 +38,7 @@ RUN poetry install --no-dev
 
 # --------------------------------------------------------------------------------
 
-FROM python-base as development-runner
+FROM python-base as development-tooling
 
 # Copy in poetry
 COPY --from=builder ${POETRY_PATH} ${POETRY_PATH}
@@ -49,15 +49,19 @@ COPY --from=builder ${APPDEPS_PATH} ${APPDEPS_PATH}
 # Install remaining dev dependencies
 WORKDIR ${APPDEPS_PATH}
 RUN poetry install
+
+# Set workdir to path where code should be mounted
 WORKDIR ${APP_PATH}
 
 # Create user to run app
 RUN adduser -u 10001 --disabled-password --gecos "" appuser
 USER appuser
 
-# Set workdir to path where code should be mounted
-WORKDIR ${APP_PATH}
+# --------------------------------------------------------------------------------
 
+FROM development-tooling as development-runner
+
+# Run development server
 EXPOSE 8000
 ENTRYPOINT [ "tini", "--" ]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
@@ -80,6 +84,7 @@ COPY . ./
 # Build app
 RUN python manage.py collectstatic --no-input
 
+# Run production server
 EXPOSE 8000
 ENTRYPOINT [ "tini", "--" ]
 CMD ["gunicorn", "--workers", "5", "--timeout", "120", "--bind", "0.0.0.0:8000", "osuchan.wsgi"]
