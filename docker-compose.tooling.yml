@@ -5,3 +5,4 @@ services:
       target: development-tooling
     volumes:
       - .:/app
+    user: ${UID}:${GID}

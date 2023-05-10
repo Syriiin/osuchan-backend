@@ -1,4 +1,4 @@
-COMPOSE_RUN_TOOLING = docker compose -f docker-compose.tooling.yml run tooling
+COMPOSE_RUN_TOOLING = UID=$(shell id -u) GID=$(shell id -g) docker compose -f docker-compose.tooling.yml run tooling
 
 help:	## Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
