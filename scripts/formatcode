@@ -2,4 +2,4 @@
 set -euo pipefail
 
 poetry run black .
-poetry run isort . --gitignore --profile black
+poetry run isort . --profile black
