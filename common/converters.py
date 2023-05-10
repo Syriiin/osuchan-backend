@@ -1,4 +1,7 @@
-from common.osu.utils import get_gamemode_from_gamemode_string
+from common.osu.utils import (
+    get_gamemode_from_gamemode_string,
+    get_gamemode_string_from_gamemode,
+)
 
 
 class GamemodeConverter:
@@ -8,7 +11,7 @@ class GamemodeConverter:
         return get_gamemode_from_gamemode_string(value)
 
     def to_url(self, value):
-        return value
+        return get_gamemode_string_from_gamemode(value)
 
 
 class LeaderboardTypeConverter:
