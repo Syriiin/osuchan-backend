@@ -30,6 +30,7 @@ services:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
       - db
+      - queue
       - cache
 
   worker:

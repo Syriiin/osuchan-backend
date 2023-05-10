@@ -1,8 +1,8 @@
-from datetime import datetime
 import typing
+from datetime import datetime
 
 from django.db import models, transaction
-from django.db.models import Q, Max
+from django.db.models import Max, Q
 from rest_framework.exceptions import PermissionDenied
 
 from common.osu.enums import Gamemode
