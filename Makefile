@@ -12,6 +12,9 @@ checkformatting:	## Checks code formatting
 fixformatting:	## Fixes code formatting
 	$(COMPOSE_RUN_TOOLING) scripts/fixformatting
 
+checkmigrations:	## Checks for missing migrations
+	$(COMPOSE_RUN_TOOLING) python manage.py makemigrations --check
+
 makemigrations:	## Generates migrations
 	$(COMPOSE_RUN_TOOLING) python manage.py makemigrations
 
