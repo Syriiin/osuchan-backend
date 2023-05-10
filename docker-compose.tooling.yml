@@ -1,3 +1,6 @@
+# Additional services for running tooling in development and CI
+# Must be used with docker-compose.yml
+
 services:
   tooling:
     build:
@@ -6,3 +9,5 @@ services:
     volumes:
       - .:/app
     user: ${UID}:${GID}
+    depends_on:
+      - db    # required for eg. makemigrations

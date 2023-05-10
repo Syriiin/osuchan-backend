@@ -1,7 +1,7 @@
 UID = $(shell id -u)
 GID = $(shell id -g)
-COMPOSE_RUN_TOOLING = UID=${UID} GID=${GID} docker compose -f docker-compose.tooling.yml run --rm tooling
-COMPOSE_RUN_API = UID=${UID} GID=${GID} docker compose -f docker-compose.yml -f docker-compose.override.yml run --rm api
+COMPOSE_RUN_TOOLING = UID=${UID} GID=${GID} docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.tooling.yml run --rm tooling
+COMPOSE_APP_DEV = docker compose -f docker-compose.yml -f docker-compose.override.yml
 
 help:	## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
@@ -13,16 +13,16 @@ fixformatting:	## Fixes code formatting
 	$(COMPOSE_RUN_TOOLING) scripts/fixformatting
 
 makemigrations:	## Generates migrations
-	$(COMPOSE_RUN_API) python manage.py makemigrations
+	$(COMPOSE_RUN_TOOLING) python manage.py makemigrations
 
 build-dev:	## Builds development docker images
-	docker compose build
+	$(COMPOSE_APP_DEV) build
 
 start-dev: build	## Starts development environment
-	docker compose up -d
+	$(COMPOSE_APP_DEV) up -d
 
 clean-dev:	## Cleans development environment
-	docker compose down --remove-orphans
+	$(COMPOSE_APP_DEV) down --remove-orphans
 
 test:	## Runs test suite
 	$(COMPOSE_RUN_TOOLING) python -Wa manage.py test
