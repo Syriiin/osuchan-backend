@@ -1,10 +1,5 @@
 #!/bin/bash
 set -euo pipefail
 
-if [ -z "${1+x}" ]; then
-    echo -e "Missing path argument.\neg. scripts/formatcode ."
-    exit 1
-fi
-
-poetry run black $1
-poetry run isort $1 --gitignore --profile black
+poetry run black .
+poetry run isort . --gitignore --profile black
