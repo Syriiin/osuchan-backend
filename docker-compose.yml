@@ -5,16 +5,13 @@ services:
     image: postgres:13
     volumes:
       - ./data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=osuchan
-      - POSTGRES_USER=osuchan
-      - POSTGRES_PASSWORD=osuchan
+    env_file:
+      - postgres.env
 
   queue:
     image: rabbitmq:3-management
-    environment:
-      - RABBITMQ_DEFAULT_USER=osuchan
-      - RABBITMQ_DEFAULT_PASS=osuchan
+    env_file:
+      - rabbitmq.env
 
   cache:
     image: memcached:1
@@ -59,9 +56,7 @@ services:
       - 5555:5555
     env_file:
       - django.env
-    environment:
-      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
-      - FLOWER_BROKER_API=http://osuchan:osuchan@queue:15672/api/
+      - flower.env
     depends_on:
       - worker
 
