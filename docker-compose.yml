@@ -26,6 +26,8 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - 8000:8000
+    env_file:
+      - django.env
     volumes:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
@@ -39,6 +41,8 @@ services:
       context: .
       dockerfile: ./Dockerfile
     command: celery --app osuchan worker --loglevel info
+    env_file:
+      - django.env
     volumes:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
@@ -53,6 +57,8 @@ services:
     command: celery --app osuchan flower
     ports:
       - 5555:5555
+    env_file:
+      - django.env
     environment:
       - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
       - FLOWER_BROKER_API=http://osuchan:osuchan@queue:15672/api/
@@ -65,5 +71,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     command: celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
+    env_file:
+      - django.env
     depends_on:
       - queue

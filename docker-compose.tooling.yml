@@ -6,6 +6,8 @@ services:
     build:
       context: .
       target: development-tooling
+    env_file:
+      - django.env
     volumes:
       - .:/app
     user: ${UID}:${GID}
