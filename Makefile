@@ -1,3 +1,4 @@
+ENV ?= template
 UID = $(shell id -u)
 GID = $(shell id -g)
 COMPOSE_RUN_TOOLING = UID=${UID} GID=${GID} docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.tooling.yml run --build --rm tooling
@@ -5,6 +6,10 @@ COMPOSE_APP_DEV = docker compose -f docker-compose.yml -f docker-compose.overrid
 
 help:	## Show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+
+env: 	## Switch to an environment config
+	@mkdir -p config/active
+	cp config/${ENV}/*.env config/active/
 
 checkformatting:	## Checks code formatting
 	$(COMPOSE_RUN_TOOLING) scripts/checkformatting

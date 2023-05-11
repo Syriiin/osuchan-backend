@@ -65,5 +65,5 @@ static/
 data/
 
 # Env vars
-*.env
-!*template.env
+config/*
+!config/template

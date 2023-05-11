@@ -6,12 +6,12 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     env_file:
-      - postgres.env
+      - config/active/postgres.env
 
   queue:
     image: rabbitmq:3-management
     env_file:
-      - rabbitmq.env
+      - config/active/rabbitmq.env
 
   cache:
     image: memcached:1
@@ -24,7 +24,7 @@ services:
     ports:
       - 8000:8000
     env_file:
-      - django.env
+      - config/active/django.env
     volumes:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
@@ -39,7 +39,7 @@ services:
       dockerfile: ./Dockerfile
     command: celery --app osuchan worker --loglevel info
     env_file:
-      - django.env
+      - config/active/django.env
     volumes:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
@@ -55,8 +55,8 @@ services:
     ports:
       - 5555:5555
     env_file:
-      - django.env
-      - flower.env
+      - config/active/django.env
+      - config/active/flower.env
     depends_on:
       - worker
 
@@ -67,6 +67,6 @@ services:
       dockerfile: ./Dockerfile
     command: celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
     env_file:
-      - django.env
+      - config/active/django.env
     depends_on:
       - queue
