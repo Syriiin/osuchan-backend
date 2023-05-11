@@ -21,7 +21,7 @@ makemigrations:	## Generates migrations
 build-dev:	## Builds development docker images
 	$(COMPOSE_APP_DEV) build
 
-start-dev: build	## Starts development environment
+start-dev:	## Starts development environment
 	$(COMPOSE_APP_DEV) up -d
 
 clean-dev:	## Cleans development environment
