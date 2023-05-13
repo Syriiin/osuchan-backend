@@ -18,9 +18,7 @@ services:
 
   api:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     ports:
       - 8000:8000
     env_file:
@@ -34,9 +32,7 @@ services:
 
   worker:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     command: celery --app osuchan worker --loglevel info
     env_file:
       - config/active/django.env
@@ -48,9 +44,7 @@ services:
 
   worker_monitor:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     command: celery --app osuchan flower
     ports:
       - 5555:5555
@@ -62,9 +56,7 @@ services:
 
   scheduler:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     command: celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
     env_file:
       - config/active/django.env
