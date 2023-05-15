@@ -67,3 +67,4 @@ data/
 # Env vars
 config/*
 !config/template
+!config/test
