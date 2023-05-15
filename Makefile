@@ -1,7 +1,7 @@
-ENV ?= template
+ENV ?=
 UID = $(shell id -u)
 GID = $(shell id -g)
-COMPOSE_RUN_TOOLING = UID=${UID} GID=${GID} docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.tooling.yml run --build --rm tooling
+COMPOSE_RUN_TOOLING = UID=${UID} GID=${GID} docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.tooling.yml run --rm tooling
 COMPOSE_APP_DEV = docker compose -f docker-compose.yml -f docker-compose.override.yml
 
 help:	## Show this help
@@ -33,4 +33,7 @@ clean-dev:	## Cleans development environment
 	$(COMPOSE_APP_DEV) down --remove-orphans
 
 test:	## Runs test suite
-	$(COMPOSE_RUN_TOOLING) python -Wa manage.py test
+	$(COMPOSE_RUN_TOOLING) coverage run manage.py test
+
+test-coverage-report:	## Get test coverage report
+	$(COMPOSE_RUN_TOOLING) sh -c "coverage report -m && coverage html"
