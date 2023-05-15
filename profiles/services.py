@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from django.db import transaction
 
-from common.osu import apiv1
+from common.osu.apiv1 import OsuApiV1
 from common.osu.enums import Gamemode
 from profiles.models import UserStats
 from profiles.tasks import update_user
@@ -54,7 +54,8 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     full_score_data_list = []
     for beatmap_id in beatmap_ids:
         # Fetch score data from osu api
-        score_data_list = apiv1.get_scores(
+        osu_api_v1 = OsuApiV1()
+        score_data_list = osu_api_v1.get_scores(
             beatmap_id=beatmap_id, user_id=user_id, gamemode=int(gamemode)
         )
 

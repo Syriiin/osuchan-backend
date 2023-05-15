@@ -5,7 +5,8 @@ from django.db import models
 from django.db.models import Case, F, Subquery, When
 
 from common.error_report import report_error
-from common.osu import apiv1, utils
+from common.osu import utils
+from common.osu.apiv1 import OsuApiV1
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
     DifficultyCalculator,
@@ -131,8 +132,9 @@ class UserStats(models.Model):
                 (beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None
             )
             if beatmap is None:
+                osu_api_v1 = OsuApiV1()
                 beatmap = Beatmap.from_data(
-                    apiv1.get_beatmaps(beatmap_id=beatmap_id)[0]
+                    osu_api_v1.get_beatmaps(beatmap_id=beatmap_id)[0]
                 )
                 if (
                     beatmap.status
