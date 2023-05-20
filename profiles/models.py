@@ -4,7 +4,7 @@ from typing import Type
 from django.db import models
 from django.db.models import Case, F, Subquery, When
 
-from common.error_report import report_error
+from common.error_reporter import ErrorReporter
 from common.osu import utils
 from common.osu.apiv1 import OsuApiV1
 from common.osu.difficultycalculator import (
@@ -435,7 +435,8 @@ class Beatmap(models.Model):
             self.difficulty_total = 0
             self.difficulty_calculator_engine = difficulty_calculator.engine()
             self.difficulty_calculator_version = difficulty_calculator.version()
-            report_error(e)
+            error_reporter = ErrorReporter()
+            error_reporter.report_error(e)
 
     def __str__(self):
         return "{} - {} [{}] (by {})".format(
@@ -652,7 +653,8 @@ class Score(models.Model):
             self.difficulty_total = 0
             self.difficulty_calculator_engine = difficulty_calculator.engine()
             self.difficulty_calculator_version = difficulty_calculator.version()
-            report_error(e)
+            error_reporter = ErrorReporter()
+            error_reporter.report_error(e)
 
     def __str__(self):
         return f"{self.beatmap_id}: {self.performance_total:.0f}pp"

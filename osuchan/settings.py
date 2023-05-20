@@ -28,6 +28,7 @@ class EnvSettings(BaseSettings):
     OSU_CLIENT_REDIRECT_URI: str
     OSU_API_V1_KEY: str
     DISCORD_WEBHOOK_URL_ERROR_LOG: str
+    USE_DUMMY_ERROR_REPORTER: bool
 
 
 env_settings = EnvSettings()
@@ -271,13 +272,18 @@ BEATMAP_DL_URL = "https://osu.ppy.sh/osu/"
 BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "beatmaps")
 
 
-# Discord webhooks
-
-DISCORD_WEBHOOK_URL_ERROR_LOG = env_settings.DISCORD_WEBHOOK_URL_ERROR_LOG
-
-
 # Difficulty calculation
 
 DIFFICULTY_CALCULATOR_CLASS = (
     "common.osu.difficultycalculator.RosuppDifficultyCalculator"
 )
+
+
+# Error reporting
+
+if env_settings.USE_DUMMY_ERROR_REPORTER:
+    ERROR_REPORTER_CLASS = "common.error_reporter.DummyErrorReporter"
+else:
+    ERROR_REPORTER_CLASS = "common.error_reporter.DiscordErrorReporter"
+
+DISCORD_WEBHOOK_URL_ERROR_LOG = env_settings.DISCORD_WEBHOOK_URL_ERROR_LOG
