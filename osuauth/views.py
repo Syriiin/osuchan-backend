@@ -1,6 +1,9 @@
+from urllib.parse import urlencode
+
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
+from django.urls import reverse
 
 
 def login_redirect(request):
@@ -19,6 +22,20 @@ def login_redirect(request):
             client_id=settings.OSU_CLIENT_ID,
         )
     )
+
+
+def stub_login_redirect(request):
+    """
+    Stub endpoint for initiating osu authentication.
+    Simply redirects directly to callback with a fake code.
+    """
+    if request.user.is_authenticated:
+        # User is already logged in
+        return redirect("/")
+
+    redirect_url = reverse("callback")
+    params = urlencode({"code": "thisisafakecode"})
+    return redirect(f"{redirect_url}?{params}")
 
 
 def logout_view(request):

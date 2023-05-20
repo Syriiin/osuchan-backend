@@ -9,6 +9,58 @@ from osuauth.models import User
 from profiles.models import OsuUser
 
 
+@transaction.atomic
+def create_or_update_osu_user(
+    id: int, username: str, country_code: str, join_date: datetime
+):
+    try:
+        osu_user = OsuUser.objects.select_for_update().get(id=id)
+    except OsuUser.DoesNotExist:
+        osu_user = OsuUser(id=id)
+
+        # Create memberships with global leaderboards
+        global_leaderboards = Leaderboard.global_leaderboards.values("id")
+        # TODO: refactor this to be somewhere else. dont really like setting values to 0
+        global_memberships = [
+            Membership(
+                leaderboard_id=leaderboard["id"],
+                user_id=osu_user.id,
+                pp=0,
+                rank=0,
+                score_count=0,
+            )
+            for leaderboard in global_leaderboards
+        ]
+        Membership.objects.bulk_create(global_memberships)
+
+    # Update OsuUser fields
+    osu_user.username = username
+    osu_user.country = country_code
+    osu_user.join_date = join_date
+    osu_user.disabled = False
+
+    osu_user.save()
+
+    return osu_user
+
+
+def create_or_update_django_user(osu_user: OsuUser):
+    try:
+        # Try to get existing user from database
+        user = User.objects.get(username=osu_user.id)
+    except User.DoesNotExist:
+        # User doesn't exist yet, so let's create it
+        # We will use osu id as username to avoid name conflicts from name changes and such
+        #   not a great solution but it's fine for now (could do something like require email input)
+        user = User(username=osu_user.id)
+
+    user.osu_user = osu_user
+
+    user.save()
+
+    return user
+
+
 class OsuBackend:
     """
     Authenticate against osu! OAuth
@@ -39,49 +91,38 @@ class OsuBackend:
 
         data = response.json()
 
-        # create/update osu user object
-        with transaction.atomic():
-            try:
-                osu_user = OsuUser.objects.select_for_update().get(id=data["id"])
-            except OsuUser.DoesNotExist:
-                osu_user = OsuUser(id=data["id"])
+        osu_user = create_or_update_osu_user(
+            data["id"],
+            data["username"],
+            data["country"]["code"],
+            datetime.strptime(data["join_date"], "%Y-%m-%dT%H:%M:%S%z"),
+        )
 
-                # Create memberships with global leaderboards
-                global_leaderboards = Leaderboard.global_leaderboards.values("id")
-                # TODO: refactor this to be somewhere else. dont really like setting values to 0
-                global_memberships = [
-                    Membership(
-                        leaderboard_id=leaderboard["id"],
-                        user_id=osu_user.id,
-                        pp=0,
-                        rank=0,
-                        score_count=0,
-                    )
-                    for leaderboard in global_leaderboards
-                ]
-                Membership.objects.bulk_create(global_memberships)
+        user = create_or_update_django_user(osu_user)
 
-            # Update OsuUser fields
-            osu_user.username = data["username"]
-            osu_user.country = data["country"]["code"]
-            osu_user.join_date = datetime.strptime(
-                data["join_date"], "%Y-%m-%dT%H:%M:%S%z"
-            )
-            osu_user.disabled = False
+        return user
 
-            osu_user.save()
-
-        # create/find (auth) user, update and return
+    def get_user(self, user_id):
         try:
-            # Try to get existing user from database
-            user = User.objects.get(username=data["id"])
+            return User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            # User doesn't exist yet, so let's create it
-            # We will use osu id as username to avoid name conflicts from name changes and such
-            #   not a great solution but it's fine for now (could do something like require email input)
-            user = User(username=data["id"])
-        user.osu_user = osu_user
-        user.save()
+            return None
+
+
+class StubOsuBackend:
+    """
+    Pretend to authenticate against osu! OAuth
+    """
+
+    def authenticate(self, request, authorisation_code=None):
+        osu_user = create_or_update_osu_user(
+            5701575,
+            "Syrin",
+            "AU",
+            datetime.strptime("2015-01-20T20:45:29+00:00", "%Y-%m-%dT%H:%M:%S%z"),
+        )
+
+        user = create_or_update_django_user(osu_user)
 
         return user
 

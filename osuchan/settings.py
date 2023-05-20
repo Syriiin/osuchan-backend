@@ -31,6 +31,7 @@ class EnvSettings(BaseSettings):
     USE_DUMMY_ERROR_REPORTER: bool
     USE_DUMMY_DISCORD_WEBHOOK_SENDER: bool
     USE_STUB_OSU_API_V1: bool
+    USE_STUB_OSU_OAUTH: bool
 
 
 env_settings = EnvSettings()
@@ -121,8 +122,14 @@ WSGI_APPLICATION = "osuchan.wsgi.application"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "osuauth.backends.OsuBackend",
 ]
+
+USE_STUB_OSU_OAUTH = env_settings.USE_STUB_OSU_OAUTH
+
+if USE_STUB_OSU_OAUTH:
+    AUTHENTICATION_BACKENDS.append("osuauth.backends.StubOsuBackend")
+else:
+    AUTHENTICATION_BACKENDS.append("osuauth.backends.OsuBackend")
 
 AUTH_USER_MODEL = "osuauth.User"
 
