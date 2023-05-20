@@ -1,0 +1,40 @@
+[
+	{
+		"score_id": "3198452163",
+		"score": "137805806",
+		"username": "Syrin",
+		"maxcombo": "2757",
+		"count50": "0",
+		"count100": "14",
+		"count300": "1739",
+		"countmiss": "0",
+		"countkatu": "7",
+		"countgeki": "360",
+		"perfect": "0",
+		"enabled_mods": "104",
+		"user_id": "5701575",
+		"date": "2020-08-15 14:12:14",
+		"rank": "SH",
+		"pp": "395.281",
+		"replay_available": "1"
+	},
+	{
+		"score_id": "3137928237",
+		"score": "130045714",
+		"username": "Syrin",
+		"maxcombo": "2667",
+		"count50": "0",
+		"count100": "12",
+		"count300": "1740",
+		"countmiss": "1",
+		"countkatu": "11",
+		"countgeki": "355",
+		"perfect": "0",
+		"enabled_mods": "72",
+		"user_id": "5701575",
+		"date": "2020-06-27 15:09:37",
+		"rank": "A",
+		"pp": "378.161",
+		"replay_available": "0"
+	}
+]
