@@ -29,6 +29,7 @@ class EnvSettings(BaseSettings):
     OSU_API_V1_KEY: str
     DISCORD_WEBHOOK_URL_ERROR_LOG: str
     USE_DUMMY_ERROR_REPORTER: bool
+    USE_DUMMY_DISCORD_WEBHOOK_SENDER: bool
     USE_STUB_OSU_API_V1: bool
 
 
@@ -294,3 +295,15 @@ else:
     ERROR_REPORTER_CLASS = "common.error_reporter.DiscordErrorReporter"
 
 DISCORD_WEBHOOK_URL_ERROR_LOG = env_settings.DISCORD_WEBHOOK_URL_ERROR_LOG
+
+
+# Discord webhooks
+
+if env_settings.USE_DUMMY_DISCORD_WEBHOOK_SENDER:
+    DISCORD_WEBHOOK_SENDER_CLASS = (
+        "common.discord_webhook_sender.DummyDiscordWebhookSender"
+    )
+else:
+    DISCORD_WEBHOOK_SENDER_CLASS = (
+        "common.discord_webhook_sender.LiveDiscordWebhookSender"
+    )

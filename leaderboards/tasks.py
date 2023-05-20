@@ -1,10 +1,10 @@
 from datetime import datetime
 
-import httpx
 from celery import shared_task
 from django.conf import settings
 from django.db import transaction
 
+from common.discord_webhook_sender import DiscordWebhookSender
 from common.osu.enums import Gamemode, Mods
 from common.osu.utils import (
     calculate_pp_total,
@@ -138,9 +138,10 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
             f" {score.best_combo}/{score.beatmap.max_combo} {score.count_miss}x misses"
         )
 
-    httpx.post(
+    discord_webhook_sender = DiscordWebhookSender()
+    discord_webhook_sender.send(
         leaderboard.notification_discord_webhook_url,
-        json={
+        data={
             "content": None,
             "embeds": [
                 {
@@ -200,9 +201,10 @@ def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
 
     leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
 
-    httpx.post(
+    discord_webhook_sender = DiscordWebhookSender()
+    discord_webhook_sender.send(
         leaderboard.notification_discord_webhook_url,
-        json={
+        data={
             "content": None,
             "embeds": [
                 {
@@ -254,9 +256,10 @@ def send_leaderboard_podium_notification(leaderboard_id: int):
 
     leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
 
-    httpx.post(
+    discord_webhook_sender = DiscordWebhookSender()
+    discord_webhook_sender.send(
         leaderboard.notification_discord_webhook_url,
-        json={
+        data={
             "content": None,
             "embeds": [
                 {
