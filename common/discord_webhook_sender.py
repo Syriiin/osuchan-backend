@@ -9,7 +9,7 @@ from django.utils.module_loading import import_string
 class AbstractDiscordWebhookSender(ABC):
     @abstractmethod
     def send(self, webhook_url: str, data: dict):
-        pass
+        raise NotImplementedError()
 
 
 class LiveDiscordWebhookSender(AbstractDiscordWebhookSender):

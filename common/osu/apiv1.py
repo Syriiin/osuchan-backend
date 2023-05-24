@@ -14,23 +14,23 @@ BASE_URL = settings.OSU_API_V1_BASE_URL
 class AbstractOsuApiV1(ABC):
     @abstractmethod
     def get_beatmaps(self, beatmap_id=None):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def get_user(self, user_id, user_id_type="id", gamemode=None):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def get_scores(self, beatmap_id, user_id=None, user_id_type="id", gamemode=None):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def get_user_best(self, user_id, user_id_type="id", gamemode=None, limit=None):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def get_user_recent(self, user_id, user_id_type="id", gamemode=None, limit=None):
-        pass
+        raise NotImplementedError()
 
 
 class LiveOsuApiV1(AbstractOsuApiV1):

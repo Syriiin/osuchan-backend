@@ -12,7 +12,7 @@ class AbstractErrorReporter(ABC):
     def report_error(
         self, exception: Exception, title: str = "", extra_details: str = ""
     ):
-        pass
+        raise NotImplementedError()
 
 
 class DiscordErrorReporter(AbstractErrorReporter):

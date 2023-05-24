@@ -35,31 +35,31 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
 
     @abstractmethod
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def close(self):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def set_accuracy(self, count_100: int, count_50: int) -> None:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def set_misses(self, count_miss: int) -> None:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def set_combo(self, combo: int) -> None:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def set_mods(self, mods: Mods) -> None:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def _calculate() -> None:
-        pass
+        raise NotImplementedError()
 
     def calculate(self) -> None:
         try:
@@ -72,22 +72,22 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     @property
     @abstractmethod
     def difficulty_total(self) -> float:
-        pass
+        raise NotImplementedError()
 
     @property
     @abstractmethod
     def performance_total(self) -> float:
-        pass
+        raise NotImplementedError()
 
     @staticmethod
     @abstractmethod
     def engine() -> str:
-        pass
+        raise NotImplementedError()
 
     @staticmethod
     @abstractmethod
     def version() -> str:
-        pass
+        raise NotImplementedError()
 
 
 class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
