@@ -8,13 +8,15 @@ import rosu_pp_py
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from common.osu.enums import Mods
-
 OPPAIPY_VERSION = metadata.version("oppaipy")
 ROSUPP_VERSION = metadata.version("rosu_pp_py")
 
 
 class DifficultyCalculatorException(Exception):
+    pass
+
+
+class CalculatorClosedException(DifficultyCalculatorException):
     pass
 
 
@@ -29,6 +31,7 @@ class CalculationException(DifficultyCalculatorException):
 class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     def __init__(self, beatmap_path: str):
         self.beatmap_path = beatmap_path
+        self.closed = False
 
     def __enter__(self):
         return self
@@ -38,8 +41,12 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def close(self):
+    def _close(self):
         raise NotImplementedError()
+
+    def close(self):
+        self.closed = True
+        self._close()
 
     @abstractmethod
     def set_accuracy(self, count_100: int, count_50: int) -> None:
@@ -54,7 +61,7 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def set_mods(self, mods: Mods) -> None:
+    def set_mods(self, mods: int) -> None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -62,6 +69,11 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
         raise NotImplementedError()
 
     def calculate(self) -> None:
+        if self.closed:
+            raise CalculatorClosedException(
+                "calculate() cannot be called on a closed calculator"
+            )
+
         try:
             self._calculate()
         except Exception as e:
@@ -96,9 +108,9 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
         self.oppai_calc = oppaipy.Calculator(beatmap_path)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        self._close()
 
-    def close(self):
+    def _close(self):
         self.oppai_calc.close()
 
     def set_accuracy(self, count_100: int, count_50: int):
@@ -110,7 +122,7 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
     def set_combo(self, combo: int):
         self.oppai_calc.set_combo(combo)
 
-    def set_mods(self, mods: Mods):
+    def set_mods(self, mods: int):
         self.oppai_calc.set_mods(mods)
 
     def _calculate(self):
@@ -147,9 +159,9 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
         self.calc_result = None
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        self._close()
 
-    def close(self):
+    def _close(self):
         pass
 
     def set_accuracy(self, count_100: int, count_50: int):
@@ -162,7 +174,7 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
     def set_combo(self, combo: int):
         self.rosupp_calc.set_combo(combo)
 
-    def set_mods(self, mods: Mods):
+    def set_mods(self, mods: int):
         self.rosupp_calc.set_mods(mods)
 
     def _calculate(self):
