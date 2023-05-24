@@ -6,6 +6,10 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 
+class InvalidWebhookUrlError(ValueError):
+    pass
+
+
 class AbstractDiscordWebhookSender(ABC):
     @abstractmethod
     def send(self, webhook_url: str, data: dict):
@@ -14,7 +18,9 @@ class AbstractDiscordWebhookSender(ABC):
 
 class LiveDiscordWebhookSender(AbstractDiscordWebhookSender):
     def send(self, webhook_url: str, data: dict) -> None:
-        # TODO: do webhook url validation
+        if not webhook_url.startswith("https://discord.com/api/webhooks/"):
+            raise InvalidWebhookUrlError(webhook_url)
+
         httpx.post(
             webhook_url,
             json=data,
