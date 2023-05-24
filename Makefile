@@ -33,7 +33,10 @@ clean-dev:	## Cleans development environment
 	$(COMPOSE_APP_DEV) down --remove-orphans
 
 test:	## Runs test suite
-	$(COMPOSE_RUN_TOOLING) coverage run manage.py test
+	$(COMPOSE_RUN_TOOLING) coverage run -m pytest --ignore data
 
 test-coverage-report:	## Get test coverage report
 	$(COMPOSE_RUN_TOOLING) sh -c "coverage report -m && coverage html"
+
+shell:	## Opens python shell in django project
+	$(COMPOSE_RUN_TOOLING) python manage.py shell
