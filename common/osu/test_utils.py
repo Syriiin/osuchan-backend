@@ -13,12 +13,12 @@ from common.osu.utils import (
 )
 
 
-def test_calculate_pp_total(self):
+def test_calculate_pp_total():
     pp_values = [1322, 1260, 1158, 1023, 900, 800, 727, 603, 541, 408]
     assert calculate_pp_total(pp_values) == 7364.83140652393
 
 
-def test_get_accuracy(self):
+def test_get_accuracy():
     assert (
         get_accuracy(
             count_300=1739,
@@ -64,21 +64,21 @@ def test_get_accuracy(self):
     )
 
 
-def test_get_bpm(self):
+def test_get_bpm():
     assert get_bpm(180, Mods.NONE) == 180
     assert get_bpm(180, Mods.DOUBLETIME) == 270
     assert get_bpm(180, Mods.DOUBLETIME + Mods.NIGHTCORE) == 270
     assert get_bpm(180, Mods.HALFTIME) == 135
 
 
-def test_get_length(self):
+def test_get_length():
     assert get_length(90, Mods.NONE) == 90
     assert get_length(90, Mods.DOUBLETIME) == 60
     assert get_length(90, Mods.DOUBLETIME + Mods.NIGHTCORE) == 60
     assert get_length(90, Mods.HALFTIME) == 120
 
 
-def test_get_cs(self):
+def test_get_cs():
     assert get_cs(4, Mods.NONE, Gamemode.STANDARD) == 4
     assert get_cs(4, Mods.HARDROCK, Gamemode.STANDARD) == 5.2
     assert get_cs(4, Mods.EASY, Gamemode.STANDARD) == 2
@@ -94,7 +94,7 @@ def test_get_cs(self):
     assert get_cs(4, Mods.KEY_COOP, Gamemode.MANIA) == 4
 
 
-def test_get_ar(self):
+def test_get_ar():
     assert get_ar(9, Mods.NONE) == 9
     assert get_ar(9, Mods.DOUBLETIME) == 10.333333333333334
     assert get_ar(9, Mods.DOUBLETIME + Mods.NIGHTCORE) == 10.333333333333334
@@ -104,7 +104,7 @@ def test_get_ar(self):
     assert get_ar(5, Mods.EASY) == 2.5
 
 
-def test_get_od(self):
+def test_get_od():
     assert get_od(9, Mods.NONE) == 9
     assert get_od(9, Mods.DOUBLETIME) == 10.416666666666666
     assert get_od(9, Mods.DOUBLETIME + Mods.NIGHTCORE) == 10.416666666666666
@@ -114,21 +114,21 @@ def test_get_od(self):
     assert get_od(5, Mods.EASY) == 2.5
 
 
-def test_get_gamemode_from_gamemode_string(self):
+def test_get_gamemode_from_gamemode_string():
     assert get_gamemode_from_gamemode_string("osu") == Gamemode.STANDARD
     assert get_gamemode_from_gamemode_string("taiko") == Gamemode.TAIKO
     assert get_gamemode_from_gamemode_string("catch") == Gamemode.CATCH
     assert get_gamemode_from_gamemode_string("mania") == Gamemode.MANIA
 
 
-def test_get_gamemode_string_from_gamemode(self):
+def test_get_gamemode_string_from_gamemode():
     assert get_gamemode_string_from_gamemode(Gamemode.STANDARD) == "osu"
     assert get_gamemode_string_from_gamemode(Gamemode.TAIKO) == "taiko"
     assert get_gamemode_string_from_gamemode(Gamemode.CATCH) == "catch"
     assert get_gamemode_string_from_gamemode(Gamemode.MANIA) == "mania"
 
 
-def test_get_mods_string(self):
+def test_get_mods_string():
     assert (
         get_mods_string(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH) == "HD,SD,DT"
     )
