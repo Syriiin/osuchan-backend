@@ -22,7 +22,7 @@ class TestConverters:
         assert converter.to_url(Gamemode.MANIA) == "mania"
 
 
-class LeaderboardTypeConverterTestCase:
+class TestLeaderboardTypeConverter:
     @pytest.fixture
     def converter(self):
         return LeaderboardTypeConverter()
