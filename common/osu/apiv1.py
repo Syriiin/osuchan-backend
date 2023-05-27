@@ -7,9 +7,6 @@ import requests
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-API_KEY = settings.OSU_API_V1_KEY
-BASE_URL = settings.OSU_API_V1_BASE_URL
-
 
 class AbstractOsuApiV1(ABC):
     @abstractmethod
@@ -39,10 +36,12 @@ class LiveOsuApiV1(AbstractOsuApiV1):
         payload = {k: v for k, v in kwargs.items() if v is not None}
 
         # Add api key to payload
-        payload["k"] = API_KEY
+        payload["k"] = settings.OSU_API_V1_KEY
 
         # Return result of GET request
-        return requests.get(BASE_URL + endpoint_name, params=payload).json()
+        return requests.get(
+            settings.OSU_API_V1_BASE_URL + endpoint_name, params=payload
+        ).json()
 
     def get_beatmaps(self, beatmap_id=None):
         return self.__get_legacy_endpoint("get_beatmaps", b=beatmap_id)
