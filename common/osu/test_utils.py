@@ -1,3 +1,5 @@
+import pytest
+
 from common.osu.enums import Gamemode, Mods
 from common.osu.utils import (
     calculate_pp_total,
@@ -80,24 +82,33 @@ class TestUtils:
         assert get_cs(4, Mods.HARDROCK, Gamemode.STANDARD) == 5.2
         assert get_cs(4, Mods.EASY, Gamemode.STANDARD) == 2
         assert get_cs(4, Mods.KEY_1, Gamemode.MANIA) == 1
+        assert get_cs(4, Mods.KEY_2, Gamemode.MANIA) == 2
+        assert get_cs(4, Mods.KEY_3, Gamemode.MANIA) == 3
+        assert get_cs(4, Mods.KEY_4, Gamemode.MANIA) == 4
+        assert get_cs(4, Mods.KEY_5, Gamemode.MANIA) == 5
+        assert get_cs(4, Mods.KEY_6, Gamemode.MANIA) == 6
+        assert get_cs(4, Mods.KEY_7, Gamemode.MANIA) == 7
+        assert get_cs(4, Mods.KEY_8, Gamemode.MANIA) == 8
+        assert get_cs(4, Mods.KEY_9, Gamemode.MANIA) == 9
+        assert get_cs(4, Mods.KEY_COOP, Gamemode.MANIA) == 4
 
     def test_get_ar(self):
         assert get_ar(9, Mods.NONE) == 9
         assert get_ar(9, Mods.DOUBLETIME) == 10.333333333333334
         assert get_ar(9, Mods.DOUBLETIME + Mods.NIGHTCORE) == 10.333333333333334
-
         assert get_ar(9, Mods.HARDROCK) == 10
-        assert get_ar(9, Mods.HALFTIME) == 7.666666666666667
-        assert get_ar(9, Mods.EASY) == 4.5
+
+        assert get_ar(5, Mods.HALFTIME) == 1.6666666666666667
+        assert get_ar(5, Mods.EASY) == 2.5
 
     def test_get_od(self):
         assert get_od(9, Mods.NONE) == 9
         assert get_od(9, Mods.DOUBLETIME) == 10.416666666666666
         assert get_od(9, Mods.DOUBLETIME + Mods.NIGHTCORE) == 10.416666666666666
-
         assert get_od(9, Mods.HARDROCK) == 10
-        assert get_od(9, Mods.HALFTIME) == 7.583333333333333
-        assert get_od(9, Mods.EASY) == 4.5
+
+        assert get_od(5, Mods.HALFTIME) == 2.25
+        assert get_od(5, Mods.EASY) == 2.5
 
     def test_get_gamemode_from_gamemode_string(self):
         assert get_gamemode_from_gamemode_string("osu") == Gamemode.STANDARD
