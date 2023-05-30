@@ -19,8 +19,7 @@ class TestLastActiveMiddleware:
         return LastActiveMiddleware(get_response)
 
     @freeze_time("2023-01-01")
-    def test_call(self, middleware: LastActiveMiddleware):
-        rf = RequestFactory()
+    def test_call(self, rf: RequestFactory, middleware: LastActiveMiddleware):
         request = rf.get("/testpath")
         request.user = create_autospec(spec=User)
 

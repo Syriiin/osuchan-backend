@@ -15,17 +15,18 @@ class TestDiscordErrorLoggingMiddleware:
 
         return DiscordErrorLoggingMiddleware(get_response)
 
-    def test_call(self, middleware: DiscordErrorLoggingMiddleware):
-        rf = RequestFactory()
+    def test_call(self, rf: RequestFactory, middleware: DiscordErrorLoggingMiddleware):
         response = middleware(rf.get("/testpath"))
         assert response == "testresponse for /testpath"
 
     @patch("middleware.logging.ErrorReporter.report_error")
     def test_process_exception(
-        self, report_error_mock: Mock, middleware: DiscordErrorLoggingMiddleware
+        self,
+        report_error_mock: Mock,
+        rf: RequestFactory,
+        middleware: DiscordErrorLoggingMiddleware,
     ):
         test_exception = Exception("testexception")
-        rf = RequestFactory()
         middleware.process_exception(
             rf.post("/testpath", data={"testkey": "testvalue"}), test_exception
         )
