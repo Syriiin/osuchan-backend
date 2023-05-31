@@ -50,13 +50,9 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
 
     # Fetch user data from osu api
     if user_id:
-        user_data = osu_api_v1.get_user(
-            user_id, user_id_type="id", gamemode=int(gamemode)
-        )
+        user_data = osu_api_v1.get_user_by_id(user_id, gamemode)
     else:
-        user_data = osu_api_v1.get_user(
-            username, user_id_type="string", gamemode=int(gamemode)
-        )
+        user_data = osu_api_v1.get_user_by_name(username, gamemode)
 
     # Check for response
     if not user_data:
@@ -76,9 +72,7 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
             try:
                 osu_user = OsuUser.objects.select_for_update().get(username=username)
                 # Fetch from osu api with user id incase of name change
-                user_data = osu_api_v1.get_user(
-                    osu_user.id, user_id_type="id", gamemode=int(gamemode)
-                )
+                user_data = osu_api_v1.get_user_by_id(osu_user.id, gamemode)
 
                 if not user_data:
                     # Restricted
@@ -203,15 +197,13 @@ def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
     # Fetch user scores from osu api
     score_data_list = []
     score_data_list.extend(
-        osu_api_v1.get_user_best(user_stats.user_id, gamemode=int(gamemode), limit=100)
+        osu_api_v1.get_user_best_scores(user_stats.user_id, gamemode)
     )
     if gamemode == Gamemode.STANDARD:
         # If standard, check user recent because we will be able to calculate pp for those scores
         score_data_list.extend(
             score
-            for score in osu_api_v1.get_user_recent(
-                user_stats.user_id, gamemode=int(gamemode), limit=50
-            )
+            for score in osu_api_v1.get_user_recent_scores(user_stats.user_id, gamemode)
             if score["rank"] != "F"
         )
 

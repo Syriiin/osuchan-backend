@@ -55,8 +55,8 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     for beatmap_id in beatmap_ids:
         # Fetch score data from osu api
         osu_api_v1 = OsuApiV1()
-        score_data_list = osu_api_v1.get_scores(
-            beatmap_id=beatmap_id, user_id=user_id, gamemode=int(gamemode)
+        score_data_list = osu_api_v1.get_user_scores_for_beatmap(
+            beatmap_id, user_id, gamemode
         )
 
         # Add beatmap id to turn it into the common json format

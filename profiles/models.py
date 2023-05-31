@@ -133,9 +133,11 @@ class UserStats(models.Model):
             )
             if beatmap is None:
                 osu_api_v1 = OsuApiV1()
-                beatmap = Beatmap.from_data(
-                    osu_api_v1.get_beatmaps(beatmap_id=beatmap_id)[0]
-                )
+                beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
+                if beatmap_data is None:
+                    continue
+
+                beatmap = Beatmap.from_data(beatmap_data)
                 if (
                     beatmap.status
                     not in [

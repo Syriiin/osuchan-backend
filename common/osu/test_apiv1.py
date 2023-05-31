@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from common.osu.apiv1 import LiveOsuApiV1
+from common.osu.enums import Gamemode
 
 
 class TestLiveOsuApiV1:
@@ -24,59 +25,64 @@ class TestLiveOsuApiV1:
             return []
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
-    def test_get_beatmaps(
+    def test_get_beatmap(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
-        beatmap_data = osu_api_v1.get_beatmaps(beatmap_id=1)[0]
+        beatmap_data = osu_api_v1.get_beatmap(beatmap_id=1)
+        assert beatmap_data is not None
         assert beatmap_data["name"] == "test"
         get_mock.assert_called_once_with(
             "testbaseurl/get_beatmaps", params={"b": 1, "k": "testkey"}
         )
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
-    def test_get_user(
+    def test_get_user_by_id(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
-        user_data = osu_api_v1.get_user(user_id=1)
+        user_data = osu_api_v1.get_user_by_id(1, Gamemode.STANDARD)
         assert user_data is not None
         assert user_data["name"] == "test"
         get_mock.assert_called_once_with(
-            "testbaseurl/get_user", params={"u": 1, "type": "id", "k": "testkey"}
+            "testbaseurl/get_user",
+            params={"u": 1, "type": "id", "m": 0, "k": "testkey"},
         )
 
     @patch("common.osu.apiv1.requests.get", return_value=EmptyTestResponse())
-    def test_get_user_not_found(
+    def test_get_user_by_id_not_found(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
-        user_data = osu_api_v1.get_user(user_id=1)
+        user_data = osu_api_v1.get_user_by_id(1, Gamemode.STANDARD)
         assert user_data is None
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
-    def test_get_scores(
+    def test_get_user_scores_for_beatmap(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
-        score_data = osu_api_v1.get_scores(beatmap_id=1)[0]
+        score_data = osu_api_v1.get_user_scores_for_beatmap(1, 2, Gamemode.STANDARD)[0]
         assert score_data["name"] == "test"
         get_mock.assert_called_once_with(
-            "testbaseurl/get_scores", params={"b": 1, "type": "id", "k": "testkey"}
+            "testbaseurl/get_scores",
+            params={"b": 1, "u": 2, "type": "id", "m": 0, "k": "testkey"},
         )
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
-    def test_get_user_best(
+    def test_get_user_best_scores(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
-        score_data = osu_api_v1.get_user_best(user_id=1)[0]
+        score_data = osu_api_v1.get_user_best_scores(1, Gamemode.STANDARD)[0]
         assert score_data["name"] == "test"
         get_mock.assert_called_once_with(
-            "testbaseurl/get_user_best", params={"u": 1, "type": "id", "k": "testkey"}
+            "testbaseurl/get_user_best",
+            params={"u": 1, "type": "id", "m": 0, "limit": 100, "k": "testkey"},
         )
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
-    def test_get_user_recent(
+    def test_get_user_recent_scores(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
-        score_data = osu_api_v1.get_user_recent(user_id=1)[0]
+        score_data = osu_api_v1.get_user_recent_scores(1, Gamemode.STANDARD)[0]
         assert score_data["name"] == "test"
         get_mock.assert_called_once_with(
-            "testbaseurl/get_user_recent", params={"u": 1, "type": "id", "k": "testkey"}
+            "testbaseurl/get_user_recent",
+            params={"u": 1, "type": "id", "m": 0, "limit": 50, "k": "testkey"},
         )
