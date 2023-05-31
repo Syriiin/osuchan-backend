@@ -20,7 +20,7 @@ class AbstractOsuApiV1(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_user_by_name(self, user_id: int, gamemode: Gamemode) -> Union[dict, None]:
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> Union[dict, None]:
         raise NotImplementedError()
 
     @abstractmethod
@@ -65,10 +65,10 @@ class LiveOsuApiV1(AbstractOsuApiV1):
         except IndexError:
             return None
 
-    def get_user_by_name(self, user_id: int, gamemode: Gamemode) -> Union[dict, None]:
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> Union[dict, None]:
         try:
             return self.__get_legacy_endpoint(
-                "get_user", u=user_id, type="string", m=gamemode.value
+                "get_user", u=username, type="string", m=gamemode.value
             )[0]
         except IndexError:
             return None
@@ -93,28 +93,57 @@ class LiveOsuApiV1(AbstractOsuApiV1):
 
 class StubOsuApiV1(AbstractOsuApiV1):
     def __load_stub_data__(self, filename: str) -> dict:
-        with open(os.path.join(os.path.dirname(__file__), "stubdata", filename)) as fp:
+        with open(
+            os.path.join(os.path.dirname(__file__), "stubdata", "apiv1", filename)
+        ) as fp:
             return json.load(fp)
 
-        return self.__load_stub_data__("get_beatmaps.json")
     def get_beatmap(self, beatmap_id: int) -> Union[dict, None]:
+        try:
+            return self.__load_stub_data__("beatmaps.json")[str(beatmap_id)]
+        except KeyError:
+            return None
 
-        return self.__load_stub_data__("get_user.json")
     def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> Union[dict, None]:
+        try:
+            return self.__load_stub_data__("users.json")[str(user_id)][
+                str(gamemode.value)
+            ]
+        except KeyError:
+            return None
 
-        return self.__load_stub_data__("get_user.json")
     def get_user_by_name(self, username: str, gamemode: Gamemode):
+        users = self.__load_stub_data__("users.json")
+        for user in users:
+            if users[user]["username"].lower() == username.lower():
+                return users[user]
+        return None
 
     def get_user_scores_for_beatmap(
         self, beatmap_id: int, user_id: int, gamemode: Gamemode
-        return self.__load_stub_data__("get_scores.json")
     ) -> list[dict]:
+        try:
+            return self.__load_stub_data__("scores.json")[str(user_id)][
+                str(gamemode.value)
+            ][str(beatmap_id)]
+        except KeyError:
+            return []
 
-        return self.__load_stub_data__("get_user_best.json")
     def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
+        try:
+            return self.__load_stub_data__("user_best.json")[str(user_id)][
+                str(gamemode.value)
+            ]
+        except KeyError:
+            return []
 
-        return self.__load_stub_data__("get_user_recent.json")
     def get_user_recent_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
+        try:
+            return self.__load_stub_data__("user_recent.json")[str(user_id)][
+                str(gamemode.value)
+            ]
+        except KeyError:
+            return []
 
 
 OsuApiV1: Type[AbstractOsuApiV1] = import_string(settings.OSU_API_V1_CLASS)

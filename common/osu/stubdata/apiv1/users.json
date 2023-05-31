@@ -1,0 +1,28 @@
+{
+    "5701575": {
+        "0": {
+            "user_id": "5701575",
+            "username": "Syrin",
+            "join_date": "2015-01-20 20:45:29",
+            "count300": "21750771",
+            "count100": "1927948",
+            "count50": "177910",
+            "playcount": "133325",
+            "ranked_score": "25168567776",
+            "total_score": "135012824935",
+            "pp_rank": "15394",
+            "level": "101.081",
+            "pp_raw": "7348.46",
+            "accuracy": "99.0038833618164",
+            "count_rank_ss": "55",
+            "count_rank_ssh": "39",
+            "count_rank_s": "538",
+            "count_rank_sh": "861",
+            "count_rank_a": "1772",
+            "country": "AU",
+            "total_seconds_played": "6139860",
+            "pp_country_rank": "429",
+            "events": []
+        }
+    }
+}

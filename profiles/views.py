@@ -34,7 +34,7 @@ class GetUserStats(APIView):
 
         try:
             if user_id_type == "id":
-                user_stats = fetch_user(user_id=user_string, gamemode=gamemode)
+                user_stats = fetch_user(user_id=int(user_string), gamemode=gamemode)
             elif user_id_type == "username":
                 user_stats = fetch_user(username=user_string, gamemode=gamemode)
             else:

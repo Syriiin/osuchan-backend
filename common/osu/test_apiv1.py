@@ -55,6 +55,18 @@ class TestLiveOsuApiV1:
         assert user_data is None
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
+    def test_get_user_by_name(
+        self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
+    ):
+        user_data = osu_api_v1.get_user_by_name("testusername", Gamemode.STANDARD)
+        assert user_data is not None
+        assert user_data["name"] == "test"
+        get_mock.assert_called_once_with(
+            "testbaseurl/get_user",
+            params={"u": "testusername", "type": "string", "m": 0, "k": "testkey"},
+        )
+
+    @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
     def test_get_user_scores_for_beatmap(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):

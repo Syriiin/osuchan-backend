@@ -1,0 +1,57 @@
+{
+    "5701575": {
+        "0": [
+            {
+                "beatmap_id": "209276",
+                "score": "1881030",
+                "maxcombo": "294",
+                "count50": "0",
+                "count100": "14",
+                "count300": "337",
+                "countmiss": "10",
+                "countkatu": "7",
+                "countgeki": "57",
+                "perfect": "0",
+                "enabled_mods": "8",
+                "user_id": "5701575",
+                "date": "2023-05-31 12:02:04",
+                "rank": "F",
+                "score_id": null
+            },
+            {
+                "beatmap_id": "1117451",
+                "score": "2572332",
+                "maxcombo": "174",
+                "count50": "2",
+                "count100": "33",
+                "count300": "731",
+                "countmiss": "32",
+                "countkatu": "22",
+                "countgeki": "167",
+                "perfect": "0",
+                "enabled_mods": "8",
+                "user_id": "5701575",
+                "date": "2023-05-31 11:51:16",
+                "rank": "A",
+                "score_id": "4447266506"
+            },
+            {
+                "beatmap_id": "638017",
+                "score": "9393700",
+                "maxcombo": "707",
+                "count50": "1",
+                "count100": "58",
+                "count300": "537",
+                "countmiss": "1",
+                "countkatu": "29",
+                "countgeki": "104",
+                "perfect": "0",
+                "enabled_mods": "24",
+                "user_id": "5701575",
+                "date": "2023-05-30 13:24:21",
+                "rank": "B",
+                "score_id": "4446721166"
+            }
+        ]
+    }
+}
