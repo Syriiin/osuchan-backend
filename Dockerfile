@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster as python-base
+FROM python:3.9-slim-bullseye as python-base
 
 # Version env vars
 ENV POETRY_VERSION="1.4.2"
@@ -21,7 +21,7 @@ ENV PATH="${APPDEPS_PATH}/.venv/bin:${POETRY_PATH}/bin:$PATH"
 
 # Install tini
 RUN apt-get update
-RUN apt-get install tini
+RUN apt-get install -y tini
 
 # --------------------------------------------------------------------------------
 
@@ -39,6 +39,9 @@ RUN poetry install --no-dev
 # --------------------------------------------------------------------------------
 
 FROM python-base as development-tooling
+
+# Install additional tooling packages
+RUN apt-get install -y postgresql-client
 
 # Copy in poetry
 COPY --from=builder ${POETRY_PATH} ${POETRY_PATH}
