@@ -14,4 +14,4 @@ class TestScoreFilterPreset:
         )
 
     def test_magic_str(self, score_filter_preset):
-        assert str(score_filter_preset) == "1: Hidden"
+        assert str(score_filter_preset) == f"{score_filter_preset.user_id}: Hidden"

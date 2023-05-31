@@ -9,7 +9,7 @@ from profiles.models import OsuUser, ScoreFilter
 
 @pytest.fixture
 def user():
-    return User.objects.create(id=1, username="testusername")
+    return User.objects.create(username="testusername")
 
 
 @pytest.fixture
@@ -25,4 +25,4 @@ def osu_user():
 
 @pytest.fixture
 def score_filter():
-    return ScoreFilter.objects.create(id=1, required_mods=Mods.HIDDEN)
+    return ScoreFilter.objects.create(required_mods=Mods.HIDDEN)
