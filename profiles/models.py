@@ -285,7 +285,7 @@ class UserStats(models.Model):
         top_100_scores = unique_map_scores[
             :100
         ]  # score style limited to top 100 scores
-        weighting_value = sum(0.95**i for i in range(100))
+        weighting_value = sum(0.95**i for i in range(len(top_100_scores)))
         self.score_style_accuracy = (
             sum(score.accuracy * (0.95**i) for i, score in enumerate(top_100_scores))
             / weighting_value
