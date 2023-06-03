@@ -31,6 +31,7 @@ class EnvSettings(BaseSettings):
     USE_DUMMY_ERROR_REPORTER: bool
     USE_DUMMY_DISCORD_WEBHOOK_SENDER: bool
     USE_STUB_OSU_API_V1: bool
+    USE_STUB_BEATMAP_PROVIDER: bool
     USE_STUB_OSU_OAUTH: bool
 
 
@@ -285,6 +286,11 @@ else:
 
 BEATMAP_DL_URL = "https://osu.ppy.sh/osu/"
 BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "beatmaps")
+
+if env_settings.USE_STUB_BEATMAP_PROVIDER:
+    BEATMAP_PROVIDER_CLASS = "common.osu.beatmap_provider.StubBeatmapProvider"
+else:
+    BEATMAP_PROVIDER_CLASS = "common.osu.beatmap_provider.LiveBeatmapProvider"
 
 
 # Difficulty calculation
