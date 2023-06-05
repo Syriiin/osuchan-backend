@@ -1,11 +1,17 @@
 from datetime import datetime, timezone
 
 import pytest
+from rest_framework.test import APIRequestFactory
 
 from common.osu.enums import Gamemode, Mods
 from osuauth.models import User
 from profiles.enums import ScoreResult
 from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
+
+
+@pytest.fixture
+def arf():
+    return APIRequestFactory()
 
 
 @pytest.fixture

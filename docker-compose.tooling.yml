@@ -10,6 +10,9 @@ services:
       - config/active/django.env
     volumes:
       - .:/app
+      - ./data/beatmaps:/app/beatmaps
     user: ${UID}:${GID}
     depends_on:
-      - db    # required for eg. makemigrations
+      - db
+      - queue
+      - cache

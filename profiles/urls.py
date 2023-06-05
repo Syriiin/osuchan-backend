@@ -7,7 +7,11 @@ register_converter(GamemodeConverter, "gm")
 register_converter(LeaderboardTypeConverter, "lb_type")
 
 urlpatterns = [
-    path("users/<user_string>/stats/<gm:gamemode>", views.GetUserStats.as_view()),
+    path(
+        "users/<user_string>/stats/<gm:gamemode>",
+        views.GetUserStats.as_view(),
+        name="user-stats-detail",
+    ),
     path(
         "users/<int:user_id>/stats/<gm:gamemode>/scores", views.ListUserScores.as_view()
     ),
