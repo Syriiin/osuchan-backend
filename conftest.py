@@ -4,8 +4,10 @@ import pytest
 from rest_framework.test import APIRequestFactory
 
 from common.osu.enums import Gamemode, Mods
+from leaderboards.enums import LeaderboardAccessType
+from leaderboards.models import Leaderboard
 from osuauth.models import User
-from profiles.enums import ScoreResult
+from profiles.enums import ScoreResult, ScoreSet
 from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
 
 
@@ -127,3 +129,21 @@ def score(user_stats: UserStats, beatmap: Beatmap):
 @pytest.fixture
 def score_filter():
     return ScoreFilter.objects.create(required_mods=Mods.HIDDEN)
+
+
+@pytest.fixture
+def leaderboard(score_filter: ScoreFilter, osu_user):
+    return Leaderboard.objects.create(
+        gamemode=Gamemode.STANDARD,
+        score_set=ScoreSet.NORMAL,
+        access_type=LeaderboardAccessType.PUBLIC,
+        name="test leaderboard",
+        description="test leaderboard",
+        icon_url="",
+        allow_past_scores=True,
+        member_count=0,
+        archived=False,
+        notification_discord_webhook_url="",
+        score_filter=score_filter,
+        owner=osu_user,
+    )
