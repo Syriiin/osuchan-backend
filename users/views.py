@@ -14,7 +14,7 @@ from users.models import ScoreFilterPreset
 from users.serialisers import ScoreFilterPresetSerialiser
 
 
-class GetMe(APIView):
+class Me(APIView):
     """
     API Endpoint for checking the currently authenticated user
     """
@@ -37,7 +37,7 @@ class GetMe(APIView):
         return Response(serialiser.data)
 
 
-class ListScoreFilterPresets(APIView):
+class MeScoreFilterPresetList(APIView):
     """
     API endpoint for listing ScoreFilterPresets for the currently authenticated user
     """
@@ -99,7 +99,7 @@ class ListScoreFilterPresets(APIView):
         return Response(serialiser.data)
 
 
-class GetScoreFilterPreset(APIView):
+class MeScoreFilterPresetDetail(APIView):
     """
     API endpoint for getting ScoreFilterPresets for the currently authenticated user
     """
@@ -173,7 +173,7 @@ class GetScoreFilterPreset(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListInvites(APIView):
+class MeInviteList(APIView):
     """
     API endpoint for listing Invites for the currently authenticated user
     """

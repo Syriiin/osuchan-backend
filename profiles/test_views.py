@@ -6,14 +6,14 @@ from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory
 
 from common.osu.enums import Gamemode
-from profiles.views import GetUserStats
+from profiles.views import UserStatsDetail
 
 
 @pytest.mark.django_db
-class TestGetUserStats:
+class TestUserStatsDetail:
     @pytest.fixture
     def view(self):
-        return GetUserStats.as_view()
+        return UserStatsDetail.as_view()
 
     def test_get(self, arf: APIRequestFactory, view):
         kwargs = {"user_string": "5701575", "gamemode": Gamemode.STANDARD}
