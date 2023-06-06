@@ -23,7 +23,7 @@ from leaderboards.services import (
     create_membership,
     delete_membership,
 )
-from profiles.enums import ScoreSet
+from profiles.enums import AllowedBeatmapStatus, ScoreSet
 from profiles.models import Score, ScoreFilter
 from profiles.serialisers import BeatmapScoreSerialiser, UserScoreSerialiser
 from profiles.services import fetch_user
@@ -124,7 +124,9 @@ class LeaderboardList(APIView):
             icon_url=icon_url or "",
             allow_past_scores=request.data.get("allow_past_scores"),
             score_filter=ScoreFilter(
-                allowed_beatmap_status=score_filter_data.get("allowed_beatmap_status"),
+                allowed_beatmap_status=score_filter_data.get(
+                    "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY
+                ),
                 oldest_beatmap_date=score_filter_data.get("oldest_beatmap_date"),
                 newest_beatmap_date=score_filter_data.get("newest_beatmap_date"),
                 oldest_score_date=score_filter_data.get("oldest_score_date"),

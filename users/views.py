@@ -8,6 +8,7 @@ from common.osu.enums import Mods
 from leaderboards.models import Invite
 from leaderboards.serialisers import UserInviteSerialiser
 from osuauth.serialisers import UserSerialiser
+from profiles.enums import AllowedBeatmapStatus
 from profiles.models import ScoreFilter
 from profiles.services import fetch_user
 from users.models import ScoreFilterPreset
@@ -75,7 +76,9 @@ class MeScoreFilterPresetList(APIView):
             name=name,
             user=request.user,
             score_filter=ScoreFilter.objects.create(
-                allowed_beatmap_status=score_filter_data.get("allowed_beatmap_status"),
+                allowed_beatmap_status=score_filter_data.get(
+                    "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY
+                ),
                 oldest_beatmap_date=score_filter_data.get("oldest_beatmap_date"),
                 newest_beatmap_date=score_filter_data.get("newest_beatmap_date"),
                 oldest_score_date=score_filter_data.get("oldest_score_date"),
@@ -136,7 +139,7 @@ class MeScoreFilterPresetDetail(APIView):
 
         score_filter = preset.score_filter
         score_filter.allowed_beatmap_status = score_filter_data.get(
-            "allowed_beatmap_status"
+            "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY
         )
         score_filter.oldest_beatmap_date = score_filter_data.get("oldest_beatmap_date")
         score_filter.newest_beatmap_date = score_filter_data.get("newest_beatmap_date")
