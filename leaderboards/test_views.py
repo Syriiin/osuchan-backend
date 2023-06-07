@@ -243,10 +243,11 @@ class TestLeaderboardInviteList:
             "leaderboard_id": leaderboard.id,
         }
         url = reverse("leaderboard-invite-list", kwargs=kwargs)
-        request = arf.post(url, data={
-            "user_ids": [osu_user.id],
-            "message": "test message"
-        }, format="json")
+        request = arf.post(
+            url,
+            data={"user_ids": [osu_user.id], "message": "test message"},
+            format="json",
+        )
 
         force_authenticate(request, leaderboard.owner.user)
 

@@ -5,7 +5,7 @@ from rest_framework.test import APIRequestFactory
 
 from common.osu.enums import Gamemode, Mods
 from leaderboards.enums import LeaderboardAccessType
-from leaderboards.models import Invite, Leaderboard, Membership
+from leaderboards.models import Invite, Leaderboard
 from leaderboards.services import create_membership
 from osuauth.models import User
 from profiles.enums import ScoreResult, ScoreSet
@@ -161,6 +161,7 @@ def leaderboard(score_filter: ScoreFilter):
 @pytest.fixture
 def membership(leaderboard: Leaderboard, user: User):
     return create_membership(leaderboard.id, user.osu_user.id)
+
 
 @pytest.fixture
 def invite(leaderboard: Leaderboard, user: User):
