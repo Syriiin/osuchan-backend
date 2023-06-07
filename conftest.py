@@ -5,7 +5,8 @@ from rest_framework.test import APIRequestFactory
 
 from common.osu.enums import Gamemode, Mods
 from leaderboards.enums import LeaderboardAccessType
-from leaderboards.models import Leaderboard
+from leaderboards.models import Invite, Leaderboard, Membership
+from leaderboards.services import create_membership
 from osuauth.models import User
 from profiles.enums import ScoreResult, ScoreSet
 from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
@@ -17,11 +18,6 @@ def arf():
 
 
 @pytest.fixture
-def user():
-    return User.objects.create(username="testusername")
-
-
-@pytest.fixture
 def osu_user():
     return OsuUser.objects.create(
         id=1,
@@ -30,6 +26,11 @@ def osu_user():
         join_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
         disabled=False,
     )
+
+
+@pytest.fixture
+def user(osu_user: OsuUser):
+    return User.objects.create(username=osu_user.id, osu_user=osu_user)
 
 
 @pytest.fixture
@@ -132,7 +133,15 @@ def score_filter():
 
 
 @pytest.fixture
-def leaderboard(score_filter: ScoreFilter, osu_user):
+def leaderboard(score_filter: ScoreFilter):
+    osu_user = OsuUser.objects.create(
+        id=2,
+        username="TestLeaderboardOwner",
+        country="au",
+        join_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        disabled=False,
+    )
+    user = User.objects.create(username=osu_user.id, osu_user=osu_user)
     return Leaderboard.objects.create(
         gamemode=Gamemode.STANDARD,
         score_set=ScoreSet.NORMAL,
@@ -145,5 +154,16 @@ def leaderboard(score_filter: ScoreFilter, osu_user):
         archived=False,
         notification_discord_webhook_url="",
         score_filter=score_filter,
-        owner=osu_user,
+        owner=user.osu_user,
+    )
+
+
+@pytest.fixture
+def membership(leaderboard: Leaderboard, user: User):
+    return create_membership(leaderboard.id, user.osu_user.id)
+
+@pytest.fixture
+def invite(leaderboard: Leaderboard, user: User):
+    return Invite.objects.create(
+        message="test invite message", leaderboard=leaderboard, user=user.osu_user
     )
