@@ -495,7 +495,7 @@ class LeaderboardInviteDetail(APIView):
         try:
             leaderboard = Leaderboard.community_leaderboards.visible_to(
                 osu_user_id
-            ).get(leaderboard_id=leaderboard_id)
+            ).get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
