@@ -1,6 +1,7 @@
 {
-  "isort.args": [
-    "--profile",
-    "black"
-  ]
+  "isort.args": ["--profile", "black"],
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.formatting.provider": "none"
 }
