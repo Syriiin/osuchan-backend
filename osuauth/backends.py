@@ -109,6 +109,7 @@ class OsuBackend:
             return None
 
 
+# TODO: replace with stub of osu v2 api
 class StubOsuBackend:
     """
     Pretend to authenticate against osu! OAuth
