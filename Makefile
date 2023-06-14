@@ -1,4 +1,4 @@
-ENV ?=
+ENV ?= dev
 UID = $(shell id -u)
 GID = $(shell id -g)
 COMPOSE_RUN_TOOLING = UID=${UID} GID=${GID} docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.tooling.yml run --rm --build tooling

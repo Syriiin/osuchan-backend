@@ -5,21 +5,21 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - run: make env ENV=test
+      - run: make env
       - run: make checkformatting
 
   checkmigrations:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - run: make env ENV=test
+      - run: make env
       - run: make checkmigrations
 
   test:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - run: make env ENV=test
+      - run: make env
       - run: make test
       - run: make test-coverage-report
       - name: Upload test coverage report
