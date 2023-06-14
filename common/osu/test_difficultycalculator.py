@@ -20,9 +20,9 @@ class TestOppaiDifficultyCalculator:
     def test_version(self):
         assert OppaiDifficultyCalculator.version() == metadata.version("oppaipy")
 
-    def test_context_manager(self):
+    def test_context_manager(self, beatmap_provider):
         with OppaiDifficultyCalculator(
-            f"{Path(__file__).parent}/testdata/307618.osu"
+            beatmap_provider.get_beatmap_file(307618)
         ) as calc:
             calc.calculate()
             assert calc.difficulty_total == 4.200401306152344
@@ -35,8 +35,8 @@ class TestOppaiDifficultyCalculator:
                 calc.calculate()
 
     @pytest.fixture
-    def calc(self):
-        calc = OppaiDifficultyCalculator(f"{Path(__file__).parent}/testdata/307618.osu")
+    def calc(self, beatmap_provider):
+        calc = OppaiDifficultyCalculator(beatmap_provider.get_beatmap_file(307618))
         calc.calculate()
         return calc
 
@@ -83,9 +83,9 @@ class TestRosuppDifficultyCalculator:
     def test_version(self):
         assert RosuppDifficultyCalculator.version() == metadata.version("rosu-pp-py")
 
-    def test_context_manager(self):
+    def test_context_manager(self, beatmap_provider):
         with RosuppDifficultyCalculator(
-            f"{Path(__file__).parent}/testdata/307618.osu"
+            beatmap_provider.get_beatmap_file(307618)
         ) as calc:
             assert calc.difficulty_total == 4.457399442092882
 
@@ -94,10 +94,8 @@ class TestRosuppDifficultyCalculator:
             RosuppDifficultyCalculator(f"{Path(__file__).parent}/testdata/empty.osu")
 
     @pytest.fixture
-    def calc(self):
-        calc = RosuppDifficultyCalculator(
-            f"{Path(__file__).parent}/testdata/307618.osu"
-        )
+    def calc(self, beatmap_provider):
+        calc = RosuppDifficultyCalculator(beatmap_provider.get_beatmap_file(307618))
         calc.calculate()
         return calc
 
