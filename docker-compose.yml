@@ -1,31 +1,28 @@
-version: "3.9"
+# Services for running the application
 
 services:
   db:
     image: postgres:13
     volumes:
       - ./data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=osuchan
-      - POSTGRES_USER=osuchan
-      - POSTGRES_PASSWORD=osuchan
+    env_file:
+      - config/active/postgres.env
 
   queue:
     image: rabbitmq:3-management
-    environment:
-      - RABBITMQ_DEFAULT_USER=osuchan
-      - RABBITMQ_DEFAULT_PASS=osuchan
+    env_file:
+      - config/active/rabbitmq.env
 
   cache:
     image: memcached:1
 
   api:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     ports:
       - 8000:8000
+    env_file:
+      - config/active/django.env
     volumes:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
@@ -35,10 +32,10 @@ services:
 
   worker:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     command: celery --app osuchan worker --loglevel info
+    env_file:
+      - config/active/django.env
     volumes:
       - ./data/beatmaps:/app/beatmaps
     depends_on:
@@ -47,23 +44,21 @@ services:
 
   worker_monitor:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     command: celery --app osuchan flower
     ports:
       - 5555:5555
-    environment:
-      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
-      - FLOWER_BROKER_API=http://osuchan:osuchan@queue:15672/api/
+    env_file:
+      - config/active/django.env
+      - config/active/flower.env
     depends_on:
       - worker
 
   scheduler:
     image: osuchan-backend
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    build: .
     command: celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
+    env_file:
+      - config/active/django.env
     depends_on:
       - queue

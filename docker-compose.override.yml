@@ -1,4 +1,4 @@
-version: "3.9"
+# Development overrides for docker-compose.yml
 
 services:
   api:

@@ -1,4 +1,4 @@
-from common.error_report import report_error
+from common.error_reporter import ErrorReporter
 
 
 class DiscordErrorLoggingMiddleware:
@@ -13,7 +13,8 @@ class DiscordErrorLoggingMiddleware:
         if request.method == "POST":
             extra_details += f"POST data:\n{request.POST}\n\n"
 
-        report_error(
+        error_reporter = ErrorReporter()
+        error_reporter.report_error(
             exception,
             title=f"Exception occured in request `{request.method} {request.get_full_path()}`",
             extra_details=extra_details,

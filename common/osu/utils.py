@@ -1,8 +1,5 @@
 # osu! related utils
 
-from decimal import DivisionByZero
-from typing import Iterable
-
 from common.osu.enums import Gamemode, Mods
 
 
@@ -24,8 +21,6 @@ def get_accuracy(
     # Accuracy = (Total points of hits / (Total number of hits * 300) * 100)
     # Total points of hits = (Number of 50s * 50 + Number of 100s * 100 + Number of 300s * 300)
     # Total number of hits = (Number of misses + Number of 50's + Number of 100's + Number of 300's)
-
-    gamemode = Gamemode(gamemode)
 
     try:
         if gamemode == Gamemode.STANDARD:
@@ -83,6 +78,8 @@ def get_accuracy(
             )
 
             accuracy = (points / (total_hits * 300)) * 100
+        else:
+            raise ValueError(f"{gamemode} is not a valid gamemode")
 
         return accuracy
     except ZeroDivisionError:
@@ -149,14 +146,14 @@ def get_ar(ar, mods):
     def ar_to_ms(ar):  # convert ar to ms
         if ar <= 5:
             ms = -120 * ar + 1800
-        elif ar > 5:
+        else:
             ms = -150 * ar + 1950
         return ms
 
     def ms_to_ar(ms):  # convert ms to ar
         if ms >= 1200:
             ar = (ms - 1800) / -120
-        elif ms < 1200:
+        else:
             ar = (ms - 1950) / -150
         return ar
 
@@ -274,7 +271,7 @@ mod_short_names = {
 }
 
 
-def get_mods_string(mods: Mods):
+def get_mods_string(mods: int):
     mod_strings = []
     for mod in mod_short_names:
         if mod & mods:

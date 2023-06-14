@@ -1,12 +1,7 @@
-import os
-
 from celery import Celery
 from celery.signals import task_failure
 
-from common.error_report import report_error
-
-# set the default Django settings module for the 'celery' program.
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "osuchan.settings")
+from common.error_reporter import ErrorReporter
 
 app = Celery("osuchan")
 
@@ -39,7 +34,8 @@ def task_failure_handler(
     extra_details = f"args:\n{args}\n\n"
     extra_details += f"kwargs:\n{kwargs}\n\n"
 
-    report_error(
+    error_reporter = ErrorReporter()
+    error_reporter.report_error(
         exception,
         title=f"Exception occured in task `{sender.name}`",
         extra_details=extra_details,

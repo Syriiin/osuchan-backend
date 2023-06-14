@@ -1,0 +1,63 @@
+{
+    "5701575": {
+        "0": [
+            {
+                "beatmap_id": "307618",
+                "score_id": "3198452163",
+                "score": "137805806",
+                "maxcombo": "2757",
+                "count50": "0",
+                "count100": "14",
+                "count300": "1739",
+                "countmiss": "0",
+                "countkatu": "7",
+                "countgeki": "360",
+                "perfect": "0",
+                "enabled_mods": "104",
+                "user_id": "5701575",
+                "date": "2020-08-15 14:12:14",
+                "rank": "SH",
+                "pp": "395.281",
+                "replay_available": "1"
+            },
+            {
+                "beatmap_id": "264364",
+                "score_id": "3198494583",
+                "score": "4543964",
+                "maxcombo": "448",
+                "count50": "0",
+                "count100": "1",
+                "count300": "346",
+                "countmiss": "0",
+                "countkatu": "1",
+                "countgeki": "73",
+                "perfect": "1",
+                "enabled_mods": "104",
+                "user_id": "5701575",
+                "date": "2020-08-15 14:50:41",
+                "rank": "SH",
+                "pp": "381.606",
+                "replay_available": "1"
+            },
+            {
+                "beatmap_id": "323769",
+                "score_id": "3519393753",
+                "score": "10001459",
+                "maxcombo": "645",
+                "count50": "0",
+                "count100": "0",
+                "count300": "540",
+                "countmiss": "0",
+                "countkatu": "0",
+                "countgeki": "101",
+                "perfect": "1",
+                "enabled_mods": "104",
+                "user_id": "5701575",
+                "date": "2021-03-08 14:05:52",
+                "rank": "XH",
+                "pp": "371.204",
+                "replay_available": "1"
+            }
+        ]
+    }
+}

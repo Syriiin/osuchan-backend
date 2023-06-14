@@ -23,13 +23,13 @@ from leaderboards.services import (
     create_membership,
     delete_membership,
 )
-from profiles.enums import ScoreSet
+from profiles.enums import AllowedBeatmapStatus, ScoreSet
 from profiles.models import Score, ScoreFilter
 from profiles.serialisers import BeatmapScoreSerialiser, UserScoreSerialiser
 from profiles.services import fetch_user
 
 
-class ListLeaderboards(APIView):
+class LeaderboardList(APIView):
     """
     API endpoint for listing Leaderboards
     """
@@ -124,7 +124,9 @@ class ListLeaderboards(APIView):
             icon_url=icon_url or "",
             allow_past_scores=request.data.get("allow_past_scores"),
             score_filter=ScoreFilter(
-                allowed_beatmap_status=score_filter_data.get("allowed_beatmap_status"),
+                allowed_beatmap_status=score_filter_data.get(
+                    "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY
+                ),
                 oldest_beatmap_date=score_filter_data.get("oldest_beatmap_date"),
                 newest_beatmap_date=score_filter_data.get("newest_beatmap_date"),
                 oldest_score_date=score_filter_data.get("oldest_score_date"),
@@ -151,7 +153,7 @@ class ListLeaderboards(APIView):
         return Response(serialiser.data)
 
 
-class GetLeaderboard(APIView):
+class LeaderboardDetail(APIView):
     """
     API endpoint for specific Leaderboards
     """
@@ -256,7 +258,7 @@ class GetLeaderboard(APIView):
         return Response(serialiser.data)
 
 
-class ListLeaderboardScores(APIView):
+class LeaderboardScoreList(APIView):
     """
     API endpoint for listing scores from all members of a leaderboard
     """
@@ -298,7 +300,7 @@ class ListLeaderboardScores(APIView):
             return self._get(request, leaderboard_type, gamemode, leaderboard_id)
 
 
-class ListLeaderboardMembers(APIView):
+class LeaderboardMemberList(APIView):
     """
     API endpoint for listing Memberships
     """
@@ -346,7 +348,7 @@ class ListLeaderboardMembers(APIView):
         return Response(serialiser.data)
 
 
-class GetLeaderboardMember(APIView):
+class LeaderboardMemberDetail(APIView):
     """
     API endpoint for specific Members
     """
@@ -399,7 +401,7 @@ class GetLeaderboardMember(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListLeaderboardInvites(APIView):
+class LeaderboardInviteList(APIView):
     """
     API endpoint for listing Invites for a Leaderboard
     """
@@ -473,7 +475,7 @@ class ListLeaderboardInvites(APIView):
         return Response(serialiser.data)
 
 
-class GetLeaderboardInvite(APIView):
+class LeaderboardInviteDetail(APIView):
     """
     API endpoint for getting specific Invites
     """
@@ -493,7 +495,7 @@ class GetLeaderboardInvite(APIView):
         try:
             leaderboard = Leaderboard.community_leaderboards.visible_to(
                 osu_user_id
-            ).get(leaderboard_id=leaderboard_id)
+            ).get(id=leaderboard_id)
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
@@ -531,7 +533,7 @@ class GetLeaderboardInvite(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ListLeaderboardBeatmapScores(APIView):
+class LeaderboardBeatmapScoreList(APIView):
     """
     API endpoint for listing Scores on Beatmaps
     """
@@ -565,7 +567,7 @@ class ListLeaderboardBeatmapScores(APIView):
         return Response(serialiser.data)
 
 
-class ListLeaderboardMemberScores(APIView):
+class LeaderboardMemberScoreList(APIView):
     """
     API endpoint for listing Scores on Memberships
     """

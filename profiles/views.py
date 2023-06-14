@@ -19,7 +19,7 @@ from profiles.serialisers import (
 from profiles.services import fetch_scores, fetch_user
 
 
-class GetUserStats(APIView):
+class UserStatsDetail(APIView):
     """
     API endpoint for getting UserStats
     """
@@ -34,7 +34,7 @@ class GetUserStats(APIView):
 
         try:
             if user_id_type == "id":
-                user_stats = fetch_user(user_id=user_string, gamemode=gamemode)
+                user_stats = fetch_user(user_id=int(user_string), gamemode=gamemode)
             elif user_id_type == "username":
                 user_stats = fetch_user(username=user_string, gamemode=gamemode)
             else:
@@ -53,7 +53,7 @@ class GetUserStats(APIView):
         return Response(serialiser.data)
 
 
-class GetBeatmap(APIView):
+class BeatmapDetail(APIView):
     """
     API endpoint for getting Beatmaps
     """
@@ -74,7 +74,7 @@ class GetBeatmap(APIView):
         return Response(serialiser.data)
 
 
-class ListUserScores(APIView):
+class UserScoreList(APIView):
     """
     API endpoint for Scores
     """
@@ -147,7 +147,7 @@ class ListUserScores(APIView):
         return Response(serialiser.data)
 
 
-class ListUserMemberships(APIView):
+class UserMembershipList(APIView):
     """
     API endpoint for listing Memberships for an OsuUser
     """

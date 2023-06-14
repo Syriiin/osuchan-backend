@@ -65,4 +65,5 @@ static/
 data/
 
 # Env vars
-.env
+config/*
+!config/dev
