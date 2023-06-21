@@ -84,9 +84,6 @@ COPY --from=builder ${APPDEPS_PATH} ${APPDEPS_PATH}
 WORKDIR ${APP_PATH}
 COPY . ./
 
-# Build app
-RUN python manage.py collectstatic --no-input
-
 # Run production server
 EXPOSE 8000
 ENTRYPOINT [ "tini", "--" ]

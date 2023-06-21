@@ -44,6 +44,9 @@ test:	## Runs test suite
 test-coverage-report:	## Get test coverage report
 	$(COMPOSE_RUN_TOOLING) sh -c "coverage report -m && coverage html"
 
+collectstatic:	## Collect static files
+	$(COMPOSE_RUN_TOOLING) python manage.py collectstatic --no-input
+
 build-dev:	## Builds development docker images
 	$(COMPOSE_APP_DEV) build
 
