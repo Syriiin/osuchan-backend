@@ -26,6 +26,9 @@ checkmigrations:	## Checks for missing migrations
 makemigrations:	## Generates migrations
 	$(COMPOSE_RUN_TOOLING) python manage.py makemigrations
 
+migrate:	## Runs migrations
+	$(COMPOSE_RUN_TOOLING) python manage.py migrate
+
 shell:	## Opens python shell in django project
 	$(COMPOSE_RUN_TOOLING) python manage.py shell
 
