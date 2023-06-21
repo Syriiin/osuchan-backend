@@ -4,6 +4,7 @@ Django settings for osuchan
 
 import os
 
+from celery.schedules import crontab
 from pydantic import BaseSettings
 
 
@@ -187,7 +188,12 @@ CELERY_BROKER_URL = f"amqp://{env_settings.CELERY_USER}:{env_settings.CELERY_PAS
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
-CELERY_BEAT_SCHEDULE = {}
+CELERY_BEAT_SCHEDULE = {
+    "update-top-global-members-every-day": {
+        "task": "profiles.tasks.dispatch_update_all_global_leaderboard_top_members",
+        "schedule": crontab(minute=0, hour=0),  # midnight UTC
+    },
+}
 
 
 # Logging
