@@ -5,7 +5,7 @@ services:
   tooling:
     build:
       context: .
-      target: development-tooling
+      target: tooling
     env_file:
       - config/active/django.env
     volumes:

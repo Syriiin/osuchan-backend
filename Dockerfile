@@ -38,7 +38,7 @@ RUN poetry install --no-dev
 
 # --------------------------------------------------------------------------------
 
-FROM python-base as development-tooling
+FROM python-base as tooling
 
 # Install additional tooling packages
 RUN apt-get install -y postgresql-client
@@ -62,7 +62,7 @@ USER appuser
 
 # --------------------------------------------------------------------------------
 
-FROM development-tooling as development-runner
+FROM tooling as development-runner
 
 # Run development server
 EXPOSE 8000
