@@ -47,9 +47,12 @@ class LiveOsuApiV1(AbstractOsuApiV1):
         payload["k"] = settings.OSU_API_V1_KEY
 
         # Return result of GET request
-        return requests.get(
+        response = requests.get(
             settings.OSU_API_V1_BASE_URL + endpoint_name, params=payload
-        ).json()
+        )
+        response.raise_for_status()
+
+        return response.json()
 
     def get_beatmap(self, beatmap_id: int) -> Union[dict, None]:
         try:

@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from requests import HTTPError
 
 from common.osu.apiv1 import LiveOsuApiV1
 from common.osu.enums import Gamemode
@@ -20,9 +21,16 @@ class TestLiveOsuApiV1:
         def json(self):
             return [{"name": "test"}]
 
-    class EmptyTestResponse:
+        def raise_for_status(self):
+            pass
+
+    class EmptyTestResponse(TestResponse):
         def json(self):
             return []
+
+    class ErrorTestResponse(TestResponse):
+        def raise_for_status(self):
+            raise HTTPError()
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
     def test_get_beatmap(
@@ -53,6 +61,13 @@ class TestLiveOsuApiV1:
     ):
         user_data = osu_api_v1.get_user_by_id(1, Gamemode.STANDARD)
         assert user_data is None
+
+    @patch("common.osu.apiv1.requests.get", return_value=ErrorTestResponse())
+    def test_get_user_by_id_error(
+        self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
+    ):
+        with pytest.raises(HTTPError):
+            osu_api_v1.get_user_by_id(1, Gamemode.STANDARD)
 
     @patch("common.osu.apiv1.requests.get", return_value=TestResponse())
     def test_get_user_by_name(

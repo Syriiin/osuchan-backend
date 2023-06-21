@@ -79,6 +79,8 @@ class OsuBackend:
             },
         )
 
+        response.raise_for_status()
+
         token_data = response.json()
 
         # Use new access token to get details about the osu user we are authing
