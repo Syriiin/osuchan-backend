@@ -9,7 +9,7 @@ from pydantic import BaseSettings
 
 class EnvSettings(BaseSettings):
     SECRET_KEY: str
-    DEBUG: str
+    DEBUG: bool
     ALLOWED_HOSTS: list[str]
     FRONTEND_URL: str
     POSTGRES_DB_NAME: str
