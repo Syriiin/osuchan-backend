@@ -38,13 +38,17 @@ def dispatch_update_community_leaderboard_members(
 
 @shared_task
 @transaction.atomic
-def update_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
+def update_user(user_id=None, username=None, gamemode: int = Gamemode.STANDARD):
     """
     Fetch and add user with top 100 scores
     """
     # Check for invalid inputs
     if not user_id and not username:
         raise ValueError("Must pass either username or user_id")
+
+    # Ensure we actually have a gamemode here
+    # TODO: remove this when typechecking is more strict
+    gamemode = Gamemode(gamemode)
 
     osu_api_v1 = OsuApiV1()
 
