@@ -17,7 +17,6 @@ services:
     image: memcached:1
 
   api:
-    image: osuchan-backend
     build: .
     ports:
       - 8000:8000
@@ -31,7 +30,6 @@ services:
       - cache
 
   worker:
-    image: osuchan-backend
     build: .
     command: celery --app osuchan worker --loglevel info
     env_file:
@@ -43,7 +41,6 @@ services:
       - queue
 
   worker_monitor:
-    image: osuchan-backend
     build: .
     command: celery --app osuchan flower
     ports:
@@ -55,7 +52,6 @@ services:
       - worker
 
   scheduler:
-    image: osuchan-backend
     build: .
     command: celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
     env_file:
