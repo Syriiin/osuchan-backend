@@ -117,10 +117,17 @@ class StubOsuApiV1(AbstractOsuApiV1):
 
     def get_user_by_name(self, username: str, gamemode: Gamemode):
         users = self.__load_stub_data__("users.json")
-        for user in users:
-            if users[user]["username"].lower() == username.lower():
-                return users[user]
-        return None
+
+        gamemode_str = str(gamemode.value)
+
+        try:
+            return next(
+                users[user][gamemode_str]
+                for user in users
+                if users[user][gamemode_str]["username"].lower() == username.lower()
+            )
+        except (KeyError, StopIteration):
+            return None
 
     def get_user_scores_for_beatmap(
         self, beatmap_id: int, user_id: int, gamemode: Gamemode

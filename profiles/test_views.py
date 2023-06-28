@@ -40,6 +40,19 @@ class TestUserStatsDetail:
         assert response.status_code == HTTPStatus.OK
         assert response.data["user"]["username"] == "Syrin"
 
+    def test_get_by_username(self, arf: APIRequestFactory, view):
+        kwargs = {"user_string": "syrin", "gamemode": Gamemode.STANDARD}
+        url = reverse("user-stats-detail", kwargs=kwargs)
+        request = arf.get(
+            url,
+            data={"user_id_type": "username"},
+        )
+
+        response: Response = view(request, **kwargs)
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.data["user"]["username"] == "Syrin"
+
 
 @pytest.mark.django_db
 class TestUserScoreList:
