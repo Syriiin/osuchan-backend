@@ -1,6 +1,10 @@
 # Development overrides for docker-compose.yml
 
 services:
+  db:
+    ports:
+      - 5432:5432
+
   api:
     build:
       target: development-runner
