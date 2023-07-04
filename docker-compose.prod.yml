@@ -1,18 +1,31 @@
 # Production overrides for docker-compose.yml
 
 services:
+  db:
+    restart: always
+
+  queue:
+    restart: always
+
+  cache:
+    restart: always
+
   api:
     build:
       target: production-runner
+    restart: always
 
   worker:
     build:
       target: production-runner
+    restart: always
 
   worker_monitor:
     build:
       target: production-runner
+    restart: always
 
   scheduler:
     build:
       target: production-runner
+    restart: always
