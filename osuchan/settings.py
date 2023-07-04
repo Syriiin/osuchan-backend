@@ -5,7 +5,7 @@ Django settings for osuchan
 import os
 
 from celery.schedules import crontab
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class EnvSettings(BaseSettings):

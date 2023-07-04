@@ -20,7 +20,7 @@ requests = "^2.25.1"
 rosu-pp-py = "^0.9.3"
 tqdm = "^4.64.0"
 flower = "^1.1.0"
-pydantic = "^1.10.7"
+pydantic-settings = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
