@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("profiles", "0010_scorefilter"),
         ("leaderboards", "0006_auto_20190721_1932"),

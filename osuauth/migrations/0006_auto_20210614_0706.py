@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("osuauth", "0005_delete_scorefilterpreset"),
     ]

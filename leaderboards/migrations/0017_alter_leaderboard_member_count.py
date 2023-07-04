@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("leaderboards", "0016_leaderboard_notification_discord_webhook_url"),
     ]

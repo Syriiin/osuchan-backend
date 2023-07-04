@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("leaderboards", "0004_leaderboard_icon_url"),
     ]

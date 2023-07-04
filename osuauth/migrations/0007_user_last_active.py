@@ -12,7 +12,6 @@ def set_last_active(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("osuauth", "0006_auto_20210614_0706"),
     ]

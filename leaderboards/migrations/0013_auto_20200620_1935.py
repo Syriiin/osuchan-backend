@@ -36,7 +36,6 @@ def set_score_count(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("leaderboards", "0012_auto_20200617_1918"),
     ]

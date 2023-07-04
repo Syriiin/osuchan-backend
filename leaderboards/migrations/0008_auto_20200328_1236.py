@@ -40,7 +40,6 @@ def delete_score_filters(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("profiles", "0010_scorefilter"),
         ("leaderboards", "0007_auto_20200328_1236"),
