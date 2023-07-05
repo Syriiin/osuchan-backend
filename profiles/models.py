@@ -267,6 +267,17 @@ class UserStats(models.Model):
             *database_scores,
         ]
 
+        # if the user has no scores, zero out the fields
+        if len(scores) == 0:
+            self.extra_pp = 0
+            self.score_style_accuracy = 0
+            self.score_style_bpm = 0
+            self.score_style_length = 0
+            self.score_style_cs = 0
+            self.score_style_ar = 0
+            self.score_style_od = 0
+            return [], []
+
         # Sort all scores by pp
         scores.sort(key=lambda s: s.performance_total, reverse=True)
 
