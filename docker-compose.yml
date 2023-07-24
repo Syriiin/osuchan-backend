@@ -1,5 +1,10 @@
 # Services for running the application
 
+volumes:
+  queue-data:
+  prometheus-data:
+  grafana-data:
+
 services:
   db:
     image: postgres:13
@@ -12,6 +17,8 @@ services:
     image: rabbitmq:3-management
     env_file:
       - config/active/rabbitmq.env
+    volumes:
+      - queue-data:/var/lib/rabbitmq:rw
 
   cache:
     image: memcached:1
@@ -58,3 +65,18 @@ services:
       - config/active/django.env
     depends_on:
       - queue
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus:rw
+
+  grafana:
+    image: grafana/grafana:10.0.2
+    ports:
+      - 3001:3000
+    volumes:
+      - grafana-data:/var/lib/grafana:rw
