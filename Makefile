@@ -9,7 +9,8 @@ help:	## Show this help
 
 env: 	## Switch to an environment config
 	@mkdir -p config/active
-	cp config/${ENV}/*.env config/active/
+	rm -rf config/active/*
+	cp -r config/${ENV}/* config/active/
 
 bash:	## Opens bash shell in tooling container
 	$(COMPOSE_RUN_TOOLING) bash

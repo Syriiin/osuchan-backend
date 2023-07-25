@@ -54,7 +54,9 @@ SECRET_KEY = env_settings.SECRET_KEY
 DEBUG = env_settings.DEBUG
 
 # NOTE: must not be empty when DEBUG is False
-ALLOWED_HOSTS = env_settings.ALLOWED_HOSTS
+ALLOWED_HOSTS = [
+    "api",  # hostname inside the docker network
+] + env_settings.ALLOWED_HOSTS
 
 CSRF_TRUSTED_ORIGINS = [env_settings.FRONTEND_URL]
 
@@ -81,6 +83,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "debug_toolbar",  # django debug toolbar
+    "django_prometheus",
     "osuauth.apps.OsuauthConfig",  # osu auth and accounts
     "users.apps.UsersConfig",  # api for users
     "profiles.apps.ProfilesConfig",  # api for profiles
@@ -88,6 +91,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -98,6 +102,7 @@ MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "middleware.logging.DiscordErrorLoggingMiddleware",
     "osuauth.middleware.LastActiveMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "osuchan.urls"
@@ -162,7 +167,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django_prometheus.db.backends.postgresql",
         "NAME": env_settings.POSTGRES_DB_NAME,
         "USER": env_settings.POSTGRES_DB_USER,
         "PASSWORD": env_settings.POSTGRES_DB_PASSWORD,
@@ -177,7 +182,7 @@ DATABASES = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "BACKEND": "django_prometheus.cache.backends.memcached.PyMemcacheCache",
         "LOCATION": f"{env_settings.MEMCACHED_HOST}:{env_settings.MEMCACHED_PORT}",
     }
 }

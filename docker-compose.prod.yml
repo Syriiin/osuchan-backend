@@ -29,3 +29,9 @@ services:
     build:
       target: production-runner
     restart: always
+
+  prometheus:
+    restart: always
+
+  grafana:
+    restart: always
