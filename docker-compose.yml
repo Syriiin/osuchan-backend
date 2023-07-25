@@ -5,6 +5,10 @@ volumes:
   prometheus-data:
   grafana-data:
 
+secrets:
+  grafana_admin_password:
+    file: ./config/active/secrets/grafana_admin_password
+
 services:
   db:
     image: postgres:13
@@ -68,8 +72,6 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.45.0
-    ports:
-      - 9090:9090
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus:rw
@@ -78,5 +80,9 @@ services:
     image: grafana/grafana:10.0.2
     ports:
       - 3001:3000
+    env_file:
+      - ./config/active/grafana.env
     volumes:
       - grafana-data:/var/lib/grafana:rw
+    secrets:
+      - grafana_admin_password
