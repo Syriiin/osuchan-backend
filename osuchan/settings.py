@@ -205,12 +205,12 @@ CELERY_BEAT_SCHEDULE = {
     "update-coe-top-members-every-10-minutes": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
         "schedule": 60*10,
-        "args": (769, 50)
+        "args": (769, 50),
     },
     "update-coe-all-members-every-hour": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
         "schedule": 60*60,
-        "args": (769, 1000)
+        "args": (769, 1000),
     },
 }
 
