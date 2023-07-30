@@ -200,6 +200,18 @@ CELERY_BEAT_SCHEDULE = {
         "task": "profiles.tasks.dispatch_update_all_global_leaderboard_top_members",
         "schedule": crontab(minute=0, hour=0),  # midnight UTC
     },
+    # TEMP: just here for coe
+    # TODO: remove in favour of generic solution
+    "update-coe-top-members-every-10-minutes": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": 60*10,
+        "args": (769, 50)
+    },
+    "update-coe-all-members-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": 60*60,
+        "args": (769, 1000)
+    },
 }
 
 
