@@ -270,6 +270,10 @@ class LeaderboardScoreList(APIView):
             request.user.osu_user_id if request.user.is_authenticated else None
         )
 
+        limit = parse_int_or_none(request.query_params.get("limit", 5))
+        if limit > 100:
+            limit = 100
+
         if leaderboard_type == "global":
             leaderboards = Leaderboard.global_leaderboards
         elif leaderboard_type == "community":
@@ -288,7 +292,7 @@ class LeaderboardScoreList(APIView):
             .order_by("-performance_total", "date")
             .get_score_set(score_set=leaderboard.score_set)
         )
-        serialiser = LeaderboardScoreSerialiser(scores[:5], many=True)
+        serialiser = LeaderboardScoreSerialiser(scores[:limit], many=True)
         return Response(serialiser.data)
 
     # TODO: get rid of this cache by optimising
