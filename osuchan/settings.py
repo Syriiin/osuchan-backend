@@ -214,7 +214,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "send-coe-podium-every-day": {
         "task": "leaderboards.tasks.send_leaderboard_podium_notification",
-        "schedule": crontab(minute=0, hour=16), # 18:00 netherlands time
+        "schedule": crontab(minute=0, hour=16),  # 18:00 netherlands time
         "args": (769,),
     },
 }
