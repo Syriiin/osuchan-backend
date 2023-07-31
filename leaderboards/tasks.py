@@ -146,7 +146,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
             "embeds": [
                 {
                     "title": f"New pp record! ({score.performance_total:.0f}pp by {score.user_stats.user.username})",
-                    "description": f"[{leaderboard_link}]({leaderboard_link})",
+                    "description": f"{leaderboard_link}",
                     "url": f"{leaderboard_link}",
                     "color": 3816140,  # #3A3ACC
                     "fields": [
@@ -209,7 +209,7 @@ def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
             "embeds": [
                 {
                     "title": f"{membership.user.username} has reached #1!",
-                    "description": f"[{leaderboard_link}]({leaderboard_link})",
+                    "description": f"{leaderboard_link}",
                     "url": f"{leaderboard_link}",
                     "color": 3816140,  # #3A3ACC
                     "fields": [
@@ -264,7 +264,7 @@ def send_leaderboard_podium_notification(leaderboard_id: int):
             "embeds": [
                 {
                     "title": f"{leaderboard.name} current podium rankings",
-                    "description": f"[{leaderboard_link}]({leaderboard_link})",
+                    "description": f"{leaderboard_link}",
                     "url": f"{leaderboard_link}",
                     "color": 3816140,  # #3A3ACC
                     "fields": [
