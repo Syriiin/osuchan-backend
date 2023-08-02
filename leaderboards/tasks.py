@@ -136,7 +136,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
 
     # TODO: fix this for nochoke leaderboards. pp will display wrong
     score_details = f"**{score.performance_total:.0f}pp** ({score.accuracy:.2f}%)"
-    if score.result is None and score.result & ScoreResult.FULL_COMBO:
+    if score.result not is None and score.result & ScoreResult.FULL_COMBO:
         score_details += " FC"
     else:
         score_details += (
