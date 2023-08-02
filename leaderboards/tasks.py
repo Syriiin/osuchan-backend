@@ -127,7 +127,10 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     if score.mods != Mods.NONE:
         beatmap_details += f" +{get_mods_string(score.mods)}"
 
-    beatmap_details += f" **{score.difficulty_total:.2f} stars**"
+    if score.difficulty_total is not None:
+        beatmap_details += f" **{score.difficulty_total:.2f} stars**"
+    else:
+        beatmap_details += f" **{score.beatmap.difficulty_total:.2f} stars (without mods)**"
 
     # TODO: fix this for nochoke leaderboards. pp will display wrong
     score_details = f"**{score.performance_total:.0f}pp** ({score.accuracy:.2f}%)"
