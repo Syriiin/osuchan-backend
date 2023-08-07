@@ -200,53 +200,6 @@ CELERY_BEAT_SCHEDULE = {
         "task": "profiles.tasks.dispatch_update_all_global_leaderboard_top_members",
         "schedule": crontab(minute=0, hour=0),  # midnight UTC
     },
-    # TEMP: just here for coe
-    # TODO: remove in favour of generic solution
-    "update-coe-top-members-every-10-minutes": {
-        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 10,
-        "args": (769, 50),
-    },
-    "update-coe-all-members-every-hour": {
-        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 60,
-        "args": (769, 1000),
-    },
-    "update-coe-all-members-taiko-every-hour": {
-        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 60,
-        "args": (771, 1000),
-    },
-    "update-coe-all-members-catch-every-hour": {
-        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 60,
-        "args": (772, 1000),
-    },
-    "update-coe-all-members-mania-every-hour": {
-        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 60,
-        "args": (773, 1000),
-    },
-    "send-coe-podium-every-day": {
-        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
-        "schedule": crontab(minute=0, hour=16),  # 18:00 netherlands time
-        "args": (769,),
-    },
-    "send-coe-podium-taiko-every-day": {
-        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
-        "schedule": crontab(minute=0, hour=16),  # 18:00 netherlands time
-        "args": (771,),
-    },
-    "send-coe-podium-catch-every-day": {
-        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
-        "schedule": crontab(minute=0, hour=16),  # 18:00 netherlands time
-        "args": (772,),
-    },
-    "send-coe-podium-mania-every-day": {
-        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
-        "schedule": crontab(minute=0, hour=16),  # 18:00 netherlands time
-        "args": (773,),
-    },
 }
 
 
