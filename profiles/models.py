@@ -444,6 +444,80 @@ class Beatmap(models.Model):
         )
 
 
+class DifficultyCalculation(models.Model):
+    """
+    Model representing a difficulty calculation of an osu! beatmap
+    """
+
+    id = models.BigAutoField(primary_key=True)
+
+    beatmap = models.ForeignKey(
+        Beatmap, on_delete=models.CASCADE, related_name="difficulty_calculations"
+    )
+
+    mods = models.IntegerField()
+    calculator_engine = models.CharField(max_length=50)
+    calculator_version = models.CharField(max_length=50)
+
+    def __str__(self):
+        if self.mods == 0:
+            map_string = f"{self.beatmap_id}"
+        else:
+            map_string = f"{self.beatmap_id} +{utils.get_mods_string(self.mods)}"
+
+        return f"{map_string}: {self.calculator_engine} ({self.calculator_version})"
+
+    class Meta:
+        constraints = [
+            # Difficulty values are unique on beatmap + mods + calculator_engine + calculator_version
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "beatmap_id",
+                    "mods",
+                    "calculator_engine",
+                    "calculator_version",
+                ],
+                name="unique_difficulty_calculation",
+            )
+        ]
+
+
+class DifficultyValue(models.Model):
+    """
+    Model representing a value of a difficulty calculation of an osu! beatmap
+    """
+
+    id = models.BigAutoField(primary_key=True)
+
+    calculation = models.ForeignKey(
+        DifficultyCalculation,
+        on_delete=models.CASCADE,
+        related_name="difficulty_values",
+    )
+
+    name = models.CharField(max_length=20)
+    value = models.FloatField()
+
+    def __str__(self):
+        return f"{self.calculation_id}: {self.name} ({self.value})"
+
+    class Meta:
+        constraints = [
+            # Difficulty values are unique on calculation + name
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "calculation_id",
+                    "name",
+                ],
+                name="unique_difficulty_value",
+            )
+        ]
+
+        indexes = [models.Index(fields=["value"])]
+
+
 class ScoreQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user_stats__user__disabled=False)
@@ -706,6 +780,79 @@ class ScoreFilter(models.Model):
     highest_accuracy = models.FloatField(null=True, blank=True)
     lowest_length = models.FloatField(null=True, blank=True)
     highest_length = models.FloatField(null=True, blank=True)
+
+
+class PerformanceCalculation(models.Model):
+    """
+    Model representing a performance calculation of an osu! score
+    """
+
+    # TODO: consider using uuid to avoid bulk_create issue
+    id = models.BigAutoField(primary_key=True)
+
+    score = models.ForeignKey(
+        Score, on_delete=models.CASCADE, related_name="performance_calculations"
+    )
+    difficulty_calculation = models.ForeignKey(
+        DifficultyCalculation,
+        on_delete=models.CASCADE,
+        related_name="performance_calculations",
+    )
+
+    calculator_engine = models.CharField(max_length=50)
+    calculator_version = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.score_id}: {self.calculator_engine} ({self.calculator_version})"
+
+    class Meta:
+        constraints = [
+            # Performance values are unique on score + calculator_engine + calculator_version
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "score_id",
+                    "calculator_engine",
+                    "calculator_version",
+                ],
+                name="unique_performance_calculation",
+            )
+        ]
+
+
+class PerformanceValue(models.Model):
+    """
+    Model representing a value of a performance calculation of an osu! score
+    """
+
+    id = models.BigAutoField(primary_key=True)
+
+    calculation = models.ForeignKey(
+        PerformanceCalculation,
+        on_delete=models.CASCADE,
+        related_name="performance_calculations",
+    )
+
+    name = models.CharField(max_length=20)
+    value = models.FloatField()
+
+    def __str__(self):
+        return f"{self.calculation_id}: {self.name} ({self.value})"
+
+    class Meta:
+        constraints = [
+            # Performance values are unique on calculation + name
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "calculation_id",
+                    "name",
+                ],
+                name="unique_performance_value",
+            )
+        ]
+
+        indexes = [models.Index(fields=["value"])]
 
 
 # Custom lookups
