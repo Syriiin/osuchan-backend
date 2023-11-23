@@ -75,13 +75,13 @@ class UserStats(models.Model):
     count_rank_a = models.IntegerField()
 
     # osu!chan calculated data
-    extra_pp = models.FloatField()
-    score_style_accuracy = models.FloatField()
-    score_style_bpm = models.FloatField()
-    score_style_cs = models.FloatField()
-    score_style_ar = models.FloatField()
-    score_style_od = models.FloatField()
-    score_style_length = models.FloatField()
+    extra_pp = models.FloatField(default=0)
+    score_style_accuracy = models.FloatField(default=0)
+    score_style_bpm = models.FloatField(default=0)
+    score_style_cs = models.FloatField(default=0)
+    score_style_ar = models.FloatField(default=0)
+    score_style_od = models.FloatField(default=0)
+    score_style_length = models.FloatField(default=0)
 
     # Relations
     user = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="stats")
@@ -213,73 +213,44 @@ class UserStats(models.Model):
             scores_from_data.append(score)
 
         # Remove potential duplicates from a top 100 play also being in the recent 50
-        scores_from_data = [
+        scores_to_create = [
             score
             for score in scores_from_data
             if score == next(s for s in scores_from_data if s.date == score.date)
         ]
 
-        # Process scores for user stats values
-        all_scores, scores_to_create = self.__process_scores(*scores_from_data)
-        self.save()
-
-        # Update new scores with newly saved UserStats id
-        for score in scores_to_create:
-            score.user_stats_id = self.id
-
         # Bulk add and update beatmaps and scores
         Beatmap.objects.bulk_create(beatmaps_to_create, ignore_conflicts=True)
-        Score.objects.bulk_create(scores_to_create)
+        created_scores = Score.objects.bulk_create(
+            scores_to_create, ignore_conflicts=True
+        )
+
+        # Recalculate with new scores added
+        self.recalculate()
+        self.save()
 
         # Return new scores
-        return scores_to_create
+        return created_scores
 
     def recalculate(self):
-        self.__process_scores()
-
-    def __process_scores(self, *new_scores):
         """
-        Calculates pp totals (extra pp, nochoke pp) and scores style using unique maps, and returns all scores for UserStats and the scores that need to be added
+        Calculates pp totals (extra pp, nochoke pp) and scores style using unique maps
         """
         # Fetch all scores currently in database and add to new_scores ensuring no duplicate scores
-        try:
-            database_scores = self.scores.select_related("beatmap").filter(
+        scores = (
+            self.scores.select_related("beatmap")
+            .filter(
                 beatmap__status__in=[
                     BeatmapStatus.RANKED,
                     BeatmapStatus.APPROVED,
                     BeatmapStatus.LOVED,
                 ]
             )
-        except ValueError:
-            database_scores = []
+            .order_by("-performance_total")
+        )
 
-        database_score_dates = [score.date for score in database_scores]
-        scores_to_create = [
-            score for score in new_scores if score.date not in database_score_dates
-        ]
-        scores = [
-            *[
-                score
-                for score in scores_to_create
-                if score.beatmap.status
-                in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED]
-            ],
-            *database_scores,
-        ]
-
-        # if the user has no scores, zero out the fields
         if len(scores) == 0:
-            self.extra_pp = 0
-            self.score_style_accuracy = 0
-            self.score_style_bpm = 0
-            self.score_style_length = 0
-            self.score_style_cs = 0
-            self.score_style_ar = 0
-            self.score_style_od = 0
-            return [], []
-
-        # Sort all scores by pp
-        scores.sort(key=lambda s: s.performance_total, reverse=True)
+            return
 
         # Filter to be unique on maps (cant use .unique_maps() because duplicate maps might come from new scores)
         #   (also this 1 liner is really inefficient for some reason so lets do it the standard way)
@@ -334,8 +305,6 @@ class UserStats(models.Model):
             )
             / weighting_value
         )
-
-        return scores, scores_to_create
 
     def __str__(self):
         return f"{Gamemode(self.gamemode).name}: {self.user_id}"
