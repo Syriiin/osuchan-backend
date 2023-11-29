@@ -459,6 +459,26 @@ class DifficultyCalculation(models.Model):
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
 
+    def calculate_difficulty_values(
+        self, difficulty_calculator: type[AbstractDifficultyCalculator]
+    ) -> list["DifficultyValue"]:
+        values = []
+        beatmap_provider = BeatmapProvider()
+        beatmap_path = beatmap_provider.get_beatmap_file(self.beatmap_id)
+        with difficulty_calculator(beatmap_path) as calculator:
+            calculator.set_mods(self.mods)
+            calculator.calculate()
+
+            values.append(
+                DifficultyValue(
+                    calculation_id=self.id,
+                    name="total",
+                    value=calculator.difficulty_total,
+                )
+            )
+
+        return values
+
     def __str__(self):
         if self.mods == 0:
             map_string = f"{self.beatmap_id}"
@@ -801,6 +821,32 @@ class PerformanceCalculation(models.Model):
 
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
+
+    def calculate_performance_values(
+        self, score: Score, difficulty_calculator: type[AbstractDifficultyCalculator]
+    ) -> list["PerformanceValue"]:
+        values = []
+        beatmap_provider = BeatmapProvider()
+        beatmap_path = beatmap_provider.get_beatmap_file(score.beatmap_id)
+        with difficulty_calculator(beatmap_path) as calculator:
+            calculator.set_mods(score.mods)
+            calculator.set_accuracy(
+                count_100=score.count_100,
+                count_50=score.count_50,
+            )
+            calculator.set_misses(score.count_miss)
+            calculator.set_combo(score.best_combo)
+            calculator.calculate()
+
+            values.append(
+                PerformanceValue(
+                    calculation_id=self.id,
+                    name="total",
+                    value=calculator.performance_total,
+                )
+            )
+
+        return values
 
     def __str__(self):
         return f"{self.score_id}: {self.calculator_engine} ({self.calculator_version})"
