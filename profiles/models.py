@@ -91,22 +91,52 @@ class UserStats(models.Model):
 
     objects = UserStatsQuerySet.as_manager()
 
-    def add_scores_from_data(self, score_data_list):
+    def add_scores_from_data(self, score_data_list: list[dict]):
         """
         Adds a list of scores and their beatmaps from the passed score_data_list.
         (requires all dicts to have beatmap_id set along with usual score data)
         """
+        # Remove unranked scores
+        # Only process "high scores" (highest scorev1 per mod per map per user)
+        # (need to make this distinction to prevent lazer scores from being treated as ranked)
+        ranked_score_data_list = [
+            score_data
+            for score_data in score_data_list
+            if score_data.get("score_id", None) is not None
+        ]
+
+        # Parse dates
+        for score_data in ranked_score_data_list:
+            score_data["date"] = datetime.strptime(
+                score_data["date"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=timezone.utc)
+
+        # Remove potential duplicates from a top 100 play also being in the recent 50
+        # Unique on date since we don't track score_id (not ideal but not much we can do)
+        unique_score_data_list = [
+            score
+            for score in ranked_score_data_list
+            if score
+            == next(s for s in ranked_score_data_list if s["date"] == score["date"])
+        ]
+
+        # Remove scores which already exist in db
+        score_dates = [s["date"] for s in unique_score_data_list]
+        existing_score_dates = Score.objects.filter(date__in=score_dates).values_list(
+            "date", flat=True
+        )
+        new_score_data_list = []
+        for score_data in unique_score_data_list:
+            if score_data["date"] not in existing_score_dates:
+                new_score_data_list.append(score_data)
+
         # Fetch beatmaps from database in bulk
-        beatmap_ids = [int(s["beatmap_id"]) for s in score_data_list]
+        beatmap_ids = [int(s["beatmap_id"]) for s in new_score_data_list]
         beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
 
         beatmaps_to_create = []
-        scores_from_data = []
-        for score_data in score_data_list:
-            # Only process "high scores" (highest scorev1 per mod per map per user) (need to make this distinction to prevent lazer scores from being treated as real)
-            if score_data.get("score_id", None) is None:
-                continue
-
+        scores_to_create = []
+        for score_data in new_score_data_list:
             score = Score()
 
             # Update Score fields
@@ -121,9 +151,7 @@ class UserStats(models.Model):
             score.perfect = bool(int(score_data["perfect"]))
             score.mods = int(score_data["enabled_mods"])
             score.rank = score_data["rank"]
-            score.date = datetime.strptime(
-                score_data["date"], "%Y-%m-%d %H:%M:%S"
-            ).replace(tzinfo=timezone.utc)
+            score.date = score_data["date"]
 
             # Update foreign keys
             # Search for beatmap in fetched, else create it
@@ -210,20 +238,14 @@ class UserStats(models.Model):
             # Process score
             score.process()
 
-            scores_from_data.append(score)
-
-        # Remove potential duplicates from a top 100 play also being in the recent 50
-        scores_to_create = [
-            score
-            for score in scores_from_data
-            if score == next(s for s in scores_from_data if s.date == score.date)
-        ]
+            scores_to_create.append(score)
 
         # Bulk add and update beatmaps and scores
-        Beatmap.objects.bulk_create(beatmaps_to_create, ignore_conflicts=True)
-        created_scores = Score.objects.bulk_create(
-            scores_to_create, ignore_conflicts=True
+        created_beatmaps = Beatmap.objects.bulk_create(
+            beatmaps_to_create,
+            ignore_conflicts=True,  # potential race condition from two concurrent updates creating the same beatmap
         )
+        created_scores = Score.objects.bulk_create(scores_to_create)
 
         # Recalculate with new scores added
         self.recalculate()
