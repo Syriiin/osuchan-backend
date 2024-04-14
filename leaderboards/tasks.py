@@ -2,6 +2,7 @@ from datetime import datetime
 
 from celery import shared_task
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 
 from common.discord_webhook_sender import DiscordWebhookSender
@@ -51,9 +52,11 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
             )
         elif leaderboard.score_set == ScoreSet.NEVER_CHOKE:
             membership.pp = calculate_pp_total(
-                score.nochoke_performance_total
-                if score.result & ScoreResult.CHOKE
-                else score.performance_total
+                (
+                    score.nochoke_performance_total
+                    if score.result & ScoreResult.CHOKE
+                    else score.performance_total
+                )
                 for score in scores
             )
         elif leaderboard.score_set == ScoreSet.ALWAYS_FULL_COMBO:
@@ -109,6 +112,21 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         membership.save()
 
     return memberships
+
+
+@shared_task
+def update_global_leaderboard_top_5_score_cache():
+    for gamemode in Gamemode:
+        leaderboards = Leaderboard.objects.filter(
+            access_type=LeaderboardAccessType.GLOBAL, gamemode=gamemode
+        )
+        for leaderboard in leaderboards:
+            scores = leaderboard.get_top_scores(limit=5)
+            cache.set(
+                f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
+                scores,
+                900,
+            )
 
 
 @shared_task

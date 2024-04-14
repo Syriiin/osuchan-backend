@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.views.decorators.cache import cache_page
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
@@ -265,7 +265,7 @@ class LeaderboardScoreList(APIView):
 
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def _get(self, request, leaderboard_type, gamemode, leaderboard_id):
+    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
         osu_user_id = (
             request.user.osu_user_id if request.user.is_authenticated else None
         )
@@ -284,24 +284,17 @@ class LeaderboardScoreList(APIView):
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
-        scores = (
-            Score.objects.non_restricted()
-            .distinct()
-            .filter(membership__leaderboard_id=leaderboard_id)
-            .select_related("user_stats", "user_stats__user", "beatmap")
-            .order_by("-performance_total", "date")
-            .get_score_set(score_set=leaderboard.score_set)
-        )
-        serialiser = LeaderboardScoreSerialiser(scores[:limit], many=True)
-        return Response(serialiser.data)
-
-    # TODO: get rid of this cache by optimising
-    def get(self, request, leaderboard_type, gamemode, leaderboard_id):
-        if leaderboard_type == "global":
-            cached_page = cache_page(60 * 60)(self._get)
-            return cached_page(request, leaderboard_type, gamemode, leaderboard_id)
+        if leaderboard.access_type == LeaderboardAccessType.GLOBAL:
+            scores = cache.get_or_set(
+                f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
+                lambda: leaderboard.get_top_scores(limit=limit),
+                900,
+            )
         else:
-            return self._get(request, leaderboard_type, gamemode, leaderboard_id)
+            scores = leaderboard.get_top_scores(limit=5)
+
+        serialiser = LeaderboardScoreSerialiser(scores, many=True)
+        return Response(serialiser.data)
 
 
 class LeaderboardMemberList(APIView):
