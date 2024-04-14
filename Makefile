@@ -5,9 +5,11 @@ COMPOSE_RUN_TOOLING = UID=${UID} GID=${GID} docker compose -f docker-compose.yml
 COMPOSE_APP_DEV = docker compose -f docker-compose.yml -f docker-compose.override.yml
 
 help:	## Show this help
-	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+	@printf "\nUSAGE: make [command] \n\n"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf " \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@printf '\n'
 
-env: 	## Switch to an environment config
+env:	## Switch to an environment config
 	@mkdir -p config/active
 	rm -rf config/active/*
 	cp -r config/${ENV}/* config/active/
@@ -57,5 +59,11 @@ build-dev:	## Builds development docker images
 start-dev:	## Starts development environment
 	$(COMPOSE_APP_DEV) up -d
 
-clean-dev:	## Cleans development environment
+clean-dev:	## Cleans development environment containers
 	$(COMPOSE_APP_DEV) down --remove-orphans
+
+reset-dev:	## Resets config, data and containers to default states
+	make env ENV=dev
+	$(COMPOSE_RUN_TOOLING) python manage.py flush --no-input
+	$(COMPOSE_APP_DEV) down --remove-orphans --volumes
+	make start-dev

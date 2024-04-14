@@ -211,6 +211,8 @@ def update_user(user_id=None, username=None, gamemode: int = Gamemode.STANDARD):
             if score["rank"] != "F"
         )
 
+    user_stats.save()
+
     # Process and add scores
     user_stats.add_scores_from_data(score_data_list)
 

@@ -75,13 +75,13 @@ class UserStats(models.Model):
     count_rank_a = models.IntegerField()
 
     # osu!chan calculated data
-    extra_pp = models.FloatField()
-    score_style_accuracy = models.FloatField()
-    score_style_bpm = models.FloatField()
-    score_style_cs = models.FloatField()
-    score_style_ar = models.FloatField()
-    score_style_od = models.FloatField()
-    score_style_length = models.FloatField()
+    extra_pp = models.FloatField(default=0)
+    score_style_accuracy = models.FloatField(default=0)
+    score_style_bpm = models.FloatField(default=0)
+    score_style_cs = models.FloatField(default=0)
+    score_style_ar = models.FloatField(default=0)
+    score_style_od = models.FloatField(default=0)
+    score_style_length = models.FloatField(default=0)
 
     # Relations
     user = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="stats")
@@ -91,22 +91,52 @@ class UserStats(models.Model):
 
     objects = UserStatsQuerySet.as_manager()
 
-    def add_scores_from_data(self, score_data_list):
+    def add_scores_from_data(self, score_data_list: list[dict]):
         """
         Adds a list of scores and their beatmaps from the passed score_data_list.
         (requires all dicts to have beatmap_id set along with usual score data)
         """
+        # Remove unranked scores
+        # Only process "high scores" (highest scorev1 per mod per map per user)
+        # (need to make this distinction to prevent lazer scores from being treated as ranked)
+        ranked_score_data_list = [
+            score_data
+            for score_data in score_data_list
+            if score_data.get("score_id", None) is not None
+        ]
+
+        # Parse dates
+        for score_data in ranked_score_data_list:
+            score_data["date"] = datetime.strptime(
+                score_data["date"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=timezone.utc)
+
+        # Remove potential duplicates from a top 100 play also being in the recent 50
+        # Unique on date since we don't track score_id (not ideal but not much we can do)
+        unique_score_data_list = [
+            score
+            for score in ranked_score_data_list
+            if score
+            == next(s for s in ranked_score_data_list if s["date"] == score["date"])
+        ]
+
+        # Remove scores which already exist in db
+        score_dates = [s["date"] for s in unique_score_data_list]
+        existing_score_dates = Score.objects.filter(date__in=score_dates).values_list(
+            "date", flat=True
+        )
+        new_score_data_list = []
+        for score_data in unique_score_data_list:
+            if score_data["date"] not in existing_score_dates:
+                new_score_data_list.append(score_data)
+
         # Fetch beatmaps from database in bulk
-        beatmap_ids = [int(s["beatmap_id"]) for s in score_data_list]
+        beatmap_ids = [int(s["beatmap_id"]) for s in new_score_data_list]
         beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
 
         beatmaps_to_create = []
-        scores_from_data = []
-        for score_data in score_data_list:
-            # Only process "high scores" (highest scorev1 per mod per map per user) (need to make this distinction to prevent lazer scores from being treated as real)
-            if score_data.get("score_id", None) is None:
-                continue
-
+        scores_to_create = []
+        for score_data in new_score_data_list:
             score = Score()
 
             # Update Score fields
@@ -121,9 +151,7 @@ class UserStats(models.Model):
             score.perfect = bool(int(score_data["perfect"]))
             score.mods = int(score_data["enabled_mods"])
             score.rank = score_data["rank"]
-            score.date = datetime.strptime(
-                score_data["date"], "%Y-%m-%d %H:%M:%S"
-            ).replace(tzinfo=timezone.utc)
+            score.date = score_data["date"]
 
             # Update foreign keys
             # Search for beatmap in fetched, else create it
@@ -210,76 +238,41 @@ class UserStats(models.Model):
             # Process score
             score.process()
 
-            scores_from_data.append(score)
-
-        # Remove potential duplicates from a top 100 play also being in the recent 50
-        scores_from_data = [
-            score
-            for score in scores_from_data
-            if score == next(s for s in scores_from_data if s.date == score.date)
-        ]
-
-        # Process scores for user stats values
-        all_scores, scores_to_create = self.__process_scores(*scores_from_data)
-        self.save()
-
-        # Update new scores with newly saved UserStats id
-        for score in scores_to_create:
-            score.user_stats_id = self.id
+            scores_to_create.append(score)
 
         # Bulk add and update beatmaps and scores
-        Beatmap.objects.bulk_create(beatmaps_to_create, ignore_conflicts=True)
-        Score.objects.bulk_create(scores_to_create)
+        created_beatmaps = Beatmap.objects.bulk_create(
+            beatmaps_to_create,
+            ignore_conflicts=True,  # potential race condition from two concurrent updates creating the same beatmap
+        )
+        created_scores = Score.objects.bulk_create(scores_to_create)
+
+        # Recalculate with new scores added
+        self.recalculate()
+        self.save()
 
         # Return new scores
-        return scores_to_create
+        return created_scores
 
     def recalculate(self):
-        self.__process_scores()
-
-    def __process_scores(self, *new_scores):
         """
-        Calculates pp totals (extra pp, nochoke pp) and scores style using unique maps, and returns all scores for UserStats and the scores that need to be added
+        Calculates pp totals (extra pp, nochoke pp) and scores style using unique maps
         """
         # Fetch all scores currently in database and add to new_scores ensuring no duplicate scores
-        try:
-            database_scores = self.scores.select_related("beatmap").filter(
+        scores = (
+            self.scores.select_related("beatmap")
+            .filter(
                 beatmap__status__in=[
                     BeatmapStatus.RANKED,
                     BeatmapStatus.APPROVED,
                     BeatmapStatus.LOVED,
                 ]
             )
-        except ValueError:
-            database_scores = []
+            .order_by("-performance_total")
+        )
 
-        database_score_dates = [score.date for score in database_scores]
-        scores_to_create = [
-            score for score in new_scores if score.date not in database_score_dates
-        ]
-        scores = [
-            *[
-                score
-                for score in scores_to_create
-                if score.beatmap.status
-                in [BeatmapStatus.RANKED, BeatmapStatus.APPROVED, BeatmapStatus.LOVED]
-            ],
-            *database_scores,
-        ]
-
-        # if the user has no scores, zero out the fields
         if len(scores) == 0:
-            self.extra_pp = 0
-            self.score_style_accuracy = 0
-            self.score_style_bpm = 0
-            self.score_style_length = 0
-            self.score_style_cs = 0
-            self.score_style_ar = 0
-            self.score_style_od = 0
-            return [], []
-
-        # Sort all scores by pp
-        scores.sort(key=lambda s: s.performance_total, reverse=True)
+            return
 
         # Filter to be unique on maps (cant use .unique_maps() because duplicate maps might come from new scores)
         #   (also this 1 liner is really inefficient for some reason so lets do it the standard way)
@@ -334,8 +327,6 @@ class UserStats(models.Model):
             )
             / weighting_value
         )
-
-        return scores, scores_to_create
 
     def __str__(self):
         return f"{Gamemode(self.gamemode).name}: {self.user_id}"
@@ -473,6 +464,100 @@ class Beatmap(models.Model):
         return "{} - {} [{}] (by {})".format(
             self.artist, self.title, self.difficulty_name, self.creator_name
         )
+
+
+class DifficultyCalculation(models.Model):
+    """
+    Model representing a difficulty calculation of an osu! beatmap
+    """
+
+    id = models.BigAutoField(primary_key=True)
+
+    beatmap = models.ForeignKey(
+        Beatmap, on_delete=models.CASCADE, related_name="difficulty_calculations"
+    )
+
+    mods = models.IntegerField()
+    calculator_engine = models.CharField(max_length=50)
+    calculator_version = models.CharField(max_length=50)
+
+    def calculate_difficulty_values(
+        self, difficulty_calculator: type[AbstractDifficultyCalculator]
+    ) -> list["DifficultyValue"]:
+        values = []
+        beatmap_provider = BeatmapProvider()
+        beatmap_path = beatmap_provider.get_beatmap_file(self.beatmap_id)
+        with difficulty_calculator(beatmap_path) as calculator:
+            calculator.set_mods(self.mods)
+            calculator.calculate()
+
+            values.append(
+                DifficultyValue(
+                    calculation_id=self.id,
+                    name="total",
+                    value=calculator.difficulty_total,
+                )
+            )
+
+        return values
+
+    def __str__(self):
+        if self.mods == 0:
+            map_string = f"{self.beatmap_id}"
+        else:
+            map_string = f"{self.beatmap_id} +{utils.get_mods_string(self.mods)}"
+
+        return f"{map_string}: {self.calculator_engine} ({self.calculator_version})"
+
+    class Meta:
+        constraints = [
+            # Difficulty values are unique on beatmap + mods + calculator_engine + calculator_version
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "beatmap_id",
+                    "mods",
+                    "calculator_engine",
+                    "calculator_version",
+                ],
+                name="unique_difficulty_calculation",
+            )
+        ]
+
+
+class DifficultyValue(models.Model):
+    """
+    Model representing a value of a difficulty calculation of an osu! beatmap
+    """
+
+    id = models.BigAutoField(primary_key=True)
+
+    calculation = models.ForeignKey(
+        DifficultyCalculation,
+        on_delete=models.CASCADE,
+        related_name="difficulty_values",
+    )
+
+    name = models.CharField(max_length=20)
+    value = models.FloatField()
+
+    def __str__(self):
+        return f"{self.calculation_id}: {self.name} ({self.value})"
+
+    class Meta:
+        constraints = [
+            # Difficulty values are unique on calculation + name
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "calculation_id",
+                    "name",
+                ],
+                name="unique_difficulty_value",
+            )
+        ]
+
+        indexes = [models.Index(fields=["value"])]
 
 
 class ScoreQuerySet(models.QuerySet):
@@ -737,6 +822,105 @@ class ScoreFilter(models.Model):
     highest_accuracy = models.FloatField(null=True, blank=True)
     lowest_length = models.FloatField(null=True, blank=True)
     highest_length = models.FloatField(null=True, blank=True)
+
+
+class PerformanceCalculation(models.Model):
+    """
+    Model representing a performance calculation of an osu! score
+    """
+
+    # TODO: consider using uuid to avoid bulk_create issue
+    id = models.BigAutoField(primary_key=True)
+
+    score = models.ForeignKey(
+        Score, on_delete=models.CASCADE, related_name="performance_calculations"
+    )
+    difficulty_calculation = models.ForeignKey(
+        DifficultyCalculation,
+        on_delete=models.CASCADE,
+        related_name="performance_calculations",
+    )
+
+    calculator_engine = models.CharField(max_length=50)
+    calculator_version = models.CharField(max_length=50)
+
+    def calculate_performance_values(
+        self, score: Score, difficulty_calculator: type[AbstractDifficultyCalculator]
+    ) -> list["PerformanceValue"]:
+        values = []
+        beatmap_provider = BeatmapProvider()
+        beatmap_path = beatmap_provider.get_beatmap_file(score.beatmap_id)
+        with difficulty_calculator(beatmap_path) as calculator:
+            calculator.set_mods(score.mods)
+            calculator.set_accuracy(
+                count_100=score.count_100,
+                count_50=score.count_50,
+            )
+            calculator.set_misses(score.count_miss)
+            calculator.set_combo(score.best_combo)
+            calculator.calculate()
+
+            values.append(
+                PerformanceValue(
+                    calculation_id=self.id,
+                    name="total",
+                    value=calculator.performance_total,
+                )
+            )
+
+        return values
+
+    def __str__(self):
+        return f"{self.score_id}: {self.calculator_engine} ({self.calculator_version})"
+
+    class Meta:
+        constraints = [
+            # Performance values are unique on score + calculator_engine + calculator_version
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "score_id",
+                    "calculator_engine",
+                    "calculator_version",
+                ],
+                name="unique_performance_calculation",
+            )
+        ]
+
+
+class PerformanceValue(models.Model):
+    """
+    Model representing a value of a performance calculation of an osu! score
+    """
+
+    id = models.BigAutoField(primary_key=True)
+
+    calculation = models.ForeignKey(
+        PerformanceCalculation,
+        on_delete=models.CASCADE,
+        related_name="performance_calculations",
+    )
+
+    name = models.CharField(max_length=20)
+    value = models.FloatField()
+
+    def __str__(self):
+        return f"{self.calculation_id}: {self.name} ({self.value})"
+
+    class Meta:
+        constraints = [
+            # Performance values are unique on calculation + name
+            # The implicit unique b-tree index on these columns is useful also
+            models.UniqueConstraint(
+                fields=[
+                    "calculation_id",
+                    "name",
+                ],
+                name="unique_performance_value",
+            )
+        ]
+
+        indexes = [models.Index(fields=["value"])]
 
 
 # Custom lookups
