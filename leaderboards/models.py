@@ -91,6 +91,17 @@ class Leaderboard(models.Model):
 
         return scores.aggregate(Max("sorting_pp"))["sorting_pp__max"]
 
+    def get_top_scores(self, limit=5):
+        scores = (
+            Score.objects.non_restricted()
+            .distinct()
+            .filter(membership__leaderboard_id=self.id)
+            .select_related("user_stats", "user_stats__user", "beatmap")
+            .get_score_set(score_set=self.score_set)
+        )
+
+        return scores[:limit]
+
     def get_top_membership(self):
         if self.access_type == LeaderboardAccessType.GLOBAL:
             memberships = Membership.global_memberships
@@ -165,9 +176,11 @@ class Leaderboard(models.Model):
             )
         elif self.score_set == ScoreSet.NEVER_CHOKE:
             membership.pp = calculate_pp_total(
-                score.nochoke_performance_total
-                if score.result & ScoreResult.CHOKE
-                else score.performance_total
+                (
+                    score.nochoke_performance_total
+                    if score.result & ScoreResult.CHOKE
+                    else score.performance_total
+                )
                 for score in scores
             )
         elif self.score_set == ScoreSet.ALWAYS_FULL_COMBO:
@@ -321,9 +334,11 @@ class Membership(models.Model):
             )
         elif self.leaderboard.score_set == ScoreSet.NEVER_CHOKE:
             self.pp = calculate_pp_total(
-                score.nochoke_performance_total
-                if score.result & ScoreResult.CHOKE
-                else score.performance_total
+                (
+                    score.nochoke_performance_total
+                    if score.result & ScoreResult.CHOKE
+                    else score.performance_total
+                )
                 for score in self.scores.order_by("-performance_total").all()
             )
         elif self.leaderboard.score_set == ScoreSet.ALWAYS_FULL_COMBO:
