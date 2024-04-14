@@ -200,6 +200,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "profiles.tasks.dispatch_update_all_global_leaderboard_top_members",
         "schedule": crontab(minute=0, hour=0),  # midnight UTC
     },
+    "update-global-leaderboard-top-5-score-cache-every-10-minutes": {
+        "task": "leaderboards.tasks.update_global_leaderboard_top_5_score_cache",
+        "schedule": crontab(minute="*/10"),
+    },
 }
 
 
