@@ -115,18 +115,25 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
 
 
 @shared_task
-def update_global_leaderboard_top_5_score_cache():
+def dispatch_update_global_leaderboard_top_5_score_cache():
     for gamemode in Gamemode:
         leaderboards = Leaderboard.objects.filter(
             access_type=LeaderboardAccessType.GLOBAL, gamemode=gamemode
         )
         for leaderboard in leaderboards:
-            scores = leaderboard.get_top_scores(limit=5)
-            cache.set(
-                f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
-                scores,
-                1800,
-            )
+            update_global_leaderboard_top_5_score_cache.delay(leaderboard.id)
+
+
+@shared_task
+def update_global_leaderboard_top_5_score_cache(leaderboard_id: int):
+    leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    scores = leaderboard.get_top_scores(limit=5)
+    cache.set(
+        f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
+        scores,
+        1800,
+    )
+    return scores
 
 
 @shared_task
