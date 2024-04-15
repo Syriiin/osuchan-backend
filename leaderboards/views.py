@@ -288,7 +288,7 @@ class LeaderboardScoreList(APIView):
             scores = cache.get_or_set(
                 f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
                 lambda: leaderboard.get_top_scores(limit=limit),
-                900,
+                1800,
             )
         else:
             scores = leaderboard.get_top_scores(limit=5)
