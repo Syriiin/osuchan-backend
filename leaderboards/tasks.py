@@ -125,7 +125,7 @@ def update_global_leaderboard_top_5_score_cache():
             cache.set(
                 f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
                 scores,
-                900,
+                1800,
             )
 
 
