@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Samuel Cattini-Schultz <syriiins@gmail.com>"]
 license = "AGPL-3.0"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -26,7 +27,7 @@ django-prometheus = "^2.3.1"
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 isort = "^5.9.3"
-coverage = {extras = ["toml"], version = "^7.2.6"}
+coverage = { extras = ["toml"], version = "^7.2.6" }
 pytest = "^7.3.1"
 pytest-django = "^4.5.2"
 freezegun = "^1.2.2"
@@ -38,10 +39,7 @@ DJANGO_SETTINGS_MODULE = "osuchan.settings"
 source = ["."]
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "raise NotImplementedError"
-]
+exclude_lines = ["pragma: no cover", "raise NotImplementedError"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
