@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
 from importlib import metadata
-from typing import Type
+from typing import Iterable, NamedTuple, Optional, Type
 
 import oppaipy
 import rosu_pp_py
@@ -12,6 +12,20 @@ from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvide
 
 OPPAIPY_VERSION = metadata.version("oppaipy")
 ROSUPP_VERSION = metadata.version("rosu_pp_py")
+
+
+class Score(NamedTuple):
+    beatmap_id: str
+    mods: Optional[int] = None
+    count_100: Optional[int] = None
+    count_50: Optional[int] = None
+    count_miss: Optional[int] = None
+    combo: Optional[int] = None
+
+
+class Calculation(NamedTuple):
+    difficulty: float
+    performance: float
 
 
 class DifficultyCalculatorException(Exception):
@@ -47,6 +61,31 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     def close(self):
         self.closed = True
         self._close()
+
+    def calculate_score(self, score: Score) -> Calculation:
+        self._reset()
+        self.set_beatmap(score.beatmap_id)
+
+        if score.mods is not None:
+            self.set_mods(score.mods)
+        if score.count_100 is not None or score.count_50 is not None:
+            self.set_accuracy(score.count_100 or 0, score.count_50 or 0)
+        if score.count_miss is not None:
+            self.set_misses(score.count_miss)
+        if score.combo is not None:
+            self.set_combo(score.combo)
+
+        self.calculate()
+        return Calculation(
+            difficulty=self.difficulty_total, performance=self.performance_total
+        )
+
+    def calculate_score_batch(self, scores: Iterable[Score]) -> list[Calculation]:
+        return [self.calculate_score(score) for score in scores]
+
+    @abstractmethod
+    def _reset(self):
+        raise NotImplementedError()
 
     @abstractmethod
     def set_beatmap(self, beatmap_id: str) -> None:
@@ -112,6 +151,10 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
         if self.oppai_calc is not None:
             self.oppai_calc.close()
 
+    def _reset(self):
+        if self.oppai_calc is not None:
+            self.oppai_calc.reset()
+
     def set_beatmap(self, beatmap_id: str) -> None:
         beatmap_provider = BeatmapProvider()
         try:
@@ -167,6 +210,9 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
 
     def _close(self):
         pass
+
+    def _reset(self):
+        self.rosupp_calc = rosu_pp_py.Calculator()
 
     def set_beatmap(self, beatmap_id: str) -> None:
         beatmap_provider = BeatmapProvider()
