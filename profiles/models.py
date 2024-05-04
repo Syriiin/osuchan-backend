@@ -12,6 +12,7 @@ from common.osu.difficultycalculator import (
     DifficultyCalculator,
     DifficultyCalculatorException,
 )
+from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from profiles.enums import AllowedBeatmapStatus, ScoreResult, ScoreSet
 
@@ -196,15 +197,17 @@ class UserStats(models.Model):
 
                 try:
                     with DifficultyCalculator() as calc:
-                        calc.set_beatmap(beatmap_id)
-                        calc.set_accuracy(
-                            count_100=score.count_100, count_50=score.count_50
+                        calculation = calc.calculate_score(
+                            DifficultyCalculatorScore(
+                                mods=score.mods,
+                                beatmap_id=beatmap_id,
+                                count_100=score.count_100,
+                                count_50=score.count_50,
+                                count_miss=score.count_miss,
+                                combo=score.best_combo,
+                            )
                         )
-                        calc.set_misses(score.count_miss)
-                        calc.set_combo(score.best_combo)
-                        calc.set_mods(score.mods)
-                        calc.calculate()
-                        score.performance_total = calc.performance_total
+                        score.performance_total = calculation.performance
                         score.difficulty_calculator_engine = (
                             DifficultyCalculator.engine()
                         )
