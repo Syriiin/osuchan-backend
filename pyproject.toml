@@ -34,6 +34,7 @@ freezegun = "^1.2.2"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "osuchan.settings"
+norecursedirs = ["data", "beatmaps"]
 
 [tool.coverage.run]
 source = ["."]
