@@ -2,6 +2,7 @@ import pytest
 
 from common.osu.difficultycalculator import DifficultyCalculator
 from common.osu.enums import Mods
+from profiles.enums import ScoreResult
 from profiles.models import (
     Beatmap,
     DifficultyCalculation,
@@ -56,9 +57,14 @@ class TestScore:
     def test_magic_str(self, score: Score):
         assert str(score) == "1: 395pp"
 
-    def test_process(self):
-        # TODO: this
-        pass
+    def test_process(self, score: Score):
+        score.process()
+        assert score.result == ScoreResult.END_CHOKE
+        assert score.performance_total == 395.282
+        assert score.nochoke_performance_total == 626.7353926695473
+        assert score.difficulty_total == 8.975730066553297
+        assert score.difficulty_calculator_engine == "legacy"
+        assert score.difficulty_calculator_version == "legacy"
 
     def test_update_performance_values(self, score: Score):
         score.update_performance_values(DifficultyCalculator)
