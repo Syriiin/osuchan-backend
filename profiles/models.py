@@ -738,12 +738,16 @@ class Score(models.Model):
             try:
                 # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
                 with DifficultyCalculator() as calc:
-                    calc.set_beatmap(self.beatmap_id)
-                    calc.set_accuracy(count_100=self.count_100, count_50=self.count_50)
-                    calc.set_mods(self.mods)
-                    calc.calculate()
-                    self.nochoke_performance_total = calc.performance_total
-                    self.difficulty_total = calc.difficulty_total
+                    nochoke_calculation = calc.calculate_score(
+                        DifficultyCalculatorScore(
+                            beatmap_id=self.beatmap_id,
+                            mods=self.mods,
+                            count_100=self.count_100,
+                            count_50=self.count_50,
+                        )
+                    )
+                    self.nochoke_performance_total = nochoke_calculation.performance
+                    self.difficulty_total = nochoke_calculation.difficulty
                     self.difficulty_calculator_engine = "legacy"  # legacy because performance_total is still coming from the api response
                     self.difficulty_calculator_version = "legacy"
             except DifficultyCalculatorException as e:
