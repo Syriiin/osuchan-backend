@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from common.osu.beatmap_provider import LiveBeatmapProvider
+from common.osu.beatmap_provider import BeatmapNotFoundException, LiveBeatmapProvider
 
 
 class TestLiveBeatmapProvider:
@@ -22,18 +22,41 @@ class TestLiveBeatmapProvider:
         beatmap_provider: LiveBeatmapProvider,
         osu_api_test_settings,
     ):
-        assert beatmap_provider.get_beatmap_file(1) == "testcachepath/1"
-        isfile_mock.assert_called_once()
+        assert beatmap_provider.get_beatmap_file("1") == "testcachepath/1"
+        isfile_mock.assert_called_once_with("testcachepath/1")
 
+    @patch("common.osu.beatmap_provider.os.path.getsize", return_value=1)
     @patch("common.osu.beatmap_provider.urllib.request.urlretrieve")
     @patch("common.osu.beatmap_provider.os.path.isfile", return_value=False)
     def test_get_beatmap_file_not_exists(
         self,
         isfile_mock: Mock,
         urlretrieve_mock: Mock,
+        getsize_mock: Mock,
         beatmap_provider: LiveBeatmapProvider,
         osu_api_test_settings,
     ):
-        assert beatmap_provider.get_beatmap_file(1) == "testcachepath/1"
+        assert beatmap_provider.get_beatmap_file("1") == "testcachepath/1"
         isfile_mock.assert_called_once()
         urlretrieve_mock.assert_called_once_with("testbaseurl/1", "testcachepath/1")
+        getsize_mock.assert_called_once_with("testcachepath/1")
+
+    @patch("common.osu.beatmap_provider.os.remove")
+    @patch("common.osu.beatmap_provider.os.path.getsize", return_value=0)
+    @patch("common.osu.beatmap_provider.urllib.request.urlretrieve")
+    @patch("common.osu.beatmap_provider.os.path.isfile", return_value=False)
+    def test_get_beatmap_file_not_exists_and_download_corrupt(
+        self,
+        isfile_mock: Mock,
+        urlretrieve_mock: Mock,
+        getsize_mock: Mock,
+        remove_mock: Mock,
+        beatmap_provider: LiveBeatmapProvider,
+        osu_api_test_settings,
+    ):
+        with pytest.raises(BeatmapNotFoundException):
+            beatmap_provider.get_beatmap_file("1")
+        isfile_mock.assert_called_once()
+        urlretrieve_mock.assert_called_once_with("testbaseurl/1", "testcachepath/1")
+        getsize_mock.assert_called_once_with("testcachepath/1")
+        remove_mock.assert_called_once_with("testcachepath/1")

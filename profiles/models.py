@@ -7,7 +7,6 @@ from django.db.models import Case, F, Subquery, When
 from common.error_reporter import ErrorReporter
 from common.osu import utils
 from common.osu.apiv1 import OsuApiV1
-from common.osu.beatmap_provider import BeatmapProvider
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
     DifficultyCalculator,
@@ -195,24 +194,27 @@ class UserStats(models.Model):
                     # We cant calculate pp for this mode yet so we need to disregard this score
                     continue
 
-                beatmap_provider = BeatmapProvider()
-                beatmap_path = beatmap_provider.get_beatmap_file(beatmap_id)
-
-                if beatmap_path is None:
-                    # TODO: log some sort of alert if this happens
+                try:
+                    with DifficultyCalculator() as calc:
+                        calc.set_beatmap(beatmap_id)
+                        calc.set_accuracy(
+                            count_100=score.count_100, count_50=score.count_50
+                        )
+                        calc.set_misses(score.count_miss)
+                        calc.set_combo(score.best_combo)
+                        calc.set_mods(score.mods)
+                        calc.calculate()
+                        score.performance_total = calc.performance_total
+                        score.difficulty_calculator_engine = (
+                            DifficultyCalculator.engine()
+                        )
+                        score.difficulty_calculator_version = (
+                            DifficultyCalculator.version()
+                        )
+                except DifficultyCalculatorException as e:
+                    error_reporter = ErrorReporter()
+                    error_reporter.report_error(e)
                     continue
-
-                with DifficultyCalculator(beatmap_path) as calc:
-                    calc.set_accuracy(
-                        count_100=score.count_100, count_50=score.count_50
-                    )
-                    calc.set_misses(score.count_miss)
-                    calc.set_combo(score.best_combo)
-                    calc.set_mods(score.mods)
-                    calc.calculate()
-                    score.performance_total = calc.performance_total
-                    score.difficulty_calculator_engine = DifficultyCalculator.engine()
-                    score.difficulty_calculator_version = DifficultyCalculator.version()
 
             # Update convenience fields
             score.gamemode = self.gamemode
@@ -307,10 +309,7 @@ class UserStats(models.Model):
             / weighting_value
         )
         self.score_style_cs = (
-            sum(
-                score.circle_size * (0.95**i)
-                for i, score in enumerate(top_100_scores)
-            )
+            sum(score.circle_size * (0.95**i) for i, score in enumerate(top_100_scores))
             / weighting_value
         )
         self.score_style_ar = (
@@ -439,15 +438,9 @@ class Beatmap(models.Model):
     def update_difficulty_values(
         self, difficulty_calculator: Type[AbstractDifficultyCalculator]
     ):
-        beatmap_provider = BeatmapProvider()
-        beatmap_path = beatmap_provider.get_beatmap_file(self.id)
-
-        if beatmap_path is None:
-            # TODO: log some sort of alert if this happens
-            return
-
         try:
-            with difficulty_calculator(beatmap_path) as calculator:
+            with difficulty_calculator() as calculator:
+                calculator.set_beatmap(self.id)
                 calculator.calculate()
                 self.difficulty_total = calculator.difficulty_total
                 self.difficulty_calculator_engine = difficulty_calculator.engine()
@@ -485,19 +478,22 @@ class DifficultyCalculation(models.Model):
         self, difficulty_calculator: type[AbstractDifficultyCalculator]
     ) -> list["DifficultyValue"]:
         values = []
-        beatmap_provider = BeatmapProvider()
-        beatmap_path = beatmap_provider.get_beatmap_file(self.beatmap_id)
-        with difficulty_calculator(beatmap_path) as calculator:
-            calculator.set_mods(self.mods)
-            calculator.calculate()
+        try:
+            with difficulty_calculator() as calculator:
+                calculator.set_beatmap(self.beatmap_id)
+                calculator.set_mods(self.mods)
+                calculator.calculate()
 
-            values.append(
-                DifficultyValue(
-                    calculation_id=self.id,
-                    name="total",
-                    value=calculator.difficulty_total,
+                values.append(
+                    DifficultyValue(
+                        calculation_id=self.id,
+                        name="total",
+                        value=calculator.difficulty_total,
+                    )
                 )
-            )
+        except DifficultyCalculatorException as e:
+            error_reporter = ErrorReporter()
+            error_reporter.report_error(e)
 
         return values
 
@@ -731,36 +727,27 @@ class Score(models.Model):
         if self.user_stats.gamemode == Gamemode.STANDARD:
             # determine score result
             self.__process_score_result()
-
-            beatmap_provider = BeatmapProvider()
-            beatmap_path = beatmap_provider.get_beatmap_file(self.beatmap_id)
-
-            if beatmap_path is None:
-                # TODO: log some sort of alert if this happens
-                return
-
-            # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
-            with DifficultyCalculator(beatmap_path) as calc:
-                calc.set_accuracy(count_100=self.count_100, count_50=self.count_50)
-                calc.set_mods(self.mods)
-                calc.calculate()
-                self.nochoke_performance_total = calc.performance_total
-                self.difficulty_total = calc.difficulty_total
-                self.difficulty_calculator_engine = "legacy"  # legacy because performance_total is still coming from the api response
-                self.difficulty_calculator_version = "legacy"
+            try:
+                # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
+                with DifficultyCalculator() as calc:
+                    calc.set_beatmap(self.beatmap_id)
+                    calc.set_accuracy(count_100=self.count_100, count_50=self.count_50)
+                    calc.set_mods(self.mods)
+                    calc.calculate()
+                    self.nochoke_performance_total = calc.performance_total
+                    self.difficulty_total = calc.difficulty_total
+                    self.difficulty_calculator_engine = "legacy"  # legacy because performance_total is still coming from the api response
+                    self.difficulty_calculator_version = "legacy"
+            except DifficultyCalculatorException as e:
+                error_reporter = ErrorReporter()
+                error_reporter.report_error(e)
 
     def update_performance_values(
         self, difficulty_calculator: Type[AbstractDifficultyCalculator]
     ):
-        beatmap_provider = BeatmapProvider()
-        beatmap_path = beatmap_provider.get_beatmap_file(self.beatmap_id)
-
-        if beatmap_path is None:
-            # TODO: log some sort of alert if this happens
-            return
-
         try:
-            with difficulty_calculator(beatmap_path) as calculator:
+            with difficulty_calculator() as calculator:
+                calculator.set_beatmap(self.beatmap_id)
                 # calculate nochoke
                 calculator.set_accuracy(
                     count_100=self.count_100, count_50=self.count_50
@@ -848,25 +835,28 @@ class PerformanceCalculation(models.Model):
         self, score: Score, difficulty_calculator: type[AbstractDifficultyCalculator]
     ) -> list["PerformanceValue"]:
         values = []
-        beatmap_provider = BeatmapProvider()
-        beatmap_path = beatmap_provider.get_beatmap_file(score.beatmap_id)
-        with difficulty_calculator(beatmap_path) as calculator:
-            calculator.set_mods(score.mods)
-            calculator.set_accuracy(
-                count_100=score.count_100,
-                count_50=score.count_50,
-            )
-            calculator.set_misses(score.count_miss)
-            calculator.set_combo(score.best_combo)
-            calculator.calculate()
-
-            values.append(
-                PerformanceValue(
-                    calculation_id=self.id,
-                    name="total",
-                    value=calculator.performance_total,
+        try:
+            with difficulty_calculator() as calculator:
+                calculator.set_beatmap(score.beatmap_id)
+                calculator.set_mods(score.mods)
+                calculator.set_accuracy(
+                    count_100=score.count_100,
+                    count_50=score.count_50,
                 )
-            )
+                calculator.set_misses(score.count_miss)
+                calculator.set_combo(score.best_combo)
+                calculator.calculate()
+
+                values.append(
+                    PerformanceValue(
+                        calculation_id=self.id,
+                        name="total",
+                        value=calculator.performance_total,
+                    )
+                )
+        except DifficultyCalculatorException as e:
+            error_reporter = ErrorReporter()
+            error_reporter.report_error(e)
 
         return values
 

@@ -8,6 +8,8 @@ import rosu_pp_py
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
+
 OPPAIPY_VERSION = metadata.version("oppaipy")
 ROSUPP_VERSION = metadata.version("rosu_pp_py")
 
@@ -29,16 +31,14 @@ class CalculationException(DifficultyCalculatorException):
 
 
 class AbstractDifficultyCalculator(AbstractContextManager, ABC):
-    def __init__(self, beatmap_path: str):
-        self.beatmap_path = beatmap_path
+    def __init__(self):
         self.closed = False
 
     def __enter__(self):
         return self
 
-    @abstractmethod
     def __exit__(self, exc_type, exc_value, traceback):
-        raise NotImplementedError()
+        self._close()
 
     @abstractmethod
     def _close(self):
@@ -47,6 +47,10 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     def close(self):
         self.closed = True
         self._close()
+
+    @abstractmethod
+    def set_beatmap(self, beatmap_id: str) -> None:
+        raise NotImplementedError()
 
     @abstractmethod
     def set_accuracy(self, count_100: int, count_50: int) -> None:
@@ -74,12 +78,7 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
                 "calculate() cannot be called on a closed calculator"
             )
 
-        try:
-            self._calculate()
-        except Exception as e:
-            raise CalculationException(
-                f'An error occured in calculating the beatmap "{self.beatmap_path}"'
-            ) from e
+        self._calculate()
 
     @property
     @abstractmethod
@@ -103,15 +102,25 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
 
 
 class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
-    def __init__(self, beatmap_path: str):
-        super().__init__(beatmap_path)
-        self.oppai_calc = oppaipy.Calculator(beatmap_path)
+    def __init__(self):
+        super().__init__()
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._close()
+        self.oppai_calc = None
+        self.beatmap_path = None
 
     def _close(self):
-        self.oppai_calc.close()
+        if self.oppai_calc is not None:
+            self.oppai_calc.close()
+
+    def set_beatmap(self, beatmap_id: str) -> None:
+        beatmap_provider = BeatmapProvider()
+        try:
+            self.beatmap_path = beatmap_provider.get_beatmap_file(beatmap_id)
+        except BeatmapNotFoundException as e:
+            raise InvalidBeatmapException(
+                f"An error occured in fetching the beatmap {beatmap_id}"
+            ) from e
+        self.oppai_calc = oppaipy.Calculator(self.beatmap_path)
 
     def set_accuracy(self, count_100: int, count_50: int):
         self.oppai_calc.set_accuracy(count_100, count_50)
@@ -126,7 +135,12 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
         self.oppai_calc.set_mods(mods)
 
     def _calculate(self):
-        self.oppai_calc.calculate()
+        try:
+            self.oppai_calc.calculate()
+        except oppaipy.OppaiError as e:
+            raise CalculationException(
+                f'An error occured in calculating the beatmap "{self.beatmap_path}"'
+            ) from e
 
     @property
     def difficulty_total(self):
@@ -146,23 +160,29 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
 
 
 class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
-    def __init__(self, beatmap_path: str):
-        super().__init__(beatmap_path)
+    def __init__(self):
+        super().__init__()
+
+        self.rosupp_calc = rosu_pp_py.Calculator()
+
+    def _close(self):
+        pass
+
+    def set_beatmap(self, beatmap_id: str) -> None:
+        beatmap_provider = BeatmapProvider()
         try:
-            self.rosupp_calc = rosu_pp_py.Calculator()
+            beatmap_path = beatmap_provider.get_beatmap_file(beatmap_id)
+        except BeatmapNotFoundException as e:
+            raise InvalidBeatmapException(
+                f"An error occured in fetching the beatmap {beatmap_id}"
+            ) from e
+
+        try:
             self.beatmap = rosu_pp_py.Beatmap(path=beatmap_path)
         except Exception as e:
             raise InvalidBeatmapException(
                 f'An error occured in parsing the beatmap "{self.beatmap_path}"'
             ) from e
-
-        self.calc_result = None
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._close()
-
-    def _close(self):
-        pass
 
     def set_accuracy(self, count_100: int, count_50: int):
         self.rosupp_calc.set_n100(count_100)

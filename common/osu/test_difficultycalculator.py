@@ -1,10 +1,8 @@
 from importlib import metadata
-from pathlib import Path
 
 import pytest
 
 from common.osu.difficultycalculator import (
-    CalculationException,
     CalculatorClosedException,
     InvalidBeatmapException,
     OppaiDifficultyCalculator,
@@ -20,23 +18,22 @@ class TestOppaiDifficultyCalculator:
     def test_version(self):
         assert OppaiDifficultyCalculator.version() == metadata.version("oppaipy")
 
-    def test_context_manager(self, beatmap_provider):
-        with OppaiDifficultyCalculator(
-            beatmap_provider.get_beatmap_file(307618)
-        ) as calc:
+    def test_context_manager(self):
+        with OppaiDifficultyCalculator() as calc:
+            calc.set_beatmap("307618")
             calc.calculate()
             assert calc.difficulty_total == 4.200401306152344
 
     def test_invalid_beatmap(self):
-        with pytest.raises(CalculationException):
-            with OppaiDifficultyCalculator(
-                f"{Path(__file__).parent}/testdata/empty.osu"
-            ) as calc:
+        with pytest.raises(InvalidBeatmapException):
+            with OppaiDifficultyCalculator() as calc:
+                calc.set_beatmap("notarealbeatmap")
                 calc.calculate()
 
     @pytest.fixture
-    def calc(self, beatmap_provider):
-        calc = OppaiDifficultyCalculator(beatmap_provider.get_beatmap_file(307618))
+    def calc(self):
+        calc = OppaiDifficultyCalculator()
+        calc.set_beatmap("307618")
         calc.calculate()
         return calc
 
@@ -83,19 +80,20 @@ class TestRosuppDifficultyCalculator:
     def test_version(self):
         assert RosuppDifficultyCalculator.version() == metadata.version("rosu-pp-py")
 
-    def test_context_manager(self, beatmap_provider):
-        with RosuppDifficultyCalculator(
-            beatmap_provider.get_beatmap_file(307618)
-        ) as calc:
+    def test_context_manager(self):
+        with RosuppDifficultyCalculator() as calc:
+            calc.set_beatmap("307618")
             assert calc.difficulty_total == 4.457399442092882
 
     def test_invalid_beatmap(self):
         with pytest.raises(InvalidBeatmapException):
-            RosuppDifficultyCalculator(f"{Path(__file__).parent}/testdata/empty.osu")
+            with RosuppDifficultyCalculator() as calc:
+                calc.set_beatmap("notarealbeatmap")
 
     @pytest.fixture
-    def calc(self, beatmap_provider):
-        calc = RosuppDifficultyCalculator(beatmap_provider.get_beatmap_file(307618))
+    def calc(self):
+        calc = RosuppDifficultyCalculator()
+        calc.set_beatmap("307618")
         calc.calculate()
         return calc
 
