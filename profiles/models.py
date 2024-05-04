@@ -443,9 +443,11 @@ class Beatmap(models.Model):
     ):
         try:
             with difficulty_calculator() as calculator:
-                calculator.set_beatmap(self.id)
-                calculator.calculate()
-                self.difficulty_total = calculator.difficulty_total
+                calculation = calculator.calculate_score(
+                    DifficultyCalculatorScore(beatmap_id=self.id)
+                )
+
+                self.difficulty_total = calculation.difficulty
                 self.difficulty_calculator_engine = difficulty_calculator.engine()
                 self.difficulty_calculator_version = difficulty_calculator.version()
         except DifficultyCalculatorException as e:
@@ -753,23 +755,30 @@ class Score(models.Model):
     ):
         try:
             with difficulty_calculator() as calculator:
-                calculator.set_beatmap(self.beatmap_id)
-                # calculate nochoke
-                calculator.set_accuracy(
-                    count_100=self.count_100, count_50=self.count_50
+                calculation = calculator.calculate_score(
+                    DifficultyCalculatorScore(
+                        beatmap_id=self.beatmap_id,
+                        mods=self.mods,
+                        count_100=self.count_100,
+                        count_50=self.count_50,
+                        count_miss=self.count_miss,
+                        combo=self.best_combo,
+                    )
                 )
-                calculator.set_mods(self.mods)
-                calculator.calculate()
-                self.nochoke_performance_total = calculator.performance_total
-                self.difficulty_total = calculator.difficulty_total
+                self.performance_total = calculation.performance
+                self.difficulty_total = calculation.difficulty
                 self.difficulty_calculator_engine = calculator.engine()
                 self.difficulty_calculator_version = calculator.version()
 
-                # calculate actual
-                calculator.set_misses(self.count_miss)
-                calculator.set_combo(self.best_combo)
-                calculator.calculate()
-                self.performance_total = calculator.performance_total
+                nochoke_calculation = calculator.calculate_score(
+                    DifficultyCalculatorScore(
+                        beatmap_id=self.beatmap_id,
+                        mods=self.mods,
+                        count_100=self.count_100,
+                        count_50=self.count_50,
+                    )
+                )
+                self.nochoke_performance_total = nochoke_calculation.performance
         except DifficultyCalculatorException as e:
             # TODO: handle this properly
             self.nochoke_performance_total = 0
