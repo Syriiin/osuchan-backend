@@ -4,14 +4,14 @@ from django.contrib import admin
 from django.http import Http404, HttpResponse
 from django.urls import path
 
-from common.osu.beatmap_provider import BeatmapProvider
+from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
 
 
 def getBeatmapFile(request, beatmap_id):
     beatmap_provider = BeatmapProvider()
-    beatmap_path = beatmap_provider.get_beatmap_file(beatmap_id)
-
-    if beatmap_path is None:
+    try:
+        beatmap_path = beatmap_provider.get_beatmap_file(beatmap_id)
+    except BeatmapNotFoundException as e:
         raise Http404("beatmap does not exist")
 
     with open(beatmap_path, encoding="utf8") as fp:

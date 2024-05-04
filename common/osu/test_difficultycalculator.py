@@ -1,14 +1,14 @@
 from importlib import metadata
-from pathlib import Path
 
 import pytest
 
 from common.osu.difficultycalculator import (
-    CalculationException,
+    Calculation,
     CalculatorClosedException,
     InvalidBeatmapException,
     OppaiDifficultyCalculator,
     RosuppDifficultyCalculator,
+    Score,
 )
 from common.osu.enums import Mods
 
@@ -20,23 +20,66 @@ class TestOppaiDifficultyCalculator:
     def test_version(self):
         assert OppaiDifficultyCalculator.version() == metadata.version("oppaipy")
 
-    def test_context_manager(self, beatmap_provider):
-        with OppaiDifficultyCalculator(
-            beatmap_provider.get_beatmap_file(307618)
-        ) as calc:
+    def test_context_manager(self):
+        with OppaiDifficultyCalculator() as calc:
+            calc.set_beatmap("307618")
             calc.calculate()
             assert calc.difficulty_total == 4.200401306152344
 
     def test_invalid_beatmap(self):
-        with pytest.raises(CalculationException):
-            with OppaiDifficultyCalculator(
-                f"{Path(__file__).parent}/testdata/empty.osu"
-            ) as calc:
+        with pytest.raises(InvalidBeatmapException):
+            with OppaiDifficultyCalculator() as calc:
+                calc.set_beatmap("notarealbeatmap")
                 calc.calculate()
 
+    def test_calculate_score(self):
+        calc = OppaiDifficultyCalculator()
+        score = Score(
+            "307618",
+            mods=Mods.DOUBLETIME + Mods.HIDDEN,
+            count_100=14,
+            count_50=1,
+            count_miss=1,
+            combo=2000,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty=5.919765949249268, performance=298.1595153808594
+        )
+
+    def test_calculate_score_batch(self):
+        calc = OppaiDifficultyCalculator()
+        scores = [
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN,
+                count_100=14,
+                count_50=1,
+                count_miss=1,
+                combo=2000,
+            ),
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                count_100=14,
+                count_50=1,
+                count_miss=1,
+                combo=2000,
+            ),
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+            ),
+        ]
+        assert calc.calculate_score_batch(scores) == [
+            Calculation(difficulty=5.919765949249268, performance=298.1595153808594),
+            Calculation(difficulty=6.20743465423584, performance=476.4307861328125),
+            Calculation(difficulty=6.20743465423584, performance=630.419677734375),
+        ]
+
     @pytest.fixture
-    def calc(self, beatmap_provider):
-        calc = OppaiDifficultyCalculator(beatmap_provider.get_beatmap_file(307618))
+    def calc(self):
+        calc = OppaiDifficultyCalculator()
+        calc.set_beatmap("307618")
         calc.calculate()
         return calc
 
@@ -83,19 +126,65 @@ class TestRosuppDifficultyCalculator:
     def test_version(self):
         assert RosuppDifficultyCalculator.version() == metadata.version("rosu-pp-py")
 
-    def test_context_manager(self, beatmap_provider):
-        with RosuppDifficultyCalculator(
-            beatmap_provider.get_beatmap_file(307618)
-        ) as calc:
+    def test_context_manager(self):
+        with RosuppDifficultyCalculator() as calc:
+            calc.set_beatmap("307618")
+            calc.calculate()
             assert calc.difficulty_total == 4.457399442092882
 
     def test_invalid_beatmap(self):
         with pytest.raises(InvalidBeatmapException):
-            RosuppDifficultyCalculator(f"{Path(__file__).parent}/testdata/empty.osu")
+            with RosuppDifficultyCalculator() as calc:
+                calc.set_beatmap("notarealbeatmap")
+
+    def test_calculate_score(self):
+        calc = RosuppDifficultyCalculator()
+        score = Score(
+            "307618",
+            mods=Mods.DOUBLETIME + Mods.HIDDEN,
+            count_100=14,
+            count_50=1,
+            count_miss=1,
+            combo=2000,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty=6.264344677869616, performance=312.43705315450256
+        )
+
+    def test_calculate_score_batch(self):
+        calc = RosuppDifficultyCalculator()
+        scores = [
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN,
+                count_100=14,
+                count_50=1,
+                count_miss=1,
+                combo=2000,
+            ),
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                count_100=14,
+                count_50=1,
+                count_miss=1,
+                combo=2000,
+            ),
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+            ),
+        ]
+        assert calc.calculate_score_batch(scores) == [
+            Calculation(difficulty=6.264344677869616, performance=312.43705315450256),
+            Calculation(difficulty=6.531051472171891, performance=487.5904861756349),
+            Calculation(difficulty=6.531051472171891, performance=655.9388807525456),
+        ]
 
     @pytest.fixture
-    def calc(self, beatmap_provider):
-        calc = RosuppDifficultyCalculator(beatmap_provider.get_beatmap_file(307618))
+    def calc(self):
+        calc = RosuppDifficultyCalculator()
+        calc.set_beatmap("307618")
         calc.calculate()
         return calc
 
@@ -114,13 +203,13 @@ class TestRosuppDifficultyCalculator:
         calc.set_accuracy(14, 1)
         calc.calculate()
         assert calc.difficulty_total == 4.457399442092882
-        assert calc.performance_total == 124.11285312370455
+        assert calc.performance_total == 124.11285312370458
 
     def test_set_misses(self, calc: RosuppDifficultyCalculator):
         calc.set_misses(1)
         calc.calculate()
         assert calc.difficulty_total == 4.457399442092882
-        assert calc.performance_total == 130.64187056414588
+        assert calc.performance_total == 130.60976567558188
 
     def test_set_combo(self, calc: RosuppDifficultyCalculator):
         calc.set_combo(2000)
@@ -132,4 +221,4 @@ class TestRosuppDifficultyCalculator:
         calc.set_mods(Mods.DOUBLETIME + Mods.HIDDEN)
         calc.calculate()
         assert calc.difficulty_total == 6.264344677869616
-        assert calc.performance_total == 425.80658059182343
+        assert calc.performance_total == 425.8065805918235

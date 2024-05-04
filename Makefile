@@ -45,7 +45,7 @@ resetdb:	## Resets the database
 	$(COMPOSE_RUN_TOOLING) sh -c "python manage.py sqlflush | python manage.py dbshell"
 
 test:	## Runs test suite
-	$(COMPOSE_RUN_TOOLING) coverage run -m pytest --ignore data
+	$(COMPOSE_RUN_TOOLING) coverage run -m pytest
 
 test-coverage-report:	## Get test coverage report
 	$(COMPOSE_RUN_TOOLING) sh -c "coverage report -m && coverage html"

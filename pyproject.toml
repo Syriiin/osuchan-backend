@@ -18,22 +18,23 @@ oppaipy = "^1.0.4"
 psycopg2-binary = "^2.9.1"
 pymemcache = "^4.0.0"
 requests = "^2.25.1"
-rosu-pp-py = "^0.9.3"
+rosu-pp-py = "^1.0.0"
 tqdm = "^4.64.0"
 flower = "^2.0.0"
 pydantic-settings = "^2.0.0"
 django-prometheus = "^2.3.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
+black = "^24.4.2"
 isort = "^5.9.3"
-coverage = { extras = ["toml"], version = "^7.2.6" }
-pytest = "^7.3.1"
+coverage = "^7.5.1"
+pytest = "^8.2.0"
 pytest-django = "^4.5.2"
 freezegun = "^1.2.2"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "osuchan.settings"
+norecursedirs = ["data", "beatmaps"]
 
 [tool.coverage.run]
 source = ["."]
