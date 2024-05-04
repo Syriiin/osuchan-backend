@@ -44,9 +44,11 @@ class TestBeatmap:
         # TODO: this
         pass
 
-    def test_update_difficulty_values(self):
-        # TODO: this
-        pass
+    def test_update_difficulty_values(self, beatmap: Beatmap):
+        beatmap.update_difficulty_values(DifficultyCalculator)
+        assert beatmap.difficulty_total == 6.711556915919059
+        assert beatmap.difficulty_calculator_engine == "rosu-pp-py"
+        assert beatmap.difficulty_calculator_version == "0.9.4"
 
 
 @pytest.mark.django_db
@@ -58,9 +60,13 @@ class TestScore:
         # TODO: this
         pass
 
-    def test_update_performance_values(self):
-        # TODO: this
-        pass
+    def test_update_performance_values(self, score: Score):
+        score.update_performance_values(DifficultyCalculator)
+        assert score.performance_total == 625.3261007335672
+        assert score.nochoke_performance_total == 626.7353926695473
+        assert score.difficulty_total == 8.975730066553297
+        assert score.difficulty_calculator_engine == "rosu-pp-py"
+        assert score.difficulty_calculator_version == "0.9.4"
 
 
 @pytest.fixture
