@@ -49,7 +49,7 @@ class TestBeatmap:
         beatmap.update_difficulty_values(DifficultyCalculator)
         assert beatmap.difficulty_total == 6.711556915919059
         assert beatmap.difficulty_calculator_engine == "rosu-pp-py"
-        assert beatmap.difficulty_calculator_version == "0.9.4"
+        assert beatmap.difficulty_calculator_version == "1.0.0"
 
 
 @pytest.mark.django_db
@@ -68,11 +68,11 @@ class TestScore:
 
     def test_update_performance_values(self, score: Score):
         score.update_performance_values(DifficultyCalculator)
-        assert score.performance_total == 625.3261007335672
+        assert score.performance_total == 626.7353926695473
         assert score.nochoke_performance_total == 626.7353926695473
         assert score.difficulty_total == 8.975730066553297
         assert score.difficulty_calculator_engine == "rosu-pp-py"
-        assert score.difficulty_calculator_version == "0.9.4"
+        assert score.difficulty_calculator_version == "1.0.0"
 
 
 @pytest.fixture
@@ -119,4 +119,4 @@ class TestPerformanceCalculation:
         )
         assert len(performance_values) == 1
         assert performance_values[0].name == "total"
-        assert performance_values[0].value == 625.3261007335672
+        assert performance_values[0].value == 626.7353926695473

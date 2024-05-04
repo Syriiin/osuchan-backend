@@ -44,6 +44,10 @@ class CalculationException(DifficultyCalculatorException):
     pass
 
 
+class NotYetCalculatedException(DifficultyCalculatorException):
+    pass
+
+
 class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     def __init__(self):
         self.closed = False
@@ -206,13 +210,15 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
     def __init__(self):
         super().__init__()
 
-        self.rosupp_calc = rosu_pp_py.Calculator()
+        self.rosupp_calc = rosu_pp_py.Performance()
+        self.results = None
 
     def _close(self):
         pass
 
     def _reset(self):
-        self.rosupp_calc = rosu_pp_py.Calculator()
+        self.rosupp_calc = rosu_pp_py.Performance()
+        self.results = None
 
     def set_beatmap(self, beatmap_id: str) -> None:
         beatmap_provider = BeatmapProvider()
@@ -235,7 +241,7 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
         self.rosupp_calc.set_n50(count_50)
 
     def set_misses(self, count_miss: int):
-        self.rosupp_calc.set_n_misses(count_miss)
+        self.rosupp_calc.set_misses(count_miss)
 
     def set_combo(self, combo: int):
         self.rosupp_calc.set_combo(combo)
@@ -244,17 +250,19 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
         self.rosupp_calc.set_mods(mods)
 
     def _calculate(self):
-        # rosu_pp_py does lazy calculations it seems
-        pass
+        self.results = self.rosupp_calc.calculate(self.beatmap)
 
     @property
     def difficulty_total(self) -> float:
-        # TODO: PR to rosu-pp-py to add real type hints here
-        return self.rosupp_calc.difficulty(self.beatmap).stars or 0.0  # type: ignore
+        if self.results is None:
+            raise NotYetCalculatedException("Results have not been calculated")
+        return self.results.difficulty.stars
 
     @property
     def performance_total(self) -> float:
-        return self.rosupp_calc.performance(self.beatmap).pp or 0.0  # type: ignore
+        if self.results is None:
+            raise NotYetCalculatedException("Results have not been calculated")
+        return self.results.pp
 
     @staticmethod
     def engine():

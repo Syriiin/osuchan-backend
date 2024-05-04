@@ -129,6 +129,7 @@ class TestRosuppDifficultyCalculator:
     def test_context_manager(self):
         with RosuppDifficultyCalculator() as calc:
             calc.set_beatmap("307618")
+            calc.calculate()
             assert calc.difficulty_total == 4.457399442092882
 
     def test_invalid_beatmap(self):
@@ -176,7 +177,7 @@ class TestRosuppDifficultyCalculator:
         ]
         assert calc.calculate_score_batch(scores) == [
             Calculation(difficulty=6.264344677869616, performance=312.43705315450256),
-            Calculation(difficulty=6.531051472171891, performance=487.59048617563496),
+            Calculation(difficulty=6.531051472171891, performance=487.5904861756349),
             Calculation(difficulty=6.531051472171891, performance=655.9388807525456),
         ]
 
@@ -202,13 +203,13 @@ class TestRosuppDifficultyCalculator:
         calc.set_accuracy(14, 1)
         calc.calculate()
         assert calc.difficulty_total == 4.457399442092882
-        assert calc.performance_total == 124.11285312370455
+        assert calc.performance_total == 124.11285312370458
 
     def test_set_misses(self, calc: RosuppDifficultyCalculator):
         calc.set_misses(1)
         calc.calculate()
         assert calc.difficulty_total == 4.457399442092882
-        assert calc.performance_total == 130.64187056414588
+        assert calc.performance_total == 130.60976567558188
 
     def test_set_combo(self, calc: RosuppDifficultyCalculator):
         calc.set_combo(2000)
@@ -220,4 +221,4 @@ class TestRosuppDifficultyCalculator:
         calc.set_mods(Mods.DOUBLETIME + Mods.HIDDEN)
         calc.calculate()
         assert calc.difficulty_total == 6.264344677869616
-        assert calc.performance_total == 425.80658059182343
+        assert calc.performance_total == 425.8065805918235
