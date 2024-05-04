@@ -50,7 +50,7 @@ class DummyErrorReporter(AbstractErrorReporter):
     def report_error(
         self, exception: Exception, title: str = "", extra_details: str = ""
     ):
-        pass
+        raise exception
 
 
 ErrorReporter: Type[AbstractErrorReporter] = import_string(
