@@ -483,15 +483,18 @@ class DifficultyCalculation(models.Model):
         values = []
         try:
             with difficulty_calculator() as calculator:
-                calculator.set_beatmap(self.beatmap_id)
-                calculator.set_mods(self.mods)
-                calculator.calculate()
+                calculation = calculator.calculate_score(
+                    DifficultyCalculatorScore(
+                        beatmap_id=self.beatmap_id,
+                        mods=self.mods,
+                    )
+                )
 
                 values.append(
                     DifficultyValue(
                         calculation_id=self.id,
                         name="total",
-                        value=calculator.difficulty_total,
+                        value=calculation.difficulty,
                     )
                 )
         except DifficultyCalculatorException as e:
@@ -840,21 +843,22 @@ class PerformanceCalculation(models.Model):
         values = []
         try:
             with difficulty_calculator() as calculator:
-                calculator.set_beatmap(score.beatmap_id)
-                calculator.set_mods(score.mods)
-                calculator.set_accuracy(
-                    count_100=score.count_100,
-                    count_50=score.count_50,
+                calculation = calculator.calculate_score(
+                    DifficultyCalculatorScore(
+                        beatmap_id=score.beatmap_id,
+                        mods=score.mods,
+                        count_100=score.count_100,
+                        count_50=score.count_50,
+                        count_miss=score.count_miss,
+                        combo=score.best_combo,
+                    )
                 )
-                calculator.set_misses(score.count_miss)
-                calculator.set_combo(score.best_combo)
-                calculator.calculate()
 
                 values.append(
                     PerformanceValue(
                         calculation_id=self.id,
                         name="total",
-                        value=calculator.performance_total,
+                        value=calculation.performance,
                     )
                 )
         except DifficultyCalculatorException as e:
