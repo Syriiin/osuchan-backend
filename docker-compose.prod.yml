@@ -35,3 +35,9 @@ services:
 
   grafana:
     restart: always
+
+  difficalcy-osu:
+    restart: always
+
+  redis:
+    restart: always

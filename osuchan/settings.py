@@ -24,6 +24,7 @@ class EnvSettings(BaseSettings):
     CELERY_PASSWORD: str
     CELERY_HOST: str
     CELERY_PORT: str
+    DIFFICALCY_OSU_HOST: str
     OSU_CLIENT_ID: str
     OSU_CLIENT_SECRET: str
     OSU_CLIENT_REDIRECT_URI: str
@@ -315,6 +316,8 @@ else:
 DIFFICULTY_CALCULATOR_CLASS = (
     "common.osu.difficultycalculator.RosuppDifficultyCalculator"
 )
+
+DIFFICALCY_OSU_URL = f"http://{env_settings.DIFFICALCY_OSU_HOST}"
 
 
 # Error reporting

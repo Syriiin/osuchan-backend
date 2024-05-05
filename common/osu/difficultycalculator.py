@@ -3,6 +3,7 @@ from contextlib import AbstractContextManager
 from importlib import metadata
 from typing import Iterable, NamedTuple, Optional, Type
 
+import httpx
 import oppaipy
 import rosu_pp_py
 from django.conf import settings
@@ -12,6 +13,12 @@ from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvide
 
 OPPAIPY_VERSION = metadata.version("oppaipy")
 ROSUPP_VERSION = metadata.version("rosu_pp_py")
+
+# TODO: lazy load this instead of doing at import
+difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
+
+DIFFICALCY_OSU_ENGINE = difficalcy_osu_info["calculatorPackage"]
+DIFFICALCY_OSU_VERSION = difficalcy_osu_info["calculatorVersion"]
 
 
 class Score(NamedTuple):
@@ -271,6 +278,106 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
     @staticmethod
     def version():
         return ROSUPP_VERSION
+
+
+class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
+    def __init__(self):
+        super().__init__()
+
+        self.client = httpx.Client()
+
+    def _close(self):
+        self.client.close()
+
+    def __difficalcy_score_from_score(self, score: Score) -> dict:
+        return {
+            k: v
+            for k, v in {
+                "BeatmapId": score.beatmap_id,
+                "Mods": score.mods,
+                "Combo": score.combo,
+                "Misses": score.count_miss,
+                "Mehs": score.count_50,
+                "Oks": score.count_100,
+            }.items()
+            if v is not None
+        }
+
+    def calculate_score(self, score: Score) -> Calculation:
+        try:
+            response = self.client.get(
+                f"{settings.DIFFICALCY_OSU_URL}/api/calculation",
+                params=self.__difficalcy_score_from_score(score),
+            )
+            response.raise_for_status()
+            data = response.json()
+        except httpx.HTTPStatusError as e:
+            raise CalculationException(
+                f"An error occured in calculating the beatmap {score.beatmap_id}"
+            ) from e
+
+        return Calculation(
+            difficulty=data["difficulty"]["total"],
+            performance=data["performance"]["total"],
+        )
+
+    def calculate_score_batch(self, scores: Iterable[Score]) -> list[Calculation]:
+        try:
+            response = self.client.post(
+                f"{settings.DIFFICALCY_OSU_URL}/api/batch/calculation",
+                json=[self.__difficalcy_score_from_score(score) for score in scores],
+            )
+            response.raise_for_status()
+            data = response.json()
+        except httpx.HTTPStatusError as e:
+            raise CalculationException(
+                f"An error occured in calculating the beatmaps"
+            ) from e
+
+        return [
+            Calculation(
+                difficulty=calculation_data["difficulty"]["total"],
+                performance=calculation_data["performance"]["total"],
+            )
+            for calculation_data in data
+        ]
+
+    def _reset(self):
+        pass
+
+    def set_beatmap(self, beatmap_id: str) -> None:
+        raise NotImplementedError()
+
+    def set_accuracy(self, count_100: int, count_50: int) -> None:
+        raise NotImplementedError()
+
+    def set_misses(self, count_miss: int) -> None:
+        raise NotImplementedError()
+
+    def set_combo(self, combo: int) -> None:
+        raise NotImplementedError()
+
+    def set_mods(self, mods: int) -> None:
+        raise NotImplementedError()
+
+    def _calculate() -> None:
+        raise NotImplementedError()
+
+    @property
+    def difficulty_total(self) -> float:
+        raise NotImplementedError()
+
+    @property
+    def performance_total(self) -> float:
+        raise NotImplementedError()
+
+    @staticmethod
+    def engine() -> str:
+        return DIFFICALCY_OSU_ENGINE
+
+    @staticmethod
+    def version() -> str:
+        return DIFFICALCY_OSU_VERSION
 
 
 DifficultyCalculator: Type[AbstractDifficultyCalculator] = import_string(

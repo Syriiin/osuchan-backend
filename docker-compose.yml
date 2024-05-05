@@ -4,6 +4,8 @@ volumes:
   queue-data:
   prometheus-data:
   grafana-data:
+  beatmaps:
+  redis-data:
 
 secrets:
   grafana_admin_password:
@@ -87,3 +89,17 @@ services:
       - grafana-data:/var/lib/grafana:rw
     secrets:
       - grafana_admin_password
+
+  difficalcy-osu:
+    image: ghcr.io/syriiin/difficalcy-osu:v0.5.0
+    environment:
+      - REDIS_CONFIGURATION=redis:6379
+    volumes:
+      - beatmaps:/beatmaps
+    depends_on:
+      - cache
+
+  redis:
+    image: redis:latest
+    volumes:
+      - redis-data:/data
