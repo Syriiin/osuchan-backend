@@ -317,6 +317,12 @@ DIFFICULTY_CALCULATOR_CLASS = (
     "common.osu.difficultycalculator.RosuppDifficultyCalculator"
 )
 
+DIFFICULTY_CALCULATOR_CLASSES = {
+    "oppai": "common.osu.difficultycalculator.OppaiDifficultyCalculator",
+    "rosupp": "common.osu.difficultycalculator.RosuppDifficultyCalculator",
+    "difficalcy-osu": "common.osu.difficultycalculator.DifficalcyOsuDifficultyCalculator",
+}
+
 DIFFICALCY_OSU_URL = f"http://{env_settings.DIFFICALCY_OSU_HOST}"
 
 

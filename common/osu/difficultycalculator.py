@@ -399,6 +399,16 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
         return Gamemode.STANDARD
 
 
+difficulty_calculators: dict[str, type[AbstractDifficultyCalculator]] = {
+    name: import_string(calculator_class)
+    for name, calculator_class in settings.DIFFICULTY_CALCULATOR_CLASSES.items()
+}
+
+
+def get_difficulty_calculator_class(name: str) -> Type[AbstractDifficultyCalculator]:
+    return difficulty_calculators[name]
+
+
 DifficultyCalculator: Type[AbstractDifficultyCalculator] = import_string(
     settings.DIFFICULTY_CALCULATOR_CLASS
 )
