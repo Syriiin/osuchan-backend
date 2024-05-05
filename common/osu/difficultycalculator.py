@@ -10,6 +10,7 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
+from common.osu.enums import Gamemode
 
 OPPAIPY_VERSION = metadata.version("oppaipy")
 ROSUPP_VERSION = metadata.version("rosu_pp_py")
@@ -119,7 +120,7 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def _calculate() -> None:
+    def _calculate(self) -> None:
         raise NotImplementedError()
 
     def calculate(self) -> None:
@@ -148,6 +149,11 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     @staticmethod
     @abstractmethod
     def version() -> str:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def gamemode() -> Gamemode:
         raise NotImplementedError()
 
 
@@ -211,6 +217,10 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
     @staticmethod
     def version():
         return OPPAIPY_VERSION
+
+    @staticmethod
+    def gamemode():
+        return Gamemode.STANDARD
 
 
 class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
@@ -278,6 +288,10 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
     @staticmethod
     def version():
         return ROSUPP_VERSION
+
+    @staticmethod
+    def gamemode():
+        return Gamemode.STANDARD
 
 
 class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
@@ -360,7 +374,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
     def set_mods(self, mods: int) -> None:
         raise NotImplementedError()
 
-    def _calculate() -> None:
+    def _calculate(self) -> None:
         raise NotImplementedError()
 
     @property
@@ -378,6 +392,10 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
     @staticmethod
     def version() -> str:
         return DIFFICALCY_OSU_VERSION
+
+    @staticmethod
+    def gamemode():
+        return Gamemode.STANDARD
 
 
 DifficultyCalculator: Type[AbstractDifficultyCalculator] = import_string(
