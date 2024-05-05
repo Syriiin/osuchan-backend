@@ -8,6 +8,7 @@ import oppaipy
 import rosu_pp_py
 from django.conf import settings
 from django.utils.module_loading import import_string
+from oppaipy.oppaipy import OppaiError
 
 from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
 from common.osu.enums import Gamemode
@@ -197,7 +198,7 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
     def _calculate(self):
         try:
             self.oppai_calc.calculate()
-        except oppaipy.OppaiError as e:
+        except OppaiError as e:
             raise CalculationException(
                 f'An error occured in calculating the beatmap "{self.beatmap_path}"'
             ) from e

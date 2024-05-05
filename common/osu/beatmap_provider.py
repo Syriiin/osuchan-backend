@@ -34,7 +34,7 @@ class LiveBeatmapProvider(AbstractBeatmapProvider):
 
 
 class StubBeatmapProvider(AbstractBeatmapProvider):
-    def get_beatmap_file(self, beatmap_id: str) -> Union[str, None]:
+    def get_beatmap_file(self, beatmap_id: str) -> str:
         beatmap_path = os.path.join(
             os.path.dirname(__file__), "stubdata", "beatmap_provider", str(beatmap_id)
         )

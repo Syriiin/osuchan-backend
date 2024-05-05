@@ -199,7 +199,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_BEAT_SCHEDULE = {
     "update-top-global-members-every-day": {
         "task": "profiles.tasks.dispatch_update_all_global_leaderboard_top_members",
-        "schedule": crontab(minute=0, hour=0),  # midnight UTC
+        "schedule": crontab(minute="0", hour="0"),  # midnight UTC
     },
     "update-global-leaderboard-top-5-score-cache-every-20-minutes": {
         "task": "leaderboards.tasks.dispatch_update_global_leaderboard_top_5_score_cache",
