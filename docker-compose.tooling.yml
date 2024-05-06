@@ -16,3 +16,4 @@ services:
       - db
       - queue
       - cache
+      - difficalcy-osu
