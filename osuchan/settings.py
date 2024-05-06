@@ -303,7 +303,7 @@ else:
 # Beatmaps
 
 BEATMAP_DL_URL = "https://osu.ppy.sh/osu/"
-BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "beatmaps")
+BEATMAP_CACHE_PATH = "/beatmaps"
 
 if env_settings.USE_STUB_BEATMAP_PROVIDER:
     BEATMAP_PROVIDER_CLASS = "common.osu.beatmap_provider.StubBeatmapProvider"

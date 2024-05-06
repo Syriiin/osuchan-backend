@@ -7,6 +7,11 @@ ENV POETRY_VERSION="1.8.2"
 ENV POETRY_PATH="/opt/poetry"
 ENV APPDEPS_PATH="/opt/appdeps"
 ENV APP_PATH="/app"
+ENV BEATMAPS_PATH=/beatmaps
+
+VOLUME ${BEATMAPS_PATH}
+# chmod 777 so that this volume can be read/written by other containers that might use different uids
+RUN mkdir ${BEATMAPS_PATH} && chmod -R 777 ${BEATMAPS_PATH}
 
 # Poetry env vars
 ENV POETRY_INSTALLER_MAX_WORKERS=10

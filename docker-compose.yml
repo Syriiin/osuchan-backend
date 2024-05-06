@@ -37,7 +37,7 @@ services:
     env_file:
       - config/active/django.env
     volumes:
-      - ./data/beatmaps:/app/beatmaps
+      - beatmaps:/beatmaps
     depends_on:
       - db
       - queue
@@ -49,7 +49,7 @@ services:
     env_file:
       - config/active/django.env
     volumes:
-      - ./data/beatmaps:/app/beatmaps
+      - beatmaps:/beatmaps
     depends_on:
       - db
       - queue
