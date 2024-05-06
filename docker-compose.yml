@@ -91,7 +91,7 @@ services:
       - grafana_admin_password
 
   difficalcy-osu:
-    image: ghcr.io/syriiin/difficalcy-osu:v0.5.0
+    image: ghcr.io/syriiin/difficalcy-osu:v0.5.1
     environment:
       - REDIS_CONFIGURATION=redis:6379
     volumes:
