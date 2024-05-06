@@ -99,7 +99,7 @@ services:
     volumes:
       - beatmaps:/beatmaps
     depends_on:
-      - cache
+      - redis
 
   redis:
     image: redis:latest
