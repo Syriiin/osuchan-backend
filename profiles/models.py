@@ -515,14 +515,13 @@ class DifficultyCalculation(models.Model):
 
     class Meta:
         constraints = [
-            # Difficulty values are unique on beatmap + mods + calculator_engine + calculator_version
+            # Difficulty calculations are unique on beatmap + mods + calculator_engine
             # The implicit unique b-tree index on these columns is useful also
             models.UniqueConstraint(
                 fields=[
                     "beatmap_id",
                     "mods",
                     "calculator_engine",
-                    "calculator_version",
                 ],
                 name="unique_difficulty_calculation",
             )
@@ -885,13 +884,12 @@ class PerformanceCalculation(models.Model):
 
     class Meta:
         constraints = [
-            # Performance values are unique on score + calculator_engine + calculator_version
+            # Performance calculations are unique on score + calculator_engine
             # The implicit unique b-tree index on these columns is useful also
             models.UniqueConstraint(
                 fields=[
                     "score_id",
                     "calculator_engine",
-                    "calculator_version",
                 ],
                 name="unique_performance_calculation",
             )
@@ -908,7 +906,7 @@ class PerformanceValue(models.Model):
     calculation = models.ForeignKey(
         PerformanceCalculation,
         on_delete=models.CASCADE,
-        related_name="performance_calculations",
+        related_name="performance_values",
     )
 
     name = models.CharField(max_length=20)
