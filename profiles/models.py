@@ -207,7 +207,9 @@ class UserStats(models.Model):
                                 combo=score.best_combo,
                             )
                         )
-                        score.performance_total = calculation.performance
+                        score.performance_total = calculation.performance_values[
+                            "total"
+                        ]
                         score.difficulty_calculator_engine = (
                             DifficultyCalculator.engine()
                         )
@@ -447,7 +449,7 @@ class Beatmap(models.Model):
                     DifficultyCalculatorScore(beatmap_id=self.id)
                 )
 
-                self.difficulty_total = calculation.difficulty
+                self.difficulty_total = calculation.difficulty_values["total"]
                 self.difficulty_calculator_engine = difficulty_calculator.engine()
                 self.difficulty_calculator_version = difficulty_calculator.version()
         except DifficultyCalculatorException as e:
@@ -479,32 +481,6 @@ class DifficultyCalculation(models.Model):
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
 
-    def calculate_difficulty_values(
-        self, difficulty_calculator: type[AbstractDifficultyCalculator]
-    ) -> list["DifficultyValue"]:
-        values = []
-        try:
-            with difficulty_calculator() as calculator:
-                calculation = calculator.calculate_score(
-                    DifficultyCalculatorScore(
-                        beatmap_id=self.beatmap_id,
-                        mods=self.mods,
-                    )
-                )
-
-                values.append(
-                    DifficultyValue(
-                        calculation_id=self.id,
-                        name="total",
-                        value=calculation.difficulty,
-                    )
-                )
-        except DifficultyCalculatorException as e:
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
-
-        return values
-
     def __str__(self):
         if self.mods == 0:
             map_string = f"{self.beatmap_id}"
@@ -515,14 +491,13 @@ class DifficultyCalculation(models.Model):
 
     class Meta:
         constraints = [
-            # Difficulty values are unique on beatmap + mods + calculator_engine + calculator_version
+            # Difficulty calculations are unique on beatmap + mods + calculator_engine
             # The implicit unique b-tree index on these columns is useful also
             models.UniqueConstraint(
                 fields=[
                     "beatmap_id",
                     "mods",
                     "calculator_engine",
-                    "calculator_version",
                 ],
                 name="unique_difficulty_calculation",
             )
@@ -746,8 +721,12 @@ class Score(models.Model):
                             count_50=self.count_50,
                         )
                     )
-                    self.nochoke_performance_total = nochoke_calculation.performance
-                    self.difficulty_total = nochoke_calculation.difficulty
+                    self.nochoke_performance_total = (
+                        nochoke_calculation.performance_values["total"]
+                    )
+                    self.difficulty_total = nochoke_calculation.difficulty_values[
+                        "total"
+                    ]
                     self.difficulty_calculator_engine = "legacy"  # legacy because performance_total is still coming from the api response
                     self.difficulty_calculator_version = "legacy"
             except DifficultyCalculatorException as e:
@@ -769,8 +748,8 @@ class Score(models.Model):
                         combo=self.best_combo,
                     )
                 )
-                self.performance_total = calculation.performance
-                self.difficulty_total = calculation.difficulty
+                self.performance_total = calculation.performance_values["total"]
+                self.difficulty_total = calculation.difficulty_values["total"]
                 self.difficulty_calculator_engine = calculator.engine()
                 self.difficulty_calculator_version = calculator.version()
 
@@ -782,7 +761,9 @@ class Score(models.Model):
                         count_50=self.count_50,
                     )
                 )
-                self.nochoke_performance_total = nochoke_calculation.performance
+                self.nochoke_performance_total = nochoke_calculation.performance_values[
+                    "total"
+                ]
         except DifficultyCalculatorException as e:
             # TODO: handle this properly
             self.nochoke_performance_total = 0
@@ -850,48 +831,17 @@ class PerformanceCalculation(models.Model):
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
 
-    def calculate_performance_values(
-        self, score: Score, difficulty_calculator: type[AbstractDifficultyCalculator]
-    ) -> list["PerformanceValue"]:
-        values = []
-        try:
-            with difficulty_calculator() as calculator:
-                calculation = calculator.calculate_score(
-                    DifficultyCalculatorScore(
-                        beatmap_id=score.beatmap_id,
-                        mods=score.mods,
-                        count_100=score.count_100,
-                        count_50=score.count_50,
-                        count_miss=score.count_miss,
-                        combo=score.best_combo,
-                    )
-                )
-
-                values.append(
-                    PerformanceValue(
-                        calculation_id=self.id,
-                        name="total",
-                        value=calculation.performance,
-                    )
-                )
-        except DifficultyCalculatorException as e:
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
-
-        return values
-
     def __str__(self):
         return f"{self.score_id}: {self.calculator_engine} ({self.calculator_version})"
 
     class Meta:
         constraints = [
-            # Performance values are unique on score + calculator_engine + calculator_version
+            # Performance calculations are unique on score + calculator_engine
             # The implicit unique b-tree index on these columns is useful also
             models.UniqueConstraint(
                 fields=[
                     "score_id",
                     "calculator_engine",
-                    "calculator_version",
                 ],
                 name="unique_performance_calculation",
             )
@@ -908,7 +858,7 @@ class PerformanceValue(models.Model):
     calculation = models.ForeignKey(
         PerformanceCalculation,
         on_delete=models.CASCADE,
-        related_name="performance_calculations",
+        related_name="performance_values",
     )
 
     name = models.CharField(max_length=20)
