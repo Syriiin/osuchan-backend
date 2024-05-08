@@ -328,7 +328,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
             data = response.json()
         except httpx.HTTPStatusError as e:
             raise CalculationException(
-                f"An error occured in calculating the beatmap {score.beatmap_id}"
+                f"An error occured in calculating the beatmap {score.beatmap_id}: {e.response.text}"
             ) from e
 
         return Calculation(
@@ -346,7 +346,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
             data = response.json()
         except httpx.HTTPStatusError as e:
             raise CalculationException(
-                f"An error occured in calculating the beatmaps"
+                f"An error occured in calculating the beatmaps: {e.response.text}"
             ) from e
 
         return [
