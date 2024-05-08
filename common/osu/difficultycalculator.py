@@ -33,8 +33,8 @@ class Score(NamedTuple):
 
 
 class Calculation(NamedTuple):
-    difficulty: float
-    performance: float
+    difficulty_values: dict[str, float]
+    performance_values: dict[str, float]
 
 
 class DifficultyCalculatorException(Exception):
@@ -90,7 +90,8 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
 
         self.calculate()
         return Calculation(
-            difficulty=self.difficulty_total, performance=self.performance_total
+            difficulty_values={"total": self.difficulty_total},
+            performance_values={"total": self.performance_total},
         )
 
     def calculate_score_batch(self, scores: Iterable[Score]) -> list[Calculation]:
@@ -332,8 +333,8 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
             ) from e
 
         return Calculation(
-            difficulty=data["difficulty"]["total"],
-            performance=data["performance"]["total"],
+            difficulty_values=data["difficulty"],
+            performance_values=data["performance"],
         )
 
     def calculate_score_batch(self, scores: Iterable[Score]) -> list[Calculation]:
@@ -351,8 +352,8 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
 
         return [
             Calculation(
-                difficulty=calculation_data["difficulty"]["total"],
-                performance=calculation_data["performance"]["total"],
+                difficulty_values=calculation_data["difficulty"],
+                performance_values=calculation_data["performance"],
             )
             for calculation_data in data
         ]

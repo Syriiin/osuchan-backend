@@ -234,19 +234,16 @@ def calculate_difficulty_values(
 
     results = difficulty_calculator.calculate_score_batch(calc_scores)
 
-    # TODO: handle multiple values per calculation
-    #   do we need a "primary" or "total" boolean to determine the main value?
-    #   or should calculation have a "primary_value" field?
-    #   or should we just always use "total" as the main value?
     values = [
         [
             DifficultyValue(
                 calculation_id=difficulty_calculation.id,
-                name="total",
-                value=result.difficulty,
+                name=name,
+                value=value,
             )
         ]
         for difficulty_calculation, result in zip(difficulty_calculations, results)
+        for name, value in result.difficulty_values.items()
     ]
 
     return values
@@ -277,11 +274,12 @@ def calculate_performance_values(
         [
             PerformanceValue(
                 calculation_id=performance_calculation.id,
-                name="total",
-                value=result.performance,
+                name=name,
+                value=value,
             )
         ]
         for performance_calculation, result in zip(performance_calculations, results)
+        for name, value in result.performance_values.items()
     ]
 
     return values

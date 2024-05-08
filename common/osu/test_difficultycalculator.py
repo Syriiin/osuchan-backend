@@ -43,7 +43,8 @@ class TestOppaiDifficultyCalculator:
             combo=2000,
         )
         assert calc.calculate_score(score) == Calculation(
-            difficulty=5.919765949249268, performance=298.1595153808594
+            difficulty_values={"total": 5.919765949249268},
+            performance_values={"total": 298.1595153808594},
         )
 
     def test_calculate_score_batch(self):
@@ -71,9 +72,18 @@ class TestOppaiDifficultyCalculator:
             ),
         ]
         assert calc.calculate_score_batch(scores) == [
-            Calculation(difficulty=5.919765949249268, performance=298.1595153808594),
-            Calculation(difficulty=6.20743465423584, performance=476.4307861328125),
-            Calculation(difficulty=6.20743465423584, performance=630.419677734375),
+            Calculation(
+                difficulty_values={"total": 5.919765949249268},
+                performance_values={"total": 298.1595153808594},
+            ),
+            Calculation(
+                difficulty_values={"total": 6.20743465423584},
+                performance_values={"total": 476.4307861328125},
+            ),
+            Calculation(
+                difficulty_values={"total": 6.20743465423584},
+                performance_values={"total": 630.419677734375},
+            ),
         ]
 
     @pytest.fixture
@@ -148,7 +158,8 @@ class TestRosuppDifficultyCalculator:
             combo=2000,
         )
         assert calc.calculate_score(score) == Calculation(
-            difficulty=6.264344677869616, performance=312.43705315450256
+            difficulty_values={"total": 6.264344677869616},
+            performance_values={"total": 312.43705315450256},
         )
 
     def test_calculate_score_batch(self):
@@ -176,9 +187,18 @@ class TestRosuppDifficultyCalculator:
             ),
         ]
         assert calc.calculate_score_batch(scores) == [
-            Calculation(difficulty=6.264344677869616, performance=312.43705315450256),
-            Calculation(difficulty=6.531051472171891, performance=487.5904861756349),
-            Calculation(difficulty=6.531051472171891, performance=655.9388807525456),
+            Calculation(
+                difficulty_values={"total": 6.264344677869616},
+                performance_values={"total": 312.43705315450256},
+            ),
+            Calculation(
+                difficulty_values={"total": 6.531051472171891},
+                performance_values={"total": 487.5904861756349},
+            ),
+            Calculation(
+                difficulty_values={"total": 6.531051472171891},
+                performance_values={"total": 655.9388807525456},
+            ),
         ]
 
     @pytest.fixture
@@ -234,7 +254,19 @@ class TestDifficalcyDifficultyCalculator:
     def test_context_manager(self):
         with DifficalcyOsuDifficultyCalculator() as calc:
             assert calc.calculate_score(Score("307618")) == Calculation(
-                difficulty=4.4569433791337945, performance=135.0040504515237
+                difficulty_values={
+                    "aim": 2.08629357857818,
+                    "speed": 2.1778593015565684,
+                    "flashlight": 0,
+                    "total": 4.4569433791337945,
+                },
+                performance_values={
+                    "aim": 44.12278272319251,
+                    "speed": 50.54174287197802,
+                    "accuracy": 36.07670429437059,
+                    "flashlight": 0,
+                    "total": 135.0040504515237,
+                },
             )
 
     def test_invalid_beatmap(self):
@@ -253,7 +285,19 @@ class TestDifficalcyDifficultyCalculator:
             combo=2000,
         )
         assert calc.calculate_score(score) == Calculation(
-            difficulty=6.263707394408435, performance=312.36671287580185
+            difficulty_values={
+                "aim": 2.892063051954271,
+                "speed": 3.0958487396004704,
+                "flashlight": 0,
+                "total": 6.263707394408435,
+            },
+            performance_values={
+                "aim": 98.6032935956297,
+                "speed": 118.92511309917593,
+                "accuracy": 84.96884392557897,
+                "flashlight": 0,
+                "total": 312.36671287580185,
+            },
         )
 
     def test_calculate_score_batch(self):
@@ -281,7 +325,49 @@ class TestDifficalcyDifficultyCalculator:
             ),
         ]
         assert calc.calculate_score_batch(scores) == [
-            Calculation(difficulty=6.263707394408435, performance=312.36671287580185),
-            Calculation(difficulty=6.530286188377548, performance=487.4810004992573),
-            Calculation(difficulty=6.530286188377548, performance=655.7872855036575),
+            Calculation(
+                difficulty_values={
+                    "aim": 2.892063051954271,
+                    "speed": 3.0958487396004704,
+                    "flashlight": 0,
+                    "total": 6.263707394408435,
+                },
+                performance_values={
+                    "aim": 98.6032935956297,
+                    "speed": 118.92511309917593,
+                    "accuracy": 84.96884392557897,
+                    "flashlight": 0,
+                    "total": 312.36671287580185,
+                },
+            ),
+            Calculation(
+                difficulty_values={
+                    "aim": 3.1381340530266333,
+                    "speed": 3.1129549941521066,
+                    "flashlight": 0,
+                    "total": 6.530286188377548,
+                },
+                performance_values={
+                    "aim": 153.058022351103,
+                    "speed": 153.10941688245896,
+                    "accuracy": 166.32370945374015,
+                    "flashlight": 0,
+                    "total": 487.4810004992573,
+                },
+            ),
+            Calculation(
+                difficulty_values={
+                    "aim": 3.1381340530266333,
+                    "speed": 3.1129549941521066,
+                    "flashlight": 0,
+                    "total": 6.530286188377548,
+                },
+                performance_values={
+                    "aim": 207.5808620241847,
+                    "speed": 215.2746980112218,
+                    "accuracy": 212.8087296294707,
+                    "flashlight": 0,
+                    "total": 655.7872855036575,
+                },
+            ),
         ]

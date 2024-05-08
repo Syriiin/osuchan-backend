@@ -207,7 +207,9 @@ class UserStats(models.Model):
                                 combo=score.best_combo,
                             )
                         )
-                        score.performance_total = calculation.performance
+                        score.performance_total = calculation.performance_values[
+                            "total"
+                        ]
                         score.difficulty_calculator_engine = (
                             DifficultyCalculator.engine()
                         )
@@ -447,7 +449,7 @@ class Beatmap(models.Model):
                     DifficultyCalculatorScore(beatmap_id=self.id)
                 )
 
-                self.difficulty_total = calculation.difficulty
+                self.difficulty_total = calculation.difficulty_values["total"]
                 self.difficulty_calculator_engine = difficulty_calculator.engine()
                 self.difficulty_calculator_version = difficulty_calculator.version()
         except DifficultyCalculatorException as e:
@@ -719,8 +721,12 @@ class Score(models.Model):
                             count_50=self.count_50,
                         )
                     )
-                    self.nochoke_performance_total = nochoke_calculation.performance
-                    self.difficulty_total = nochoke_calculation.difficulty
+                    self.nochoke_performance_total = (
+                        nochoke_calculation.performance_values["total"]
+                    )
+                    self.difficulty_total = nochoke_calculation.difficulty_values[
+                        "total"
+                    ]
                     self.difficulty_calculator_engine = "legacy"  # legacy because performance_total is still coming from the api response
                     self.difficulty_calculator_version = "legacy"
             except DifficultyCalculatorException as e:
@@ -742,8 +748,8 @@ class Score(models.Model):
                         combo=self.best_combo,
                     )
                 )
-                self.performance_total = calculation.performance
-                self.difficulty_total = calculation.difficulty
+                self.performance_total = calculation.performance_values["total"]
+                self.difficulty_total = calculation.difficulty_values["total"]
                 self.difficulty_calculator_engine = calculator.engine()
                 self.difficulty_calculator_version = calculator.version()
 
@@ -755,7 +761,9 @@ class Score(models.Model):
                         count_50=self.count_50,
                     )
                 )
-                self.nochoke_performance_total = nochoke_calculation.performance
+                self.nochoke_performance_total = nochoke_calculation.performance_values[
+                    "total"
+                ]
         except DifficultyCalculatorException as e:
             # TODO: handle this properly
             self.nochoke_performance_total = 0
