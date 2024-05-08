@@ -479,32 +479,6 @@ class DifficultyCalculation(models.Model):
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
 
-    def calculate_difficulty_values(
-        self, difficulty_calculator: type[AbstractDifficultyCalculator]
-    ) -> list["DifficultyValue"]:
-        values = []
-        try:
-            with difficulty_calculator() as calculator:
-                calculation = calculator.calculate_score(
-                    DifficultyCalculatorScore(
-                        beatmap_id=self.beatmap_id,
-                        mods=self.mods,
-                    )
-                )
-
-                values.append(
-                    DifficultyValue(
-                        calculation_id=self.id,
-                        name="total",
-                        value=calculation.difficulty,
-                    )
-                )
-        except DifficultyCalculatorException as e:
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
-
-        return values
-
     def __str__(self):
         if self.mods == 0:
             map_string = f"{self.beatmap_id}"
@@ -848,36 +822,6 @@ class PerformanceCalculation(models.Model):
 
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
-
-    def calculate_performance_values(
-        self, score: Score, difficulty_calculator: type[AbstractDifficultyCalculator]
-    ) -> list["PerformanceValue"]:
-        values = []
-        try:
-            with difficulty_calculator() as calculator:
-                calculation = calculator.calculate_score(
-                    DifficultyCalculatorScore(
-                        beatmap_id=score.beatmap_id,
-                        mods=score.mods,
-                        count_100=score.count_100,
-                        count_50=score.count_50,
-                        count_miss=score.count_miss,
-                        combo=score.best_combo,
-                    )
-                )
-
-                values.append(
-                    PerformanceValue(
-                        calculation_id=self.id,
-                        name="total",
-                        value=calculation.performance,
-                    )
-                )
-        except DifficultyCalculatorException as e:
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
-
-        return values
 
     def __str__(self):
         return f"{self.score_id}: {self.calculator_engine} ({self.calculator_version})"
