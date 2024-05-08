@@ -28,3 +28,7 @@ services:
       target: development-runner
     volumes:
       - .:/app
+
+  difficalcy-osu:
+    ports:
+      - 5000:80

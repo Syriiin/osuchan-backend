@@ -4,6 +4,8 @@ volumes:
   queue-data:
   prometheus-data:
   grafana-data:
+  beatmaps:
+  redis-data:
 
 secrets:
   grafana_admin_password:
@@ -35,11 +37,12 @@ services:
     env_file:
       - config/active/django.env
     volumes:
-      - ./data/beatmaps:/app/beatmaps
+      - beatmaps:/beatmaps
     depends_on:
       - db
       - queue
       - cache
+      - difficalcy-osu
 
   worker:
     build: .
@@ -47,10 +50,11 @@ services:
     env_file:
       - config/active/django.env
     volumes:
-      - ./data/beatmaps:/app/beatmaps
+      - beatmaps:/beatmaps
     depends_on:
       - db
       - queue
+      - difficalcy-osu
 
   worker_monitor:
     build: .
@@ -87,3 +91,17 @@ services:
       - grafana-data:/var/lib/grafana:rw
     secrets:
       - grafana_admin_password
+
+  difficalcy-osu:
+    image: ghcr.io/syriiin/difficalcy-osu:v0.5.1
+    environment:
+      - REDIS_CONFIGURATION=redis:6379
+    volumes:
+      - beatmaps:/beatmaps
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    volumes:
+      - redis-data:/data

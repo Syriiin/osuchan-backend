@@ -1,10 +1,10 @@
-from importlib import metadata
-
 import pytest
 
 from common.osu.difficultycalculator import (
     Calculation,
+    CalculationException,
     CalculatorClosedException,
+    DifficalcyOsuDifficultyCalculator,
     InvalidBeatmapException,
     OppaiDifficultyCalculator,
     RosuppDifficultyCalculator,
@@ -18,7 +18,7 @@ class TestOppaiDifficultyCalculator:
         assert OppaiDifficultyCalculator.engine() == "oppaipy"
 
     def test_version(self):
-        assert OppaiDifficultyCalculator.version() == metadata.version("oppaipy")
+        assert OppaiDifficultyCalculator.version() == "1.0.4"
 
     def test_context_manager(self):
         with OppaiDifficultyCalculator() as calc:
@@ -124,7 +124,7 @@ class TestRosuppDifficultyCalculator:
         assert RosuppDifficultyCalculator.engine() == "rosu-pp-py"
 
     def test_version(self):
-        assert RosuppDifficultyCalculator.version() == metadata.version("rosu-pp-py")
+        assert RosuppDifficultyCalculator.version() == "1.0.0"
 
     def test_context_manager(self):
         with RosuppDifficultyCalculator() as calc:
@@ -222,3 +222,66 @@ class TestRosuppDifficultyCalculator:
         calc.calculate()
         assert calc.difficulty_total == 6.264344677869616
         assert calc.performance_total == 425.8065805918235
+
+
+class TestDifficalcyDifficultyCalculator:
+    def test_enigne(self):
+        assert DifficalcyOsuDifficultyCalculator.engine() == "osu.Game.Rulesets.Osu"
+
+    def test_version(self):
+        assert DifficalcyOsuDifficultyCalculator.version() == "2024.412.1.0"
+
+    def test_context_manager(self):
+        with DifficalcyOsuDifficultyCalculator() as calc:
+            assert calc.calculate_score(Score("307618")) == Calculation(
+                difficulty=4.4569433791337945, performance=135.0040504515237
+            )
+
+    def test_invalid_beatmap(self):
+        with pytest.raises(CalculationException):
+            with DifficalcyOsuDifficultyCalculator() as calc:
+                calc.calculate_score(Score("notarealbeatmap"))
+
+    def test_calculate_score(self):
+        calc = DifficalcyOsuDifficultyCalculator()
+        score = Score(
+            "307618",
+            mods=Mods.DOUBLETIME + Mods.HIDDEN,
+            count_100=14,
+            count_50=1,
+            count_miss=1,
+            combo=2000,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty=6.263707394408435, performance=312.36671287580185
+        )
+
+    def test_calculate_score_batch(self):
+        calc = DifficalcyOsuDifficultyCalculator()
+        scores = [
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN,
+                count_100=14,
+                count_50=1,
+                count_miss=1,
+                combo=2000,
+            ),
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                count_100=14,
+                count_50=1,
+                count_miss=1,
+                combo=2000,
+            ),
+            Score(
+                "307618",
+                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+            ),
+        ]
+        assert calc.calculate_score_batch(scores) == [
+            Calculation(difficulty=6.263707394408435, performance=312.36671287580185),
+            Calculation(difficulty=6.530286188377548, performance=487.4810004992573),
+            Calculation(difficulty=6.530286188377548, performance=655.7872855036575),
+        ]

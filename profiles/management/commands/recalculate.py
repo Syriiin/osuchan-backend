@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Type
 
 from django.core.management.base import BaseCommand
 from django.core.paginator import Paginator
@@ -6,7 +6,11 @@ from django.db import transaction
 from django.db.models import Count, QuerySet
 from tqdm import tqdm
 
-from common.osu.difficultycalculator import DifficultyCalculator
+from common.osu.difficultycalculator import (
+    AbstractDifficultyCalculator,
+    DifficultyCalculator,
+    get_difficulty_calculator_class,
+)
 from common.osu.enums import Gamemode, Mods
 from leaderboards.models import Membership
 from profiles.models import (
@@ -35,43 +39,53 @@ class Command(BaseCommand):
             action="store_true",
             help="Use new difficulty and performance models",
         )
+        parser.add_argument(
+            "--diffcalc",
+            help="Name of calculator to use, leaving blank will use the default",
+        )
 
     def handle(self, *args, **options):
         gamemode = options["gamemode"][0]
         force = options["force"]
         # the v2 flag is used to determine whether to use the new difficulty and performance models
         v2 = options["v2"]
+        diffcalc_name = options["diffcalc"]
 
-        if gamemode != Gamemode.STANDARD:
+        if diffcalc_name:
+            difficulty_calculator_class = get_difficulty_calculator_class(diffcalc_name)
+        else:
+            difficulty_calculator_class = DifficultyCalculator
+
+        if gamemode != difficulty_calculator_class.gamemode():
             self.stdout.write(
                 self.style.ERROR(
-                    f"Gamemode {gamemode} is current not supported for difficulty calculations"
+                    f"Gamemode {gamemode} is not supported by {difficulty_calculator_class.__name__}"
                 )
             )
             return
 
         self.stdout.write(
             f"Gamemode: {Gamemode(gamemode).name}\n"
-            f"Difficulty Calculator Engine: {DifficultyCalculator.engine()}\n"
-            f"Difficulty Calculator Version: {DifficultyCalculator.version()}\n"
+            f"Difficulty Calculator Engine: {difficulty_calculator_class.engine()}\n"
+            f"Difficulty Calculator Version: {difficulty_calculator_class.version()}\n"
         )
 
         if v2:
             # Recalculate beatmaps
             beatmaps = Beatmap.objects.filter(gamemode=gamemode)
-            self.recalculate_beatmaps_v2(beatmaps, force)
+            self.recalculate_beatmaps_v2(difficulty_calculator_class, beatmaps, force)
 
             # Recalculate scores
             scores = Score.objects.filter(gamemode=gamemode)
-            self.recalculate_scores_v2(scores, force)
+            self.recalculate_scores_v2(difficulty_calculator_class, scores, force)
         else:
             # Recalculate beatmaps
             beatmaps = Beatmap.objects.filter(gamemode=gamemode)
-            self.recalculate_beatmaps(beatmaps, force)
+            self.recalculate_beatmaps(difficulty_calculator_class, beatmaps, force)
 
             # Recalculate scores
             scores = Score.objects.filter(gamemode=gamemode)
-            self.recalculate_scores(scores, force)
+            self.recalculate_scores(difficulty_calculator_class, scores, force)
 
         # Recalculate user stats
         all_user_stats = UserStats.objects.filter(gamemode=gamemode)
@@ -83,9 +97,14 @@ class Command(BaseCommand):
         )
         self.recalculate_memberships(memberships)
 
-    def recalculate_beatmap_page(self, page: Iterable[Beatmap], progress_bar: tqdm):
+    def recalculate_beatmap_page(
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        page: Iterable[Beatmap],
+        progress_bar: tqdm,
+    ):
         for beatmap in page:
-            beatmap.update_difficulty_values(DifficultyCalculator)
+            beatmap.update_difficulty_values(difficulty_calculator_class)
             progress_bar.update()
 
         Beatmap.objects.bulk_update(
@@ -97,7 +116,12 @@ class Command(BaseCommand):
             ],
         )
 
-    def recalculate_beatmaps(self, beatmaps: QuerySet[Beatmap], force: bool = False):
+    def recalculate_beatmaps(
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        beatmaps: QuerySet[Beatmap],
+        force: bool = False,
+    ):
         if force:
             self.stdout.write(f"Forcing recalculation of all beatmaps...")
 
@@ -105,11 +129,13 @@ class Command(BaseCommand):
 
             with tqdm(desc="Beatmaps", total=beatmaps.count(), smoothing=0) as pbar:
                 for page in paginator:
-                    self.recalculate_beatmap_page(page, pbar)
+                    self.recalculate_beatmap_page(
+                        difficulty_calculator_class, page, pbar
+                    )
         else:
             beatmaps_to_recalculate = beatmaps.exclude(
-                difficulty_calculator_engine=DifficultyCalculator.engine(),
-                difficulty_calculator_version=DifficultyCalculator.version(),
+                difficulty_calculator_engine=difficulty_calculator_class.engine(),
+                difficulty_calculator_version=difficulty_calculator_class.version(),
             ).order_by("pk")
 
             if beatmaps_to_recalculate.count() == 0:
@@ -130,7 +156,9 @@ class Command(BaseCommand):
                 smoothing=0,
             ) as pbar:
                 while len(page := beatmaps_to_recalculate[:2000]) > 0:
-                    self.recalculate_beatmap_page(page, pbar)
+                    self.recalculate_beatmap_page(
+                        difficulty_calculator_class, page, pbar
+                    )
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -138,9 +166,14 @@ class Command(BaseCommand):
             )
         )
 
-    def recalculate_score_page(self, page: Iterable[Score], progress_bar: tqdm):
+    def recalculate_score_page(
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        page: Iterable[Score],
+        progress_bar: tqdm,
+    ):
         for score in page:
-            score.update_performance_values(DifficultyCalculator)
+            score.update_performance_values(difficulty_calculator_class)
             progress_bar.update()
 
         Score.objects.bulk_update(
@@ -154,7 +187,12 @@ class Command(BaseCommand):
             ],
         )
 
-    def recalculate_scores(self, scores: QuerySet[Score], force: bool = False):
+    def recalculate_scores(
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        scores: QuerySet[Score],
+        force: bool = False,
+    ):
         if force:
             self.stdout.write(f"Forcing recalculation of all scores...")
 
@@ -162,11 +200,11 @@ class Command(BaseCommand):
 
             with tqdm(desc="Scores", total=scores.count(), smoothing=0) as pbar:
                 for page in paginator:
-                    self.recalculate_score_page(page, pbar)
+                    self.recalculate_score_page(difficulty_calculator_class, page, pbar)
         else:
             scores_to_recalculate = scores.exclude(
-                difficulty_calculator_engine=DifficultyCalculator.engine(),
-                difficulty_calculator_version=DifficultyCalculator.version(),
+                difficulty_calculator_engine=difficulty_calculator_class.engine(),
+                difficulty_calculator_version=difficulty_calculator_class.version(),
             ).order_by("pk")
 
             if scores_to_recalculate.count() == 0:
@@ -187,7 +225,7 @@ class Command(BaseCommand):
                 smoothing=0,
             ) as pbar:
                 while len(page := scores_to_recalculate[:2000]) > 0:
-                    self.recalculate_score_page(page, pbar)
+                    self.recalculate_score_page(difficulty_calculator_class, page, pbar)
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -195,7 +233,12 @@ class Command(BaseCommand):
             )
         )
 
-    def recalculate_beatmaps_v2(self, beatmaps: QuerySet[Beatmap], force: bool = False):
+    def recalculate_beatmaps_v2(
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        beatmaps: QuerySet[Beatmap],
+        force: bool = False,
+    ):
         if force:
             self.stdout.write(f"Forcing recalculation of all beatmaps...")
 
@@ -203,11 +246,13 @@ class Command(BaseCommand):
 
             with tqdm(desc="Beatmaps", total=beatmaps.count(), smoothing=0) as pbar:
                 for page in paginator:
-                    self.recalculate_beatmap_page_v2(page, pbar)
+                    self.recalculate_beatmap_page_v2(
+                        difficulty_calculator_class, page, pbar
+                    )
         else:
             beatmaps_to_recalculate = beatmaps.exclude(
-                difficulty_calculations__calculator_engine=DifficultyCalculator.engine(),
-                difficulty_calculations__calculator_version=DifficultyCalculator.version(),
+                difficulty_calculations__calculator_engine=difficulty_calculator_class.engine(),
+                difficulty_calculations__calculator_version=difficulty_calculator_class.version(),
             )
 
             if beatmaps_to_recalculate.count() == 0:
@@ -228,7 +273,9 @@ class Command(BaseCommand):
                 smoothing=0,
             ) as pbar:
                 while len(page := beatmaps_to_recalculate[:2000]) > 0:
-                    self.recalculate_beatmap_page_v2(page, pbar)
+                    self.recalculate_beatmap_page_v2(
+                        difficulty_calculator_class, page, pbar
+                    )
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -237,7 +284,12 @@ class Command(BaseCommand):
         )
 
     @transaction.atomic
-    def recalculate_beatmap_page_v2(self, page: Iterable[Beatmap], progress_bar: tqdm):
+    def recalculate_beatmap_page_v2(
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        page: Iterable[Beatmap],
+        progress_bar: tqdm,
+    ):
         calculations = []
         beatmap_ids = []
         for beatmap in page:
@@ -245,8 +297,8 @@ class Command(BaseCommand):
                 DifficultyCalculation(
                     beatmap_id=beatmap.id,
                     mods=Mods.NONE,
-                    calculator_engine=DifficultyCalculator.engine(),
-                    calculator_version=DifficultyCalculator.version(),
+                    calculator_engine=difficulty_calculator_class.engine(),
+                    calculator_version=difficulty_calculator_class.version(),
                 )
             )
             beatmap_ids.append(beatmap.id)
@@ -256,14 +308,16 @@ class Command(BaseCommand):
         calculations = DifficultyCalculation.objects.filter(
             beatmap_id__in=beatmap_ids,
             mods=Mods.NONE,
-            calculator_engine=DifficultyCalculator.engine(),
-            calculator_version=DifficultyCalculator.version(),
+            calculator_engine=difficulty_calculator_class.engine(),
+            calculator_version=difficulty_calculator_class.version(),
         )
 
         # Perform calculations
         values = []
         for calculation in calculations:
-            values.extend(calculation.calculate_difficulty_values(DifficultyCalculator))
+            values.extend(
+                calculation.calculate_difficulty_values(difficulty_calculator_class)
+            )
             progress_bar.update()
 
         # Create values
@@ -274,7 +328,12 @@ class Command(BaseCommand):
             unique_fields=["calculation_id", "name"],
         )
 
-    def recalculate_scores_v2(self, scores: QuerySet[Score], force: bool = False):
+    def recalculate_scores_v2(
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        scores: QuerySet[Score],
+        force: bool = False,
+    ):
         if force:
             self.stdout.write(f"Forcing recalculation of all scores...")
 
@@ -282,8 +341,8 @@ class Command(BaseCommand):
             initial = 0
         else:
             scores_to_recalculate = scores.exclude(
-                performance_calculations__calculator_engine=DifficultyCalculator.engine(),
-                performance_calculations__calculator_version=DifficultyCalculator.version(),
+                performance_calculations__calculator_engine=difficulty_calculator_class.engine(),
+                performance_calculations__calculator_version=difficulty_calculator_class.version(),
             )
 
             if scores_to_recalculate.count() == 0:
@@ -316,6 +375,7 @@ class Command(BaseCommand):
                     beatmap_id=unique_beatmap["beatmap_id"], mods=unique_beatmap["mods"]
                 )
                 self.recalculate_scores_for_unique_beatmap_v2(
+                    difficulty_calculator_class,
                     unique_beatmap["beatmap_id"],
                     unique_beatmap["mods"],
                     unique_beatmap_scores,
@@ -330,7 +390,12 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def recalculate_scores_for_unique_beatmap_v2(
-        self, beatmap_id: int, mods: int, scores: Iterable[Score], progress_bar: tqdm
+        self,
+        difficulty_calculator_class: Type[AbstractDifficultyCalculator],
+        beatmap_id: int,
+        mods: int,
+        scores: Iterable[Score],
+        progress_bar: tqdm,
     ):
         # Validate all scores are of same beatmap/mods
         for score in scores:
@@ -343,13 +408,13 @@ class Command(BaseCommand):
         difficulty_calculation, _ = DifficultyCalculation.objects.get_or_create(
             beatmap_id=beatmap_id,
             mods=mods,
-            calculator_engine=DifficultyCalculator.engine(),
-            calculator_version=DifficultyCalculator.version(),
+            calculator_engine=difficulty_calculator_class.engine(),
+            calculator_version=difficulty_calculator_class.version(),
         )
 
         # Do difficulty calculation
         difficulty_values = difficulty_calculation.calculate_difficulty_values(
-            DifficultyCalculator
+            difficulty_calculator_class
         )
         DifficultyValue.objects.bulk_create(
             difficulty_values,
@@ -365,8 +430,8 @@ class Command(BaseCommand):
                 PerformanceCalculation(
                     score_id=score.id,
                     difficulty_calculation_id=difficulty_calculation.id,
-                    calculator_engine=DifficultyCalculator.engine(),
-                    calculator_version=DifficultyCalculator.version(),
+                    calculator_engine=difficulty_calculator_class.engine(),
+                    calculator_version=difficulty_calculator_class.version(),
                 )
             )
             score_dict[score.id] = score
@@ -377,8 +442,8 @@ class Command(BaseCommand):
         )
         performance_calculations = PerformanceCalculation.objects.filter(
             score_id__in=score_dict.keys(),
-            calculator_engine=DifficultyCalculator.engine(),
-            calculator_version=DifficultyCalculator.version(),
+            calculator_engine=difficulty_calculator_class.engine(),
+            calculator_version=difficulty_calculator_class.version(),
         )
 
         # Perform calculations
@@ -386,7 +451,7 @@ class Command(BaseCommand):
         for calculation in performance_calculations:
             values.extend(
                 calculation.calculate_performance_values(
-                    score_dict[calculation.score_id], DifficultyCalculator
+                    score_dict[calculation.score_id], difficulty_calculator_class
                 )
             )
             progress_bar.update()
@@ -399,7 +464,10 @@ class Command(BaseCommand):
             unique_fields=["calculation_id", "name"],
         )
 
-    def recalculate_user_stats(self, all_user_stats: QuerySet[UserStats]):
+    def recalculate_user_stats(
+        self,
+        all_user_stats: QuerySet[UserStats],
+    ):
         paginator = Paginator(all_user_stats.order_by("pk"), per_page=2000)
 
         with tqdm(desc="User Stats", total=all_user_stats.count(), smoothing=0) as pbar:
@@ -426,7 +494,10 @@ class Command(BaseCommand):
             )
         )
 
-    def recalculate_memberships(self, memberships: QuerySet[Membership]):
+    def recalculate_memberships(
+        self,
+        memberships: QuerySet[Membership],
+    ):
         paginator = Paginator(memberships.order_by("pk"), per_page=2000)
 
         with tqdm(desc="Memberships", total=memberships.count(), smoothing=0) as pbar:

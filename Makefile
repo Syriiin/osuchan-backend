@@ -56,7 +56,7 @@ collectstatic:	## Collect static files
 build-dev:	## Builds development docker images
 	$(COMPOSE_APP_DEV) build
 
-start-dev:	## Starts development environment
+start-dev: build-dev	## Starts development environment
 	$(COMPOSE_APP_DEV) up -d
 
 clean-dev:	## Cleans development environment containers

@@ -24,6 +24,7 @@ class EnvSettings(BaseSettings):
     CELERY_PASSWORD: str
     CELERY_HOST: str
     CELERY_PORT: str
+    DIFFICALCY_OSU_HOST: str
     OSU_CLIENT_ID: str
     OSU_CLIENT_SECRET: str
     OSU_CLIENT_REDIRECT_URI: str
@@ -198,7 +199,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_BEAT_SCHEDULE = {
     "update-top-global-members-every-day": {
         "task": "profiles.tasks.dispatch_update_all_global_leaderboard_top_members",
-        "schedule": crontab(minute=0, hour=0),  # midnight UTC
+        "schedule": crontab(minute="0", hour="0"),  # midnight UTC
     },
     "update-global-leaderboard-top-5-score-cache-every-20-minutes": {
         "task": "leaderboards.tasks.dispatch_update_global_leaderboard_top_5_score_cache",
@@ -302,7 +303,7 @@ else:
 # Beatmaps
 
 BEATMAP_DL_URL = "https://osu.ppy.sh/osu/"
-BEATMAP_CACHE_PATH = os.path.join(BASE_DIR, "beatmaps")
+BEATMAP_CACHE_PATH = "/beatmaps"
 
 if env_settings.USE_STUB_BEATMAP_PROVIDER:
     BEATMAP_PROVIDER_CLASS = "common.osu.beatmap_provider.StubBeatmapProvider"
@@ -315,6 +316,14 @@ else:
 DIFFICULTY_CALCULATOR_CLASS = (
     "common.osu.difficultycalculator.RosuppDifficultyCalculator"
 )
+
+DIFFICULTY_CALCULATOR_CLASSES = {
+    "oppai": "common.osu.difficultycalculator.OppaiDifficultyCalculator",
+    "rosupp": "common.osu.difficultycalculator.RosuppDifficultyCalculator",
+    "difficalcy-osu": "common.osu.difficultycalculator.DifficalcyOsuDifficultyCalculator",
+}
+
+DIFFICALCY_OSU_URL = f"http://{env_settings.DIFFICALCY_OSU_HOST}"
 
 
 # Error reporting
