@@ -4,12 +4,8 @@ from typing import Iterable
 
 from django.db import transaction
 
-from common.error_reporter import ErrorReporter
 from common.osu.apiv1 import OsuApiV1
-from common.osu.difficultycalculator import (
-    AbstractDifficultyCalculator,
-    DifficultyCalculatorException,
-)
+from common.osu.difficultycalculator import AbstractDifficultyCalculator
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
 from common.osu.enums import Gamemode, Mods
 from profiles.models import (
@@ -145,6 +141,7 @@ def update_performance_calculations_for_unique_beatmap(
 ):
     """
     Update performance (and difficulty) calculations for passed scores using passed difficulty calculator.
+    All scores must be for the passed beatmap_id and mods.
     Existing calculations will be updated.
     """
     # Validate all scores are of same beatmap/mods
@@ -154,12 +151,12 @@ def update_performance_calculations_for_unique_beatmap(
                 f"Score {score.id} does not match beatmap {beatmap_id} and mods {mods}"
             )
 
-    # Create difficulty calculation
-    difficulty_calculation, _ = DifficultyCalculation.objects.get_or_create(
+    # Create or update difficulty calculation
+    difficulty_calculation, _ = DifficultyCalculation.objects.update_or_create(
         beatmap_id=beatmap_id,
         mods=mods,
         calculator_engine=difficulty_calculator.engine(),
-        calculator_version=difficulty_calculator.version(),
+        defaults={"calculator_version": difficulty_calculator.version()},
     )
 
     # Do difficulty calculation
@@ -215,6 +212,52 @@ def update_performance_calculations_for_unique_beatmap(
     # TODO: what happens if the calculator is updated to remove a perf value?
     #   do we need to delete all values not returned for a calculation?
     #   with update_conflicts=True returning pks in django 5.0 we can just add a delete where not id in pks
+
+
+@transaction.atomic
+def update_performance_calculation(
+    score: Score, difficulty_calculator: AbstractDifficultyCalculator
+):
+    """
+    Update performance (and difficulty) calculations for passed score using passed difficulty calculator.
+    """
+    # Create difficulty calculation
+    difficulty_calculation, _ = DifficultyCalculation.objects.update_or_create(
+        beatmap_id=score.beatmap_id,
+        mods=score.mods,
+        calculator_engine=difficulty_calculator.engine(),
+        defaults={"calculator_version": difficulty_calculator.version()},
+    )
+
+    # Do difficulty calculation
+    difficulty_values = calculate_difficulty_values(
+        [difficulty_calculation], difficulty_calculator
+    )[0]
+    DifficultyValue.objects.bulk_create(
+        difficulty_values,
+        update_conflicts=True,
+        update_fields=["value"],
+        unique_fields=["calculation_id", "name"],
+    )
+
+    # Create performance calculation
+    performance_calculation, _ = PerformanceCalculation.objects.update_or_create(
+        score=score,
+        difficulty_calculation_id=difficulty_calculation.id,
+        calculator_engine=difficulty_calculator.engine(),
+        defaults={"calculator_version": difficulty_calculator.version()},
+    )
+
+    performance_values = calculate_performance_values(
+        [performance_calculation], difficulty_calculator
+    )[0]
+
+    PerformanceValue.objects.bulk_create(
+        performance_values,
+        update_conflicts=True,
+        update_fields=["value"],
+        unique_fields=["calculation_id", "name"],
+    )
 
 
 def calculate_difficulty_values(
