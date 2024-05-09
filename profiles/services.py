@@ -5,7 +5,10 @@ from typing import Iterable
 from django.db import transaction
 
 from common.osu.apiv1 import OsuApiV1
-from common.osu.difficultycalculator import AbstractDifficultyCalculator
+from common.osu.difficultycalculator import (
+    AbstractDifficultyCalculator,
+    DifficultyCalculator,
+)
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
 from common.osu.enums import Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
@@ -214,6 +217,11 @@ def refresh_user_from_api(
     # Process and add scores
     created_scores = user_stats.add_scores_from_data(score_data_list)
 
+    # TODO: iterate all registered difficulty calculators for gamemode
+    difficulty_calculator = DifficultyCalculator()
+    for score in created_scores:
+        update_performance_calculation(score, difficulty_calculator)
+
     # Update memberships
     transaction.on_commit(
         lambda: update_memberships.delay(
@@ -249,9 +257,14 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
         full_score_data_list += score_data_list
 
     # Process add scores
-    new_scores = user_stats.add_scores_from_data(full_score_data_list)
+    created_scores = user_stats.add_scores_from_data(full_score_data_list)
 
-    return new_scores
+    # TODO: iterate all registered difficulty calculators for gamemode
+    difficulty_calculator = DifficultyCalculator()
+    for score in created_scores:
+        update_performance_calculation(score, difficulty_calculator)
+
+    return created_scores
 
 
 @transaction.atomic

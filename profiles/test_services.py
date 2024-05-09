@@ -29,7 +29,14 @@ class TestUserServices:
         assert refresh_user_from_api(user_id=123123) == None
 
     def test_refresh_user_from_api(self):
-        assert refresh_user_from_api(user_id=5701575).user.username == "Syrin"
+        user_stats = refresh_user_from_api(user_id=5701575)
+        assert user_stats.user.username == "Syrin"
+        assert (
+            PerformanceCalculation.objects.filter(
+                score__user_stats_id=user_stats.id
+            ).count()
+            == 5
+        )
 
 
 @pytest.mark.django_db
