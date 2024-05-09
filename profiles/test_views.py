@@ -7,7 +7,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from common.osu.enums import Gamemode
 from leaderboards.services import create_membership
-from profiles.tasks import update_user
+from profiles.services import refresh_user_from_api
 from profiles.views import (
     BeatmapDetail,
     UserMembershipList,
@@ -18,7 +18,7 @@ from profiles.views import (
 
 @pytest.fixture
 def stub_user_stats():
-    return update_user(user_id=5701575, gamemode=Gamemode.STANDARD)
+    return refresh_user_from_api(user_id=5701575, gamemode=Gamemode.STANDARD)
 
 
 @pytest.mark.django_db

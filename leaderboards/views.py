@@ -26,7 +26,7 @@ from leaderboards.services import (
 from profiles.enums import AllowedBeatmapStatus, ScoreSet
 from profiles.models import Score, ScoreFilter
 from profiles.serialisers import BeatmapScoreSerialiser, UserScoreSerialiser
-from profiles.services import fetch_user
+from profiles.services import refresh_user_from_api
 
 
 class LeaderboardList(APIView):
@@ -459,7 +459,7 @@ class LeaderboardInviteList(APIView):
                 invite = leaderboard.invites.get(user_id=invitee_id)
             except Invite.DoesNotExist:
                 # update profile to ensure they are in the database
-                fetch_user(user_id=invitee_id, gamemode=gamemode)
+                refresh_user_from_api(user_id=invitee_id, gamemode=gamemode)
 
                 invite = Invite(
                     user_id=invitee_id, leaderboard_id=leaderboard_id, message=message

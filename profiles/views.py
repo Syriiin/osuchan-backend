@@ -16,7 +16,8 @@ from profiles.serialisers import (
     UserScoreSerialiser,
     UserStatsSerialiser,
 )
-from profiles.services import fetch_scores, fetch_user
+from profiles.services import fetch_scores, fetch_user, refresh_user_from_api
+from profiles.tasks import update_user
 
 
 class UserStatsDetail(APIView):
@@ -35,13 +36,23 @@ class UserStatsDetail(APIView):
         try:
             if user_id_type == "id":
                 user_stats = fetch_user(user_id=int(user_string), gamemode=gamemode)
+                if user_stats is None:
+                    user_stats = refresh_user_from_api(
+                        user_id=int(user_string), gamemode=gamemode
+                    )
             elif user_id_type == "username":
                 user_stats = fetch_user(username=user_string, gamemode=gamemode)
+                if user_stats is None:
+                    user_stats = refresh_user_from_api(
+                        username=user_string, gamemode=gamemode
+                    )
             else:
                 raise NotFound("User not found.")
 
             if user_stats is None:
                 raise NotFound("User not found.")
+
+            update_user.delay(user_stats.user_id)
 
             # Show not found for disabled (restricted) users
             if user_stats.user.disabled:
