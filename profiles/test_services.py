@@ -6,10 +6,30 @@ from profiles.models import DifficultyCalculation, PerformanceCalculation
 from profiles.services import (
     calculate_difficulty_values,
     calculate_performance_values,
+    fetch_user,
+    refresh_user_from_api,
     update_difficulty_calculations,
     update_performance_calculation,
     update_performance_calculations_for_unique_beatmap,
 )
+
+
+@pytest.mark.django_db
+class TestUserServices:
+    def test_fetch_user_not_exists(self):
+        assert fetch_user(user_id=1) == None
+
+    def test_fetch_user_by_id(self, user_stats):
+        assert fetch_user(user_id=1) == user_stats
+
+    def test_fetch_user_by_username(self, user_stats):
+        assert fetch_user(username="TestOsuUser") == user_stats
+
+    def test_refresh_user_not_exists(self):
+        assert refresh_user_from_api(user_id=123123) == None
+
+    def test_refresh_user_from_api(self):
+        assert refresh_user_from_api(user_id=5701575).user.username == "Syrin"
 
 
 @pytest.mark.django_db
