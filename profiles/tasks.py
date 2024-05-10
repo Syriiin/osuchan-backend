@@ -36,4 +36,4 @@ def update_user(user_id: int, gamemode: int = Gamemode.STANDARD):
     """
     Runs an update for a given user
     """
-    refresh_user_from_api(user_id=user_id, gamemode=gamemode)
+    refresh_user_from_api(user_id=user_id, gamemode=Gamemode(gamemode))
