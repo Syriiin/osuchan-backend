@@ -1,7 +1,7 @@
 import os
 import urllib.request
 from abc import ABC, abstractmethod
-from typing import Type, Union
+from typing import Type
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -19,7 +19,7 @@ class AbstractBeatmapProvider(ABC):
 
 class LiveBeatmapProvider(AbstractBeatmapProvider):
     def get_beatmap_file(self, beatmap_id: str) -> str:
-        beatmap_path = os.path.join(settings.BEATMAP_CACHE_PATH, str(beatmap_id))
+        beatmap_path = os.path.join(settings.BEATMAP_CACHE_PATH, f"{beatmap_id}.osu")
 
         if not os.path.isfile(beatmap_path):
             beatmap_url = f"{settings.BEATMAP_DL_URL}{beatmap_id}"
@@ -36,7 +36,10 @@ class LiveBeatmapProvider(AbstractBeatmapProvider):
 class StubBeatmapProvider(AbstractBeatmapProvider):
     def get_beatmap_file(self, beatmap_id: str) -> str:
         beatmap_path = os.path.join(
-            os.path.dirname(__file__), "stubdata", "beatmap_provider", str(beatmap_id)
+            os.path.dirname(__file__),
+            "stubdata",
+            "beatmap_provider",
+            f"{beatmap_id}.osu",
         )
 
         if not os.path.exists(beatmap_path):
