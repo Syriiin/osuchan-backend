@@ -1,4 +1,4 @@
-# Development overrides for docker-compose.yml
+# Development overrides for compose.yaml
 
 services:
   db:

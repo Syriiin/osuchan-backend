@@ -1,4 +1,4 @@
-# Production overrides for docker-compose.yml
+# Production overrides for compose.yaml
 
 services:
   db:

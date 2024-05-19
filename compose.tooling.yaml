@@ -1,5 +1,5 @@
 # Additional services for running tooling in development and CI
-# Must be used with docker-compose.yml
+# Must be used with compose.yaml
 
 services:
   tooling:
