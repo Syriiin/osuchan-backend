@@ -218,9 +218,10 @@ def refresh_user_from_api(
     created_scores = user_stats.add_scores_from_data(score_data_list)
 
     # TODO: iterate all registered difficulty calculators for gamemode
-    difficulty_calculator = DifficultyCalculator()
-    for score in created_scores:
-        update_performance_calculation(score, difficulty_calculator)
+    if gamemode == Gamemode.STANDARD:
+        difficulty_calculator = DifficultyCalculator()
+        for score in created_scores:
+            update_performance_calculation(score, difficulty_calculator)
 
     # Update memberships
     transaction.on_commit(
