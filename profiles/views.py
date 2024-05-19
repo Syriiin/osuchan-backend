@@ -16,8 +16,8 @@ from profiles.serialisers import (
     UserScoreSerialiser,
     UserStatsSerialiser,
 )
-from profiles.services import fetch_scores, fetch_user, refresh_user_from_api
-from profiles.tasks import update_user
+from profiles.services import fetch_scores, fetch_user
+from profiles.tasks import update_user, update_user_by_username
 
 
 class UserStatsDetail(APIView):
@@ -37,13 +37,13 @@ class UserStatsDetail(APIView):
             if user_id_type == "id":
                 user_stats = fetch_user(user_id=int(user_string), gamemode=gamemode)
                 if user_stats is None:
-                    user_stats = refresh_user_from_api(
+                    user_stats = update_user(
                         user_id=int(user_string), gamemode=gamemode
                     )
             elif user_id_type == "username":
                 user_stats = fetch_user(username=user_string, gamemode=gamemode)
                 if user_stats is None:
-                    user_stats = refresh_user_from_api(
+                    user_stats = update_user_by_username(
                         username=user_string, gamemode=gamemode
                     )
             else:

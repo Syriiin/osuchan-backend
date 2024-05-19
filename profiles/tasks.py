@@ -2,6 +2,7 @@ from celery import shared_task
 
 from common.osu.enums import Gamemode
 from leaderboards.models import Leaderboard
+from leaderboards.tasks import update_memberships
 from profiles.services import refresh_user_from_api
 
 
@@ -36,4 +37,22 @@ def update_user(user_id: int, gamemode: int = Gamemode.STANDARD):
     """
     Runs an update for a given user
     """
-    refresh_user_from_api(user_id=user_id, gamemode=Gamemode(gamemode))
+    user_stats = refresh_user_from_api(user_id=user_id, gamemode=Gamemode(gamemode))
+    if user_stats is not None:
+        update_memberships.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+    return user_stats
+
+
+@shared_task
+def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
+    """
+    Runs an update for a given user
+    """
+    user_stats = refresh_user_from_api(username=username, gamemode=Gamemode(gamemode))
+    if user_stats is not None:
+        update_memberships.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+    return user_stats
