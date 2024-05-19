@@ -245,7 +245,7 @@ class TestLeaderboardInviteList:
         url = reverse("leaderboard-invite-list", kwargs=kwargs)
         request = arf.post(
             url,
-            data={"user_ids": [osu_user.id], "message": "test message"},
+            data={"user_ids": [5701575], "message": "test message"},
             format="json",
         )
 

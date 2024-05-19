@@ -223,13 +223,6 @@ def refresh_user_from_api(
         for score in created_scores:
             update_performance_calculation(score, difficulty_calculator)
 
-    # Update memberships
-    transaction.on_commit(
-        lambda: update_memberships.delay(
-            user_id=user_stats.user_id, gamemode=user_stats.gamemode
-        )
-    )
-
     return user_stats
 
 

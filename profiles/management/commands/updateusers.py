@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from profiles.services import refresh_user_from_api
+from profiles.tasks import update_user
 
 
 class Command(BaseCommand):
@@ -25,7 +25,7 @@ class Command(BaseCommand):
                 user_ids += fp.readlines()
 
         for user_id in user_ids:
-            user_stats = refresh_user_from_api(user_id=user_id, gamemode=gamemode)
+            user_stats = update_user(user_id=user_id, gamemode=gamemode)
 
             self.stdout.write(
                 self.style.SUCCESS(
