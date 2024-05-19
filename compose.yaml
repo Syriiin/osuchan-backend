@@ -94,6 +94,8 @@ services:
 
   difficalcy-osu:
     image: ghcr.io/syriiin/difficalcy-osu:v0.5.1
+    env_file:
+      - config/active/difficalcy-osu.env
     environment:
       - REDIS_CONFIGURATION=redis:6379
     volumes:
