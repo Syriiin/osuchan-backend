@@ -22,8 +22,8 @@ class TestLiveBeatmapProvider:
         beatmap_provider: LiveBeatmapProvider,
         osu_api_test_settings,
     ):
-        assert beatmap_provider.get_beatmap_file("1") == "testcachepath/1"
-        isfile_mock.assert_called_once_with("testcachepath/1")
+        assert beatmap_provider.get_beatmap_file("1") == "testcachepath/1.osu"
+        isfile_mock.assert_called_once_with("testcachepath/1.osu")
 
     @patch("common.osu.beatmap_provider.os.path.getsize", return_value=1)
     @patch("common.osu.beatmap_provider.urllib.request.urlretrieve")
@@ -36,10 +36,10 @@ class TestLiveBeatmapProvider:
         beatmap_provider: LiveBeatmapProvider,
         osu_api_test_settings,
     ):
-        assert beatmap_provider.get_beatmap_file("1") == "testcachepath/1"
+        assert beatmap_provider.get_beatmap_file("1") == "testcachepath/1.osu"
         isfile_mock.assert_called_once()
-        urlretrieve_mock.assert_called_once_with("testbaseurl/1", "testcachepath/1")
-        getsize_mock.assert_called_once_with("testcachepath/1")
+        urlretrieve_mock.assert_called_once_with("testbaseurl/1", "testcachepath/1.osu")
+        getsize_mock.assert_called_once_with("testcachepath/1.osu")
 
     @patch("common.osu.beatmap_provider.os.remove")
     @patch("common.osu.beatmap_provider.os.path.getsize", return_value=0)
@@ -57,6 +57,6 @@ class TestLiveBeatmapProvider:
         with pytest.raises(BeatmapNotFoundException):
             beatmap_provider.get_beatmap_file("1")
         isfile_mock.assert_called_once()
-        urlretrieve_mock.assert_called_once_with("testbaseurl/1", "testcachepath/1")
-        getsize_mock.assert_called_once_with("testcachepath/1")
-        remove_mock.assert_called_once_with("testcachepath/1")
+        urlretrieve_mock.assert_called_once_with("testbaseurl/1", "testcachepath/1.osu")
+        getsize_mock.assert_called_once_with("testcachepath/1.osu")
+        remove_mock.assert_called_once_with("testcachepath/1.osu")
