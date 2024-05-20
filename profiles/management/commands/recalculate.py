@@ -286,6 +286,29 @@ class Command(BaseCommand):
                 performance_calculations__calculator_engine=difficulty_calculator.engine(),
                 performance_calculations__calculator_version=difficulty_calculator.version(),
             )
+            # NOTE: this query is way faster, but since it's raw, it can't be composed
+            #   might be necessary to use it when the performance calculation table gets big
+            # scores_to_recalculate = Score.objects.raw(
+            #     f"""
+            #     SELECT s.*
+            #     FROM profiles_score s
+            #     LEFT JOIN profiles_performancecalculation pc
+            #     ON (
+            #         s.id = pc.score_id
+            #         AND pc.calculator_engine = %s
+            #         AND pc.calculator_version = %s
+            #     )
+            #     WHERE (
+            #         s.gamemode = %s
+            #         AND pc.id IS NULL
+            #     )
+            #     """,
+            #     [
+            #         difficulty_calculator.engine(),
+            #         difficulty_calculator.version(),
+            #         difficulty_calculator.gamemode(),
+            #     ],
+            # )
 
             if scores_to_recalculate.count() == 0:
                 self.stdout.write(f"All {scores.count()} scores already up to date")
