@@ -238,6 +238,7 @@ class Command(BaseCommand):
                     pbar.update(len(page))
         else:
             beatmaps_to_recalculate = beatmaps.exclude(
+                difficulty_calculations__mods=0,
                 difficulty_calculations__calculator_engine=difficulty_calculator.engine(),
                 difficulty_calculations__calculator_version=difficulty_calculator.version(),
             )
