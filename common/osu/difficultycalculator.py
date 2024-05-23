@@ -327,7 +327,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
             )
             response.raise_for_status()
             data = response.json()
-        except httpx.HTTPStatusError as e:
+        except httpx.HTTPError as e:
             raise CalculationException(
                 f"An error occured in calculating the beatmap {score.beatmap_id}: [{e.response.status_code}] {e.response.text}"
             ) from e
@@ -345,9 +345,9 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
             )
             response.raise_for_status()
             data = response.json()
-        except httpx.HTTPStatusError as e:
+        except httpx.HTTPError as e:
             raise CalculationException(
-                f"An error occured in calculating the beatmaps: [{e.response.status_code}] {e.response.text}"
+                f"An error occured in calculating the beatmaps {set(score.beatmap_id for score in scores)}: [{e.response.status_code}] {e.response.text}"
             ) from e
 
         return [
