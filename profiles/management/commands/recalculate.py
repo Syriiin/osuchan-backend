@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
+    CalculationException,
     DifficultyCalculator,
     get_difficulty_calculator_class,
 )
@@ -261,7 +262,14 @@ class Command(BaseCommand):
                 smoothing=0,
             ) as pbar:
                 while len(page := beatmaps_to_recalculate[:2000]) > 0:
-                    update_difficulty_calculations(page, difficulty_calculator)
+                    try:
+                        update_difficulty_calculations(page, difficulty_calculator)
+                    except CalculationException as e:
+                        pbar.write(
+                            self.style.ERROR(
+                                f"Error calculating difficulty values for beatmaps: {e}"
+                            )
+                        )
                     pbar.update(len(page))
 
         self.stdout.write(
@@ -339,12 +347,19 @@ class Command(BaseCommand):
                 unique_beatmap_scores = scores_to_recalculate.filter(
                     beatmap_id=unique_beatmap["beatmap_id"], mods=unique_beatmap["mods"]
                 )
-                update_performance_calculations_for_unique_beatmap(
-                    unique_beatmap["beatmap_id"],
-                    unique_beatmap["mods"],
-                    unique_beatmap_scores,
-                    difficulty_calculator,
-                )
+                try:
+                    update_performance_calculations_for_unique_beatmap(
+                        unique_beatmap["beatmap_id"],
+                        unique_beatmap["mods"],
+                        unique_beatmap_scores,
+                        difficulty_calculator,
+                    )
+                except CalculationException as e:
+                    pbar.write(
+                        self.style.ERROR(
+                            f"Error calculating performance values for beatmap {unique_beatmap['beatmap_id']} with mods {unique_beatmap['mods']}: {e}"
+                        )
+                    )
                 pbar.update(unique_beatmap_scores.count())
 
         self.stdout.write(
