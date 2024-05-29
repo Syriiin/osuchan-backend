@@ -4,13 +4,16 @@ from typing import Iterable
 
 from django.db import transaction
 
+from common.error_reporter import ErrorReporter
+from common.osu import utils
 from common.osu.apiv1 import OsuApiV1
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
     DifficultyCalculator,
+    DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.tasks import update_memberships
 from profiles.models import (
@@ -215,7 +218,7 @@ def refresh_user_from_api(
     user_stats.save()
 
     # Process and add scores
-    created_scores = user_stats.add_scores_from_data(score_data_list)
+    created_scores = add_scores_from_data(user_stats, score_data_list)
 
     # TODO: iterate all registered difficulty calculators for gamemode
     if gamemode == Gamemode.STANDARD:
@@ -224,6 +227,30 @@ def refresh_user_from_api(
             update_performance_calculation(score, difficulty_calculator)
 
     return user_stats
+
+
+@transaction.atomic
+def refresh_beatmap_from_api(beatmap_id: int):
+    """
+    Fetch and add a beatmap
+    """
+    osu_api_v1 = OsuApiV1()
+    beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
+
+    if beatmap_data is None:
+        return None
+
+    beatmap = Beatmap.from_data(beatmap_data)
+    if beatmap.status not in [
+        BeatmapStatus.APPROVED,
+        BeatmapStatus.RANKED,
+        BeatmapStatus.LOVED,
+    ]:
+        return None
+
+    beatmap.save()
+
+    return beatmap
 
 
 @transaction.atomic
@@ -251,13 +278,160 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
         full_score_data_list += score_data_list
 
     # Process add scores
-    created_scores = user_stats.add_scores_from_data(full_score_data_list)
+    created_scores = add_scores_from_data(user_stats, full_score_data_list)
 
     # TODO: iterate all registered difficulty calculators for gamemode
     difficulty_calculator = DifficultyCalculator()
     for score in created_scores:
         update_performance_calculation(score, difficulty_calculator)
 
+    return created_scores
+
+
+# TODO: refactor this
+def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
+    """
+    Adds a list of scores to the passed user_stats from the passed score_data_list.
+    (requires all dicts to have beatmap_id set along with usual score data)
+    """
+    # Remove unranked scores
+    # Only process "high scores" (highest scorev1 per mod per map per user)
+    # (need to make this distinction to prevent lazer scores from being treated as ranked)
+    ranked_score_data_list = [
+        score_data
+        for score_data in score_data_list
+        if score_data.get("score_id", None) is not None
+    ]
+
+    # Parse dates
+    for score_data in ranked_score_data_list:
+        score_data["date"] = datetime.strptime(
+            score_data["date"], "%Y-%m-%d %H:%M:%S"
+        ).replace(tzinfo=timezone.utc)
+
+    # Remove potential duplicates from a top 100 play also being in the recent 50
+    # Unique on date since we don't track score_id (not ideal but not much we can do)
+    unique_score_data_list = [
+        score
+        for score in ranked_score_data_list
+        if score
+        == next(s for s in ranked_score_data_list if s["date"] == score["date"])
+    ]
+
+    # Remove scores which already exist in db
+    score_dates = [s["date"] for s in unique_score_data_list]
+    existing_score_dates = Score.objects.filter(date__in=score_dates).values_list(
+        "date", flat=True
+    )
+    new_score_data_list = []
+    for score_data in unique_score_data_list:
+        if score_data["date"] not in existing_score_dates:
+            new_score_data_list.append(score_data)
+
+    # Fetch beatmaps from database in bulk
+    beatmap_ids = [int(s["beatmap_id"]) for s in new_score_data_list]
+    beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
+
+    scores_to_create = []
+    for score_data in new_score_data_list:
+        score = Score()
+
+        # Update Score fields
+        score.score = int(score_data["score"])
+        score.count_300 = int(score_data["count300"])
+        score.count_100 = int(score_data["count100"])
+        score.count_50 = int(score_data["count50"])
+        score.count_miss = int(score_data["countmiss"])
+        score.count_geki = int(score_data["countgeki"])
+        score.count_katu = int(score_data["countkatu"])
+        score.best_combo = int(score_data["maxcombo"])
+        score.perfect = bool(int(score_data["perfect"]))
+        score.mods = int(score_data["enabled_mods"])
+        score.rank = score_data["rank"]
+        score.date = score_data["date"]
+
+        if score.mods & Mods.UNRANKED != 0:
+            continue
+
+        # Update foreign keys
+        # Search for beatmap in fetched, else create it
+        beatmap_id = int(score_data["beatmap_id"])
+        beatmap = next(
+            (beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None
+        )
+        if beatmap is None:
+            beatmap = refresh_beatmap_from_api(beatmap_id)
+            if beatmap is None:
+                continue
+
+            # add to beatmaps incase another score is on this map
+            beatmaps.append(beatmap)
+        score.beatmap = beatmap
+        score.user_stats = user_stats
+
+        # Update pp
+        if "pp" in score_data and score_data["pp"] is not None:
+            score.performance_total = float(score_data["pp"])
+            score.difficulty_calculator_engine = "legacy"
+            score.difficulty_calculator_version = "legacy"
+        else:
+            # Check for gamemode
+            if user_stats.gamemode != Gamemode.STANDARD:
+                # We cant calculate pp for this mode yet so we need to disregard this score
+                continue
+
+            try:
+                with DifficultyCalculator() as calc:
+                    calculation = calc.calculate_score(
+                        DifficultyCalculatorScore(
+                            mods=score.mods,
+                            beatmap_id=beatmap_id,
+                            count_100=score.count_100,
+                            count_50=score.count_50,
+                            count_miss=score.count_miss,
+                            combo=score.best_combo,
+                        )
+                    )
+                    score.performance_total = calculation.performance_values["total"]
+                    score.difficulty_calculator_engine = DifficultyCalculator.engine()
+                    score.difficulty_calculator_version = DifficultyCalculator.version()
+            except DifficultyCalculatorException as e:
+                error_reporter = ErrorReporter()
+                error_reporter.report_error(e)
+                continue
+
+        # Update convenience fields
+        score.gamemode = user_stats.gamemode
+        score.accuracy = utils.get_accuracy(
+            score.count_300,
+            score.count_100,
+            score.count_50,
+            score.count_miss,
+            score.count_katu,
+            score.count_geki,
+            gamemode=user_stats.gamemode,
+        )
+        score.bpm = utils.get_bpm(beatmap.bpm, score.mods)
+        score.length = utils.get_length(beatmap.drain_time, score.mods)
+        score.circle_size = utils.get_cs(
+            beatmap.circle_size, score.mods, score.gamemode
+        )
+        score.approach_rate = utils.get_ar(beatmap.approach_rate, score.mods)
+        score.overall_difficulty = utils.get_od(beatmap.overall_difficulty, score.mods)
+
+        # Process score
+        score.process()
+
+        scores_to_create.append(score)
+
+    # Bulk add and update and scores
+    created_scores = Score.objects.bulk_create(scores_to_create)
+
+    # Recalculate with new scores added
+    user_stats.recalculate()
+    user_stats.save()
+
+    # Return new scores
     return created_scores
 
 
