@@ -249,7 +249,7 @@ class TestDifficalcyDifficultyCalculator:
         assert DifficalcyOsuDifficultyCalculator.engine() == "osu.Game.Rulesets.Osu"
 
     def test_version(self):
-        assert DifficalcyOsuDifficultyCalculator.version() == "2024.412.1.0"
+        assert DifficalcyOsuDifficultyCalculator.version() == "2024.523.0.0"
 
     def test_context_manager(self):
         with DifficalcyOsuDifficultyCalculator() as calc:
