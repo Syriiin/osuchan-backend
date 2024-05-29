@@ -31,6 +31,6 @@ services:
 
   difficalcy-osu:
     ports:
-      - 5000:80
+      - 6000:80
     volumes:
       - ./common/osu/stubdata/beatmap_provider:/beatmaps
