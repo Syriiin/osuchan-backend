@@ -1,9 +1,15 @@
+import logging
+import time
+
 from celery import shared_task
 
-from common.osu.enums import Gamemode
+from common.osu.enums import BeatmapStatus, Gamemode
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
-from profiles.services import refresh_user_from_api
+from profiles.models import Beatmap
+from profiles.services import refresh_beatmap_from_api, refresh_user_from_api
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -56,3 +62,36 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
     return user_stats
+
+
+@shared_task
+def update_loved_beatmaps():
+    """
+    Updates all loved beatmaps, cleaning up outdated data
+    """
+    for beatmap in Beatmap.objects.filter(status=BeatmapStatus.LOVED):
+        logger.info(f"Sleeping for 100ms")
+        # Sleep for 100ms to avoid rate limiting
+        time.sleep(0.1)
+        logger.info(f"Updating loved beatmap {beatmap.id}")
+        beatmap = Beatmap.objects.get(id=beatmap.id)
+        if beatmap.status != BeatmapStatus.LOVED:
+            logger.warning(f"Beatmap {beatmap.id} is not loved")
+            return None
+
+        updated_beatmap = refresh_beatmap_from_api(beatmap.id)
+        if updated_beatmap is None:
+            logger.info(
+                f"Beatmap {beatmap.id} appears to have been unloved. Deleting..."
+            )
+            beatmap.delete()
+            return None
+
+        outdated_scores = updated_beatmap.scores.filter(
+            date__lt=updated_beatmap.last_updated
+        )
+        if outdated_scores.count() > 0:
+            logger.info(
+                f"Deleting {outdated_scores.count()} outdated scores for beatmap {beatmap.id}"
+            )
+            outdated_scores.delete()
