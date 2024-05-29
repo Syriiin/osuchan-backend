@@ -5,8 +5,10 @@ from django.core.paginator import Paginator
 from django.db.models import Count, QuerySet
 from tqdm import tqdm
 
+from common.error_reporter import ErrorReporter
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
+    CalculationException,
     DifficultyCalculator,
     get_difficulty_calculator_class,
 )
@@ -238,6 +240,7 @@ class Command(BaseCommand):
                     pbar.update(len(page))
         else:
             beatmaps_to_recalculate = beatmaps.exclude(
+                difficulty_calculations__mods=0,
                 difficulty_calculations__calculator_engine=difficulty_calculator.engine(),
                 difficulty_calculations__calculator_version=difficulty_calculator.version(),
             )
@@ -260,7 +263,15 @@ class Command(BaseCommand):
                 smoothing=0,
             ) as pbar:
                 while len(page := beatmaps_to_recalculate[:2000]) > 0:
-                    update_difficulty_calculations(page, difficulty_calculator)
+                    try:
+                        update_difficulty_calculations(page, difficulty_calculator)
+                    except CalculationException as e:
+                        ErrorReporter().report_error(e)
+                        pbar.write(
+                            self.style.ERROR(
+                                f"Error calculating difficulty values for beatmaps: {e}"
+                            )
+                        )
                     pbar.update(len(page))
 
         self.stdout.write(
@@ -285,6 +296,29 @@ class Command(BaseCommand):
                 performance_calculations__calculator_engine=difficulty_calculator.engine(),
                 performance_calculations__calculator_version=difficulty_calculator.version(),
             )
+            # NOTE: this query is way faster, but since it's raw, it can't be composed
+            #   might be necessary to use it when the performance calculation table gets big
+            # scores_to_recalculate = Score.objects.raw(
+            #     f"""
+            #     SELECT s.*
+            #     FROM profiles_score s
+            #     LEFT JOIN profiles_performancecalculation pc
+            #     ON (
+            #         s.id = pc.score_id
+            #         AND pc.calculator_engine = %s
+            #         AND pc.calculator_version = %s
+            #     )
+            #     WHERE (
+            #         s.gamemode = %s
+            #         AND pc.id IS NULL
+            #     )
+            #     """,
+            #     [
+            #         difficulty_calculator.engine(),
+            #         difficulty_calculator.version(),
+            #         difficulty_calculator.gamemode(),
+            #     ],
+            # )
 
             if scores_to_recalculate.count() == 0:
                 self.stdout.write(f"All {scores.count()} scores already up to date")
@@ -315,12 +349,20 @@ class Command(BaseCommand):
                 unique_beatmap_scores = scores_to_recalculate.filter(
                     beatmap_id=unique_beatmap["beatmap_id"], mods=unique_beatmap["mods"]
                 )
-                update_performance_calculations_for_unique_beatmap(
-                    unique_beatmap["beatmap_id"],
-                    unique_beatmap["mods"],
-                    unique_beatmap_scores,
-                    difficulty_calculator,
-                )
+                try:
+                    update_performance_calculations_for_unique_beatmap(
+                        unique_beatmap["beatmap_id"],
+                        unique_beatmap["mods"],
+                        unique_beatmap_scores,
+                        difficulty_calculator,
+                    )
+                except CalculationException as e:
+                    ErrorReporter().report_error(e)
+                    pbar.write(
+                        self.style.ERROR(
+                            f"Error calculating performance values for beatmap {unique_beatmap['beatmap_id']} with mods {unique_beatmap['mods']}: {e}"
+                        )
+                    )
                 pbar.update(unique_beatmap_scores.count())
 
         self.stdout.write(
