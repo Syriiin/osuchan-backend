@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, QuerySet
 from tqdm import tqdm
 
+from common.error_reporter import ErrorReporter
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
     CalculationException,
@@ -265,6 +266,7 @@ class Command(BaseCommand):
                     try:
                         update_difficulty_calculations(page, difficulty_calculator)
                     except CalculationException as e:
+                        ErrorReporter().report_error(e)
                         pbar.write(
                             self.style.ERROR(
                                 f"Error calculating difficulty values for beatmaps: {e}"
@@ -355,6 +357,7 @@ class Command(BaseCommand):
                         difficulty_calculator,
                     )
                 except CalculationException as e:
+                    ErrorReporter().report_error(e)
                     pbar.write(
                         self.style.ERROR(
                             f"Error calculating performance values for beatmap {unique_beatmap['beatmap_id']} with mods {unique_beatmap['mods']}: {e}"
