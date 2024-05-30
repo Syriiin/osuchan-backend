@@ -259,9 +259,12 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     Fetch and add scores for a user on beatmaps in a gamemode
     """
     # Fetch UserStats from database
-    user_stats = UserStats.objects.select_for_update().get(
-        user_id=user_id, gamemode=gamemode
-    )
+    try:
+        user_stats = UserStats.objects.select_for_update().get(
+            user_id=user_id, gamemode=gamemode
+        )
+    except UserStats.DoesNotExist:
+        return []
 
     full_score_data_list = []
     for beatmap_id in beatmap_ids:
