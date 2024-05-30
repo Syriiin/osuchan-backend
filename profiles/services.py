@@ -41,8 +41,11 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
                 user_id=user_id, gamemode=gamemode
             )
         else:
-            return UserStats.objects.select_related("user").get(
-                user__username__iexact=username, gamemode=gamemode
+            # usernames should really be unique, but we don't have an up to date view of the users so there may be clashes
+            return (
+                UserStats.objects.select_related("user")
+                .filter(user__username__iexact=username, gamemode=gamemode)
+                .first()
             )
     except UserStats.DoesNotExist:
         return None
@@ -103,6 +106,10 @@ def refresh_user_from_api(
             except OsuUser.DoesNotExist:
                 # Doesnt exist
                 return None
+
+    # try to fetch user stats by id in case of namechange
+    if user_id is None and user_stats is None:
+        user_stats = fetch_user(user_id=user_data["user_id"], gamemode=gamemode)
 
     if user_stats is not None:
         osu_user = user_stats.user
@@ -259,9 +266,12 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     Fetch and add scores for a user on beatmaps in a gamemode
     """
     # Fetch UserStats from database
-    user_stats = UserStats.objects.select_for_update().get(
-        user_id=user_id, gamemode=gamemode
-    )
+    try:
+        user_stats = UserStats.objects.select_for_update().get(
+            user_id=user_id, gamemode=gamemode
+        )
+    except UserStats.DoesNotExist:
+        return []
 
     full_score_data_list = []
     for beatmap_id in beatmap_ids:
