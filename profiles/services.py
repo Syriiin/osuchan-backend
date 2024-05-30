@@ -104,6 +104,10 @@ def refresh_user_from_api(
                 # Doesnt exist
                 return None
 
+    # try to fetch user stats by id in case of namechange
+    if user_id is None and user_stats is None:
+        user_stats = fetch_user(user_id=user_data["user_id"], gamemode=gamemode)
+
     if user_stats is not None:
         osu_user = user_stats.user
     else:
