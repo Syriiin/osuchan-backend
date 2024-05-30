@@ -41,8 +41,11 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
                 user_id=user_id, gamemode=gamemode
             )
         else:
-            return UserStats.objects.select_related("user").get(
-                user__username__iexact=username, gamemode=gamemode
+            # usernames should really be unique, but we don't have an up to date view of the users so there may be clashes
+            return (
+                UserStats.objects.select_related("user")
+                .filter(user__username__iexact=username, gamemode=gamemode)
+                .first()
             )
     except UserStats.DoesNotExist:
         return None
