@@ -291,7 +291,7 @@ class LeaderboardScoreList(APIView):
                 1800,
             )
         else:
-            scores = leaderboard.get_top_scores(limit=5)
+            scores = leaderboard.get_top_scores(limit=limit)
 
         serialiser = LeaderboardScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
