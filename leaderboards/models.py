@@ -200,6 +200,12 @@ class Membership(models.Model):
         return f"{self.leaderboard}: {self.user.username}"
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["leaderboard_id", "user_id"], name="unique_memberships"
+            )
+        ]
+
         indexes = [models.Index(fields=["leaderboard"]), models.Index(fields=["user"])]
 
 
