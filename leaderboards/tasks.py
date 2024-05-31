@@ -13,7 +13,7 @@ from common.osu.utils import (
     get_mods_string,
 )
 from leaderboards.enums import LeaderboardAccessType
-from leaderboards.models import Leaderboard, Membership
+from leaderboards.models import Leaderboard, Membership, MembershipScore
 from leaderboards.utils import get_leaderboard_type_string_from_leaderboard_access_type
 from profiles.enums import ScoreResult, ScoreSet
 from profiles.models import Score, UserStats
@@ -44,29 +44,47 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
 
         scores = scores.get_score_set(score_set=leaderboard.score_set)
 
-        membership.score_count = scores.count()
-
-        if leaderboard.score_set == ScoreSet.NORMAL:
-            membership.pp = calculate_pp_total(
-                score.performance_total for score in scores
-            )
-        elif leaderboard.score_set == ScoreSet.NEVER_CHOKE:
-            membership.pp = calculate_pp_total(
-                (
+        def get_performance_total(score: Score, score_set: ScoreSet):
+            if score_set == ScoreSet.NORMAL:
+                return score.performance_total
+            elif score_set == ScoreSet.NEVER_CHOKE:
+                return (
                     score.nochoke_performance_total
                     if score.result & ScoreResult.CHOKE
                     else score.performance_total
                 )
-                for score in scores
+            elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
+                return score.nochoke_performance_total
+
+        membership_scores = [
+            MembershipScore(
+                membership=membership,
+                score=score,
+                performance_total=get_performance_total(
+                    score, ScoreSet(leaderboard.score_set)
+                ),
             )
-        elif leaderboard.score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            membership.pp = calculate_pp_total(
-                score.nochoke_performance_total for score in scores
-            )
+            for score in scores
+        ]
+
+        MembershipScore.objects.bulk_create(
+            membership_scores,
+            update_conflicts=True,
+            update_fields=["performance_total"],
+            unique_fields=["membership_id", "score_id"],
+        )
+
+        membership.score_count = len(membership_scores)
+
+        membership.pp = calculate_pp_total(
+            score.performance_total for score in membership_scores
+        )
 
         membership.rank = (
             leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
         )
+
+        membership.save()
 
         if leaderboard.notification_discord_webhook_url != "":
             # Check for new top score
@@ -106,10 +124,6 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
                     )
 
                 transaction.on_commit(send_notification)
-
-        membership.scores.set(scores)
-
-        membership.save()
 
     return memberships
 
