@@ -4,6 +4,7 @@ from tqdm import tqdm
 
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
+from leaderboards.services import update_membership
 from profiles.models import OsuUser
 
 
@@ -26,7 +27,7 @@ class Command(BaseCommand):
                 else:
                     users = leaderboard.members.all().values("id")
                 for user_id in tqdm([u["id"] for u in users]):
-                    leaderboard.update_membership(user_id)
+                    update_membership(leaderboard, user_id)
 
         self.stdout.write(
             self.style.SUCCESS(

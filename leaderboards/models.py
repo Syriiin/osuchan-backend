@@ -1,9 +1,7 @@
 import typing
-from datetime import datetime
 
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Max, Q
-from rest_framework.exceptions import PermissionDenied
 
 from common.osu.enums import Gamemode
 from common.osu.utils import calculate_pp_total
@@ -114,131 +112,6 @@ class Leaderboard(models.Model):
             .select_related("user")
             .order_by("-pp")
         ).first()
-
-    def update_membership(self, user_id):
-        """
-        Update a membership for a user_id ensuring all scores that fit the criteria are added
-        """
-        # Dont't update memberships for archived leaderboards
-        if self.archived:
-            return
-
-        # Get or create Membership model
-        try:
-            membership = self.memberships.select_for_update().get(user_id=user_id)
-            # Clear all currently added scores
-            membership.scores.clear()
-            join_date = membership.join_date
-        except Membership.DoesNotExist:
-            if (
-                self.access_type
-                in (
-                    LeaderboardAccessType.PUBLIC_INVITE_ONLY,
-                    LeaderboardAccessType.PRIVATE,
-                )
-                and self.owner_id != user_id
-            ):
-                # Check if user has been invited
-                try:
-                    invitees = self.invitees.filter(id=user_id)
-                except OsuUser.DoesNotExist:
-                    raise PermissionDenied(
-                        "You must be invited to join this leaderboard."
-                    )
-
-                # Invite is being accepted
-                self.invitees.remove(*invitees)
-
-            # Create new membership
-            membership = Membership(user_id=user_id, leaderboard=self)
-            join_date = datetime.now()
-
-        # Get scores
-        scores = Score.objects.filter(
-            user_stats__user_id=user_id, gamemode=self.gamemode
-        )
-
-        if not self.allow_past_scores:
-            scores = scores.filter(date__gte=join_date)
-
-        if self.score_filter:
-            scores = scores.apply_score_filter(self.score_filter)
-
-        scores = scores.get_score_set(score_set=self.score_set)
-        membership.score_count = len(
-            scores
-        )  # len because we're evaluating the queryset anyway
-
-        # Add scores to membership
-        if self.score_set == ScoreSet.NORMAL:
-            membership.pp = calculate_pp_total(
-                score.performance_total for score in scores
-            )
-        elif self.score_set == ScoreSet.NEVER_CHOKE:
-            membership.pp = calculate_pp_total(
-                (
-                    score.nochoke_performance_total
-                    if score.result & ScoreResult.CHOKE
-                    else score.performance_total
-                )
-                for score in scores
-            )
-        elif self.score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            membership.pp = calculate_pp_total(
-                score.nochoke_performance_total for score in scores
-            )
-
-        # Fetch rank
-        membership.rank = self.memberships.filter(pp__gt=membership.pp).count() + 1
-
-        if self.notification_discord_webhook_url != "":
-            # Check for new top score
-            pp_record = self.get_pp_record()
-            player_top_score = scores.first()
-            if (
-                pp_record is not None
-                and player_top_score is not None
-                and player_top_score.performance_total > pp_record
-            ):
-                # TODO: fix this being here. needs to be here to avoid a circular import at the moment
-                from leaderboards.tasks import send_leaderboard_top_score_notification
-
-                # NOTE: need to use a function with default params here so the closure has the correct variables
-                def send_notification(
-                    leaderboard_id=self.id,
-                    score_id=player_top_score.id,
-                ):
-                    send_leaderboard_top_score_notification.delay(
-                        leaderboard_id, score_id
-                    )
-
-                transaction.on_commit(send_notification)
-
-            # Check for new top player
-            leaderboard_top_player = self.get_top_membership()
-            if (
-                leaderboard_top_player is not None
-                and leaderboard_top_player.user_id != membership.user_id
-                and membership.rank == 1
-                and membership.pp > 0
-            ):
-                from leaderboards.tasks import send_leaderboard_top_player_notification
-
-                # NOTE: need to use a function with default params here so the closure has the correct variables
-                def send_notification(
-                    leaderboard_id=self.id,
-                    user_id=membership.user_id,
-                ):
-                    send_leaderboard_top_player_notification.delay(
-                        leaderboard_id, user_id
-                    )
-
-                transaction.on_commit(send_notification)
-
-        membership.save()
-        membership.scores.add(*scores)
-
-        return membership
 
     def update_member_count(self):
         """
@@ -359,7 +232,7 @@ class MembershipScore(models.Model):
     Model representing a Score of a Membership
     """
 
-    id = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
 
     membership = models.ForeignKey(
         Membership, on_delete=models.CASCADE, related_name="membership_scores"
@@ -367,6 +240,11 @@ class MembershipScore(models.Model):
     score = models.ForeignKey(
         Score, on_delete=models.CASCADE, related_name="membership_scores"
     )
+
+    performance_total = models.FloatField()
+
+    class Meta:
+        indexes = [models.Index(fields=["performance_total"])]
 
 
 class Invite(models.Model):
