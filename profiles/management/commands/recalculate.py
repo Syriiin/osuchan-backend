@@ -14,6 +14,7 @@ from common.osu.difficultycalculator import (
 )
 from common.osu.enums import Gamemode
 from leaderboards.models import Membership
+from leaderboards.services import update_membership
 from profiles.models import Beatmap, Score, UserStats
 from profiles.services import (
     update_difficulty_calculations,
@@ -410,7 +411,7 @@ class Command(BaseCommand):
         with tqdm(desc="Memberships", total=memberships.count(), smoothing=0) as pbar:
             for page in paginator:
                 for membership in page:
-                    membership.recalculate()
+                    update_membership(membership.leaderboard, membership.user_id)
                     pbar.update()
                 Membership.objects.bulk_update(page, ["pp"])
 
