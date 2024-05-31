@@ -310,7 +310,7 @@ class Membership(models.Model):
     user = models.ForeignKey(
         OsuUser, on_delete=models.CASCADE, related_name="memberships"
     )
-    scores = models.ManyToManyField(Score)
+    scores = models.ManyToManyField(Score, through="MembershipScore")
 
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
@@ -352,6 +352,21 @@ class Membership(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["leaderboard"]), models.Index(fields=["user"])]
+
+
+class MembershipScore(models.Model):
+    """
+    Model representing a Score of a Membership
+    """
+
+    id = models.AutoField(primary_key=True)
+
+    membership = models.ForeignKey(
+        Membership, on_delete=models.CASCADE, related_name="membership_scores"
+    )
+    score = models.ForeignKey(
+        Score, on_delete=models.CASCADE, related_name="membership_scores"
+    )
 
 
 class Invite(models.Model):
