@@ -7,16 +7,13 @@ from django.db import transaction
 
 from common.discord_webhook_sender import DiscordWebhookSender
 from common.osu.enums import Gamemode, Mods
-from common.osu.utils import (
-    calculate_pp_total,
-    get_gamemode_string_from_gamemode,
-    get_mods_string,
-)
+from common.osu.utils import get_gamemode_string_from_gamemode, get_mods_string
 from leaderboards.enums import LeaderboardAccessType
-from leaderboards.models import Leaderboard, Membership, MembershipScore
+from leaderboards.models import Leaderboard, Membership
+from leaderboards.services import update_membership
 from leaderboards.utils import get_leaderboard_type_string_from_leaderboard_access_type
-from profiles.enums import ScoreResult, ScoreSet
-from profiles.models import Score, UserStats
+from profiles.enums import ScoreResult
+from profiles.models import Score
 
 
 @shared_task
@@ -30,100 +27,9 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
     ).filter(
         user_id=user_id, leaderboard__gamemode=gamemode, leaderboard__archived=False
     )
-    user_stats = UserStats.objects.get(user_id=user_id, gamemode=gamemode)
 
     for membership in memberships:
-        leaderboard = membership.leaderboard
-        if leaderboard.score_filter:
-            scores = user_stats.scores.apply_score_filter(leaderboard.score_filter)
-        else:
-            scores = user_stats.scores.all()
-
-        if not leaderboard.allow_past_scores:
-            scores = scores.filter(date__gte=membership.join_date)
-
-        scores = scores.get_score_set(score_set=leaderboard.score_set)
-
-        def get_performance_total(score: Score, score_set: ScoreSet):
-            if score_set == ScoreSet.NORMAL:
-                return score.performance_total
-            elif score_set == ScoreSet.NEVER_CHOKE:
-                return (
-                    score.nochoke_performance_total
-                    if score.result & ScoreResult.CHOKE
-                    else score.performance_total
-                )
-            elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
-                return score.nochoke_performance_total
-
-        membership_scores = [
-            MembershipScore(
-                membership=membership,
-                score=score,
-                performance_total=get_performance_total(
-                    score, ScoreSet(leaderboard.score_set)
-                ),
-            )
-            for score in scores
-        ]
-
-        MembershipScore.objects.bulk_create(
-            membership_scores,
-            update_conflicts=True,
-            update_fields=["performance_total"],
-            unique_fields=["membership_id", "score_id"],
-        )
-
-        membership.score_count = len(membership_scores)
-
-        membership.pp = calculate_pp_total(
-            score.performance_total for score in membership_scores
-        )
-
-        membership.rank = (
-            leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
-        )
-
-        membership.save()
-
-        if leaderboard.notification_discord_webhook_url != "":
-            # Check for new top score
-            pp_record = leaderboard.get_pp_record()
-            player_top_score = scores.first()
-            if (
-                pp_record is not None
-                and player_top_score is not None
-                and player_top_score.performance_total > pp_record
-            ):
-                # NOTE: need to use a function with default params here so the closure has the correct variables
-                def send_notification(
-                    leaderboard_id=leaderboard.id,
-                    score_id=player_top_score.id,
-                ):
-                    send_leaderboard_top_score_notification.delay(
-                        leaderboard_id, score_id
-                    )
-
-                transaction.on_commit(send_notification)
-
-            # Check for new top player
-            leaderboard_top_player = leaderboard.get_top_membership()
-            if (
-                leaderboard_top_player is not None
-                and leaderboard_top_player.user_id != membership.user_id
-                and membership.rank == 1
-                and membership.pp > 0
-            ):
-                # NOTE: need to use a function with default params here so the closure has the correct variables
-                def send_notification(
-                    leaderboard_id=leaderboard.id,
-                    user_id=membership.user_id,
-                ):
-                    send_leaderboard_top_player_notification.delay(
-                        leaderboard_id, user_id
-                    )
-
-                transaction.on_commit(send_notification)
+        update_membership(membership.leaderboard, user_id)
 
     return memberships
 
