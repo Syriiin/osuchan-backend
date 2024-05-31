@@ -359,7 +359,7 @@ class MembershipScore(models.Model):
     Model representing a Score of a Membership
     """
 
-    id = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
 
     membership = models.ForeignKey(
         Membership, on_delete=models.CASCADE, related_name="membership_scores"
