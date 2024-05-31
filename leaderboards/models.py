@@ -196,30 +196,6 @@ class Membership(models.Model):
         CommunityMembershipQuerySet
     )()
 
-    def recalculate(self):
-        """
-        Recalculates the memberships pp from its score list
-        """
-        if self.leaderboard.score_set == ScoreSet.NORMAL:
-            self.pp = calculate_pp_total(
-                score.performance_total
-                for score in self.scores.order_by("-performance_total").all()
-            )
-        elif self.leaderboard.score_set == ScoreSet.NEVER_CHOKE:
-            self.pp = calculate_pp_total(
-                (
-                    score.nochoke_performance_total
-                    if score.result & ScoreResult.CHOKE
-                    else score.performance_total
-                )
-                for score in self.scores.order_by("-performance_total").all()
-            )
-        elif self.leaderboard.score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            self.pp = calculate_pp_total(
-                score.nochoke_performance_total
-                for score in self.scores.order_by("-performance_total").all()
-            )
-
     def __str__(self):
         return f"{self.leaderboard}: {self.user.username}"
 
