@@ -368,6 +368,11 @@ class MembershipScore(models.Model):
         Score, on_delete=models.CASCADE, related_name="membership_scores"
     )
 
+    performance_total = models.FloatField()
+
+    class Meta:
+        indexes = [models.Index(fields=["performance_total"])]
+
 
 class Invite(models.Model):
     """
