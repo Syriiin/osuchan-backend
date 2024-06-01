@@ -4,9 +4,7 @@ from django.db import models
 from django.db.models import Max, Q
 
 from common.osu.enums import Gamemode
-from common.osu.utils import calculate_pp_total
 from leaderboards.enums import LeaderboardAccessType
-from profiles.enums import ScoreResult, ScoreSet
 from profiles.models import OsuUser, Score, ScoreFilter
 
 
@@ -81,21 +79,18 @@ class Leaderboard(models.Model):
     )()
 
     def get_pp_record(self) -> typing.Union[Score, None]:
-        scores = Score.objects.non_restricted().filter(
-            membership__leaderboard_id=self.id
-        )
+        scores = self.get_top_scores()
 
-        scores = scores.annotate_sorting_pp(self.score_set)
-
-        return scores.aggregate(Max("sorting_pp"))["sorting_pp__max"]
+        return scores.aggregate(Max("membership_scores__performance_total"))[
+            "membership_scores__performance_total__max"
+        ]
 
     def get_top_scores(self, limit=5):
         scores = (
             Score.objects.non_restricted()
-            .distinct()
             .filter(membership__leaderboard_id=self.id)
+            .order_by("-membership_scores__performance_total", "date")
             .select_related("user_stats", "user_stats__user", "beatmap")
-            .get_score_set(score_set=self.score_set)
         )
 
         return scores[:limit]
