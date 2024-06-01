@@ -18,8 +18,8 @@ class EnvSettings(BaseSettings):
     POSTGRES_DB_PASSWORD: str
     POSTGRES_DB_HOST: str
     POSTGRES_DB_PORT: str
-    MEMCACHED_HOST: str
-    MEMCACHED_PORT: str
+    REDIS_HOST: str
+    REDIS_PORT: str
     CELERY_USER: str
     CELERY_PASSWORD: str
     CELERY_HOST: str
@@ -183,8 +183,11 @@ DATABASES = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django_prometheus.cache.backends.memcached.PyMemcacheCache",
-        "LOCATION": f"{env_settings.MEMCACHED_HOST}:{env_settings.MEMCACHED_PORT}",
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{env_settings.REDIS_HOST}:{env_settings.REDIS_PORT}/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
     }
 }
 

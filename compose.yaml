@@ -5,7 +5,7 @@ volumes:
   prometheus-data:
   grafana-data:
   beatmaps:
-  redis-data:
+  cache-data:
   difficalcy-cache-data:
 
 secrets:
@@ -29,7 +29,9 @@ services:
       - queue-data:/var/lib/rabbitmq:rw
 
   cache:
-    image: memcached:1
+    image: redis:7
+    volumes:
+      - cache-data:/data
 
   api:
     build: .
