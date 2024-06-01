@@ -39,5 +39,5 @@ services:
   difficalcy-osu:
     restart: always
 
-  redis:
+  difficalcy-cache:
     restart: always

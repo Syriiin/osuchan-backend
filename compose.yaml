@@ -5,7 +5,8 @@ volumes:
   prometheus-data:
   grafana-data:
   beatmaps:
-  redis-data:
+  cache-data:
+  difficalcy-cache-data:
 
 secrets:
   grafana_admin_password:
@@ -28,7 +29,9 @@ services:
       - queue-data:/var/lib/rabbitmq:rw
 
   cache:
-    image: memcached:1
+    image: redis:7
+    volumes:
+      - cache-data:/data
 
   api:
     build: .
@@ -96,14 +99,12 @@ services:
     image: ghcr.io/syriiin/difficalcy-osu:v0.8.0
     env_file:
       - config/active/difficalcy-osu.env
-    environment:
-      - REDIS_CONFIGURATION=redis:6379
     volumes:
       - beatmaps:/beatmaps
     depends_on:
-      - redis
+      - difficalcy-cache
 
-  redis:
-    image: redis:latest
+  difficalcy-cache:
+    image: redis:7
     volumes:
-      - redis-data:/data
+      - difficalcy-cache-data:/data
