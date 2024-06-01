@@ -5,7 +5,7 @@ from common.osu.utils import calculate_pp_total
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership, MembershipScore
 from profiles.enums import ScoreResult, ScoreSet
-from profiles.models import OsuUser, Score, UserStats
+from profiles.models import OsuUser, Score
 
 
 @transaction.atomic
@@ -146,6 +146,8 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
                 leaderboard_id=leaderboard.id,
                 score_id=player_top_score.id,
             ):
+                from leaderboards.tasks import send_leaderboard_top_score_notification
+
                 send_leaderboard_top_score_notification.delay(leaderboard_id, score_id)
 
             transaction.on_commit(send_notification)
@@ -163,6 +165,8 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
                 leaderboard_id=leaderboard.id,
                 user_id=membership.user_id,
             ):
+                from leaderboards.tasks import send_leaderboard_top_player_notification
+
                 send_leaderboard_top_player_notification.delay(leaderboard_id, user_id)
 
             transaction.on_commit(send_notification)
