@@ -134,7 +134,7 @@ class TestRosuppDifficultyCalculator:
         assert RosuppDifficultyCalculator.engine() == "rosu-pp-py"
 
     def test_version(self):
-        assert RosuppDifficultyCalculator.version() == "1.0.0"
+        assert RosuppDifficultyCalculator.version() == "1.0.1"
 
     def test_context_manager(self):
         with RosuppDifficultyCalculator() as calc:
