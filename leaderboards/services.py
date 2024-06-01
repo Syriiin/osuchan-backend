@@ -48,9 +48,6 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
     """
     Creates or updates a membership for a given user on a given leaderboard
     """
-    if leaderboard.archived:
-        raise ValueError("Cannot update membership on an archived leaderboard")
-
     try:
         membership = leaderboard.memberships.select_for_update().get(user_id=user_id)
     except Membership.DoesNotExist:
