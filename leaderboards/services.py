@@ -119,6 +119,11 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
         unique_fields=["membership_id", "score_id"],
     )
 
+    outdated_membershipscores = MembershipScore.objects.filter(
+        membership=membership
+    ).exclude(score_id__in=[score.id for score in scores])
+    outdated_membershipscores.delete()
+
     membership.score_count = len(membership_scores)
 
     membership.pp = calculate_pp_total(
