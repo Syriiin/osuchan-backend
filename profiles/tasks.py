@@ -13,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def dispatch_update_all_global_leaderboard_top_members(limit: int = 100):
+def dispatch_update_all_global_leaderboard_top_members(
+    limit: int = 100, cooldown_seconds: int = 500
+):
     """
     Dispatches update_user tasks for the top members of all global leaderboards
     """
@@ -21,7 +23,7 @@ def dispatch_update_all_global_leaderboard_top_members(limit: int = 100):
         members = leaderboard.memberships.order_by("-pp")[:limit].values("user_id")
 
         for member in members:
-            update_user.delay(member["user_id"], leaderboard.gamemode)
+            update_user.delay(member["user_id"], leaderboard.gamemode, cooldown_seconds)
 
 
 @shared_task
@@ -39,11 +41,15 @@ def dispatch_update_community_leaderboard_members(
 
 
 @shared_task
-def update_user(user_id: int, gamemode: int = Gamemode.STANDARD):
+def update_user(
+    user_id: int, gamemode: int = Gamemode.STANDARD, cooldown_seconds: int = 500
+):
     """
     Runs an update for a given user
     """
-    user_stats = refresh_user_from_api(user_id=user_id, gamemode=Gamemode(gamemode))
+    user_stats = refresh_user_from_api(
+        user_id=user_id, gamemode=Gamemode(gamemode), cooldown_seconds=cooldown_seconds
+    )
     if user_stats is not None:
         update_memberships.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode

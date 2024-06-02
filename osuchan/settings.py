@@ -3,6 +3,7 @@ Django settings for osuchan
 """
 
 import os
+from datetime import timedelta
 
 from celery.schedules import crontab
 from pydantic_settings import BaseSettings
@@ -203,6 +204,10 @@ CELERY_BEAT_SCHEDULE = {
     "update-top-global-members-every-day": {
         "task": "profiles.tasks.dispatch_update_all_global_leaderboard_top_members",
         "schedule": crontab(minute="0", hour="0"),  # midnight UTC
+        "kwargs": {
+            "limit": 100,
+            "cooldown_seconds": timedelta(hours=12).total_seconds(),
+        },
     },
     "update-global-leaderboard-top-5-score-cache-every-hour": {
         "task": "leaderboards.tasks.dispatch_update_global_leaderboard_top_5_score_cache",
