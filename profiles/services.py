@@ -53,7 +53,10 @@ def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
 
 @transaction.atomic
 def refresh_user_from_api(
-    user_id=None, username=None, gamemode: Gamemode = Gamemode.STANDARD
+    user_id=None,
+    username=None,
+    gamemode: Gamemode = Gamemode.STANDARD,
+    cooldown_seconds: int = 300,
 ):
     """
     Fetch and add user with top 100 scores
@@ -65,7 +68,8 @@ def refresh_user_from_api(
     user_stats = fetch_user(user_id=user_id, username=username, gamemode=gamemode)
 
     if user_stats is not None and user_stats.last_updated > (
-        datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(minutes=5)
+        datetime.utcnow().replace(tzinfo=timezone.utc)
+        - timedelta(seconds=cooldown_seconds)
     ):
         # User was last updated less than 5 minutes ago, so just return it
         return user_stats
