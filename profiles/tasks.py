@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def dispatch_update_all_global_leaderboard_top_members(
-    limit: int = 100, cooldown_seconds: int = 500
+    limit: int = 100, cooldown_seconds: int = 300
 ):
     """
     Dispatches update_user tasks for the top members of all global leaderboards
@@ -42,7 +42,7 @@ def dispatch_update_community_leaderboard_members(
 
 @shared_task
 def update_user(
-    user_id: int, gamemode: int = Gamemode.STANDARD, cooldown_seconds: int = 500
+    user_id: int, gamemode: int = Gamemode.STANDARD, cooldown_seconds: int = 300
 ):
     """
     Runs an update for a given user
