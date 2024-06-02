@@ -209,10 +209,6 @@ CELERY_BEAT_SCHEDULE = {
             "cooldown_seconds": timedelta(hours=12).total_seconds(),
         },
     },
-    "update-global-leaderboard-top-5-score-cache-every-hour": {
-        "task": "leaderboards.tasks.dispatch_update_global_leaderboard_top_5_score_cache",
-        "schedule": crontab(minute="0"),
-    },
     "update-loved-beatmaps-every-month": {
         "task": "profiles.tasks.update_loved_beatmaps",
         "schedule": crontab(minute="0", hour="0", day_of_month="1"),
