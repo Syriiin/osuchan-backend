@@ -35,28 +35,6 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
 
 
 @shared_task
-def dispatch_update_global_leaderboard_top_5_score_cache():
-    for gamemode in Gamemode:
-        leaderboards = Leaderboard.objects.filter(
-            access_type=LeaderboardAccessType.GLOBAL, gamemode=gamemode
-        )
-        for leaderboard in leaderboards:
-            update_global_leaderboard_top_5_score_cache.delay(leaderboard.id)
-
-
-@shared_task
-def update_global_leaderboard_top_5_score_cache(leaderboard_id: int):
-    leaderboard = Leaderboard.objects.get(id=leaderboard_id)
-    scores = leaderboard.get_top_scores(limit=5)
-    cache.set(
-        f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
-        scores,
-        7200,
-    )
-    return scores
-
-
-@shared_task
 def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     # passing score_id instead of querying for top score in case it changes before the job is picked up
 

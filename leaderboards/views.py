@@ -284,14 +284,7 @@ class LeaderboardScoreList(APIView):
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
-        if leaderboard.access_type == LeaderboardAccessType.GLOBAL:
-            scores = cache.get_or_set(
-                f"leaderboards::global_leaderboard_top_5_scores::{leaderboard.id}",
-                lambda: leaderboard.get_top_scores(limit=limit),
-                7200,
-            )
-        else:
-            scores = leaderboard.get_top_scores(limit=limit)
+        scores = leaderboard.get_top_scores(limit=limit)
 
         serialiser = LeaderboardScoreSerialiser(scores, many=True)
         return Response(serialiser.data)

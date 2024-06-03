@@ -15,7 +15,6 @@ from common.osu.difficultycalculator import (
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
-from leaderboards.tasks import update_memberships
 from profiles.models import (
     Beatmap,
     DifficultyCalculation,
