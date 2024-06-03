@@ -16,6 +16,10 @@ class AbstractBeatmapProvider(ABC):
     def get_beatmap_file(self, beatmap_id: str) -> str:
         raise NotImplementedError()
 
+    @abstractmethod
+    def delete_beatmap(self, beatmap_id: str):
+        raise NotImplementedError()
+
 
 class LiveBeatmapProvider(AbstractBeatmapProvider):
     def get_beatmap_file(self, beatmap_id: str) -> str:
@@ -31,6 +35,11 @@ class LiveBeatmapProvider(AbstractBeatmapProvider):
                 )
 
         return beatmap_path
+
+    def delete_beatmap(self, beatmap_id: str):
+        beatmap_path = os.path.join(settings.BEATMAP_CACHE_PATH, f"{beatmap_id}.osu")
+        if os.path.isfile(beatmap_path):
+            os.remove(beatmap_path)
 
 
 class StubBeatmapProvider(AbstractBeatmapProvider):
@@ -48,6 +57,9 @@ class StubBeatmapProvider(AbstractBeatmapProvider):
             )
 
         return beatmap_path
+
+    def delete_beatmap(self, beatmap_id: str):
+        pass
 
 
 BeatmapProvider: Type[AbstractBeatmapProvider] = import_string(

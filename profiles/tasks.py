@@ -3,6 +3,7 @@ import time
 
 from celery import shared_task
 
+from common.osu.beatmap_provider import BeatmapProvider
 from common.osu.enums import BeatmapStatus, Gamemode
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
@@ -91,6 +92,8 @@ def update_loved_beatmaps():
                 f"Beatmap {beatmap.id} appears to have been unloved. Deleting..."
             )
             beatmap.delete()
+            beatmap_provider = BeatmapProvider()
+            beatmap_provider.delete_beatmap(str(beatmap.id))
             return None
 
         outdated_scores = updated_beatmap.scores.filter(
