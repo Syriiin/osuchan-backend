@@ -510,9 +510,9 @@ class Score(models.Model):
     # null=True because oppai only supports standard, and rosu-pp doesnt support converts
     performance_total = models.FloatField()
     nochoke_performance_total = models.FloatField(null=True, blank=True)
-    difficulty_total = models.FloatField(null=True, blank=True)
-    difficulty_calculator_engine = models.CharField(max_length=100)
-    difficulty_calculator_version = models.CharField(max_length=100)
+    difficulty_total = models.FloatField(null=True, blank=True)  # deprecated
+    difficulty_calculator_engine = models.CharField(max_length=100)  # deprecated
+    difficulty_calculator_version = models.CharField(max_length=100)  # deprecated
 
     # osu!chan calculated data
     # null=True because result types are only supported by standard at the moment
@@ -694,6 +694,12 @@ class Score(models.Model):
             error_reporter = ErrorReporter()
             error_reporter.report_error(e)
 
+    def get_default_performance_calculation(self):
+        return PerformanceCalculation.objects.get(
+            score=self,
+            calculator_engine=DifficultyCalculator.engine(),
+        )
+
     def __str__(self):
         return f"{Gamemode(self.gamemode).name} {self.id}"
 
@@ -750,6 +756,9 @@ class PerformanceCalculation(models.Model):
 
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
+
+    def get_total_performance(self):
+        return self.performance_values.get(name="total").value
 
     def __str__(self):
         return f"{self.score_id}: {self.calculator_engine} ({self.calculator_version})"
