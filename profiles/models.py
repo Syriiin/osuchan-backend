@@ -194,9 +194,9 @@ class Beatmap(models.Model):
     last_updated = models.DateTimeField()
 
     # Difficulty values
-    difficulty_total = models.FloatField()
-    difficulty_calculator_engine = models.CharField(max_length=100)
-    difficulty_calculator_version = models.CharField(max_length=100)
+    difficulty_total = models.FloatField()  # deprecated
+    difficulty_calculator_engine = models.CharField(max_length=100)  # deprecated
+    difficulty_calculator_version = models.CharField(max_length=100)  # deprecated
 
     # Relations
     # db_constraint=False because the creator might be restricted or otherwise not in the database
@@ -271,6 +271,13 @@ class Beatmap(models.Model):
             error_reporter = ErrorReporter()
             error_reporter.report_error(e)
 
+    def get_default_difficulty_calculation(self):
+        return DifficultyCalculation.objects.get(
+            beatmap=self,
+            mods=Mods.NONE,
+            calculator_engine=DifficultyCalculator.engine(),
+        )
+
     def __str__(self):
         return "{} - {} [{}] (by {})".format(
             self.artist, self.title, self.difficulty_name, self.creator_name
@@ -291,6 +298,9 @@ class DifficultyCalculation(models.Model):
     mods = models.IntegerField()
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
+
+    def get_total_difficulty(self):
+        return self.difficulty_values.get(name="total").value
 
     def __str__(self):
         if self.mods == 0:
