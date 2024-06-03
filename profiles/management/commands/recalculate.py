@@ -346,7 +346,7 @@ class Command(BaseCommand):
             initial=initial,
             smoothing=0,
         ) as pbar:
-            for unique_beatmap in unique_beatmaps:
+            for unique_beatmap in tqdm(unique_beatmaps, desc="Unique beatmaps"):
                 unique_beatmap_scores = scores_to_recalculate.filter(
                     beatmap_id=unique_beatmap["beatmap_id"], mods=unique_beatmap["mods"]
                 )
