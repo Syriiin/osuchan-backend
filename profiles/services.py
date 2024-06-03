@@ -649,9 +649,9 @@ def calculate_difficulty_values(
                 name=name,
                 value=value,
             )
+            for name, value in result.difficulty_values.items()
         ]
         for difficulty_calculation, result in zip(difficulty_calculations, results)
-        for name, value in result.difficulty_values.items()
     ]
 
     return values

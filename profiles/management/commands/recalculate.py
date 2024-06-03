@@ -266,6 +266,7 @@ class Command(BaseCommand):
                 while len(page := beatmaps_to_recalculate[:2000]) > 0:
                     try:
                         update_difficulty_calculations(page, difficulty_calculator)
+                        pbar.update(len(page))
                     except CalculationException as e:
                         ErrorReporter().report_error(e)
                         pbar.write(
@@ -273,7 +274,6 @@ class Command(BaseCommand):
                                 f"Error calculating difficulty values for beatmaps: {e}"
                             )
                         )
-                    pbar.update(len(page))
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -357,6 +357,7 @@ class Command(BaseCommand):
                         unique_beatmap_scores,
                         difficulty_calculator,
                     )
+                    pbar.update(unique_beatmap_scores.count())
                 except CalculationException as e:
                     ErrorReporter().report_error(e)
                     pbar.write(
@@ -364,7 +365,6 @@ class Command(BaseCommand):
                             f"Error calculating performance values for beatmap {unique_beatmap['beatmap_id']} with mods {unique_beatmap['mods']}: {e}"
                         )
                     )
-                pbar.update(unique_beatmap_scores.count())
 
         self.stdout.write(
             self.style.SUCCESS(
