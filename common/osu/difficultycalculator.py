@@ -11,23 +11,34 @@ from django.utils.module_loading import import_string
 from oppaipy.oppaipy import OppaiError
 
 from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
-from common.osu.enums import Gamemode
+from common.osu.enums import Gamemode, Mods
 
 OPPAIPY_VERSION = metadata.version("oppaipy")
 ROSUPP_VERSION = metadata.version("rosu_pp_py")
 
 # TODO: lazy load this instead of doing at import
 difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
+difficalcy_taiko_info = httpx.get(f"{settings.DIFFICALCY_TAIKO_URL}/api/info").json()
+difficalcy_catch_info = httpx.get(f"{settings.DIFFICALCY_CATCH_URL}/api/info").json()
+difficalcy_mania_info = httpx.get(f"{settings.DIFFICALCY_MANIA_URL}/api/info").json()
 
 DIFFICALCY_OSU_ENGINE = difficalcy_osu_info["calculatorPackage"]
 DIFFICALCY_OSU_VERSION = difficalcy_osu_info["calculatorVersion"]
+DIFFICALCY_TAIKO_ENGINE = difficalcy_taiko_info["calculatorPackage"]
+DIFFICALCY_TAIKO_VERSION = difficalcy_taiko_info["calculatorVersion"]
+DIFFICALCY_CATCH_ENGINE = difficalcy_catch_info["calculatorPackage"]
+DIFFICALCY_CATCH_VERSION = difficalcy_catch_info["calculatorVersion"]
+DIFFICALCY_MANIA_ENGINE = difficalcy_mania_info["calculatorPackage"]
+DIFFICALCY_MANIA_VERSION = difficalcy_mania_info["calculatorVersion"]
 
 
 class Score(NamedTuple):
     beatmap_id: str
     mods: Optional[int] = None
-    count_100: Optional[int] = None
-    count_50: Optional[int] = None
+    count_katu: Optional[int] = None  # mania: goods
+    count_300: Optional[int] = None  # mania: greats (ignored for others)
+    count_100: Optional[int] = None  # oks, catch: large droplets
+    count_50: Optional[int] = None  # mehs, catch: small droplets
     count_miss: Optional[int] = None
     combo: Optional[int] = None
 
@@ -296,7 +307,7 @@ class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
         return Gamemode.STANDARD
 
 
-class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
+class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def __init__(self):
         super().__init__()
 
@@ -305,25 +316,19 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
     def _close(self):
         self.client.close()
 
-    def __difficalcy_score_from_score(self, score: Score) -> dict:
-        return {
-            k: v
-            for k, v in {
-                "BeatmapId": score.beatmap_id,
-                "Mods": score.mods,
-                "Combo": score.combo,
-                "Misses": score.count_miss,
-                "Mehs": score.count_50,
-                "Oks": score.count_100,
-            }.items()
-            if v is not None
-        }
+    @abstractmethod
+    def _get_url(self) -> str:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _difficalcy_score_from_score(self, score: Score) -> dict:
+        raise NotImplementedError()
 
     def calculate_score(self, score: Score) -> Calculation:
         try:
             response = self.client.get(
-                f"{settings.DIFFICALCY_OSU_URL}/api/calculation",
-                params=self.__difficalcy_score_from_score(score),
+                f"{self._get_url()}/api/calculation",
+                params=self._difficalcy_score_from_score(score),
             )
             response.raise_for_status()
             data = response.json()
@@ -340,8 +345,8 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
     def calculate_score_batch(self, scores: Iterable[Score]) -> list[Calculation]:
         try:
             response = self.client.post(
-                f"{settings.DIFFICALCY_OSU_URL}/api/batch/calculation",
-                json=[self.__difficalcy_score_from_score(score) for score in scores],
+                f"{self._get_url()}/api/batch/calculation",
+                json=[self._difficalcy_score_from_score(score) for score in scores],
             )
             response.raise_for_status()
             data = response.json()
@@ -387,6 +392,25 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
     def performance_total(self) -> float:
         raise NotImplementedError()
 
+
+class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
+    def _get_url(self) -> str:
+        return settings.DIFFICALCY_OSU_URL
+
+    def _difficalcy_score_from_score(self, score: Score) -> dict:
+        return {
+            k: v
+            for k, v in {
+                "BeatmapId": score.beatmap_id,
+                "Mods": score.mods,
+                "Combo": score.combo,
+                "Misses": score.count_miss,
+                "Mehs": score.count_50,
+                "Oks": score.count_100,
+            }.items()
+            if v is not None
+        }
+
     @staticmethod
     def engine() -> str:
         return DIFFICALCY_OSU_ENGINE
@@ -398,6 +422,100 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficultyCalculator):
     @staticmethod
     def gamemode():
         return Gamemode.STANDARD
+
+
+class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
+    def _get_url(self) -> str:
+        return settings.DIFFICALCY_TAIKO_URL
+
+    def _difficalcy_score_from_score(self, score: Score) -> dict:
+        return {
+            k: v
+            for k, v in {
+                "BeatmapId": score.beatmap_id,
+                "Mods": score.mods,
+                "Combo": score.combo,
+                "Misses": score.count_miss,
+                "Oks": score.count_100,
+            }.items()
+            if v is not None
+        }
+
+    @staticmethod
+    def engine() -> str:
+        return DIFFICALCY_TAIKO_ENGINE
+
+    @staticmethod
+    def version() -> str:
+        return DIFFICALCY_TAIKO_VERSION
+
+    @staticmethod
+    def gamemode():
+        return Gamemode.TAIKO
+
+
+class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
+    def _get_url(self) -> str:
+        return settings.DIFFICALCY_CATCH_URL
+
+    def _difficalcy_score_from_score(self, score: Score) -> dict:
+        return {
+            k: v
+            for k, v in {
+                "BeatmapId": score.beatmap_id,
+                "Mods": score.mods,
+                "Combo": score.combo,
+                "Misses": score.count_miss,
+                "SmallDroplets": score.count_50,
+                "LargeDroplets": score.count_100,
+            }.items()
+            if v is not None
+        }
+
+    @staticmethod
+    def engine() -> str:
+        return DIFFICALCY_CATCH_ENGINE
+
+    @staticmethod
+    def version() -> str:
+        return DIFFICALCY_CATCH_VERSION
+
+    @staticmethod
+    def gamemode():
+        return Gamemode.CATCH
+
+
+class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
+    def _get_url(self) -> str:
+        return settings.DIFFICALCY_MANIA_URL
+
+    def _difficalcy_score_from_score(self, score: Score) -> dict:
+        return {
+            k: v
+            for k, v in {
+                "BeatmapId": score.beatmap_id,
+                "Mods": score.mods,
+                "Combo": score.combo,
+                "Misses": score.count_miss,
+                "Mehs": score.count_50,
+                "Oks": score.count_100,
+                "Goods": score.count_katu,
+                "Greats": score.count_300,
+            }.items()
+            if v is not None
+        }
+
+    @staticmethod
+    def engine() -> str:
+        return DIFFICALCY_MANIA_ENGINE
+
+    @staticmethod
+    def version() -> str:
+        return DIFFICALCY_MANIA_VERSION
+
+    @staticmethod
+    def gamemode():
+        return Gamemode.MANIA
 
 
 difficulty_calculators: dict[str, type[AbstractDifficultyCalculator]] = {

@@ -668,6 +668,8 @@ def calculate_performance_values(
         DifficultyCalculatorScore(
             beatmap_id=str(performance_calculation.score.beatmap_id),
             mods=performance_calculation.score.mods,
+            count_300=performance_calculation.score.count_300,
+            count_katu=performance_calculation.score.count_katu,
             count_100=performance_calculation.score.count_100,
             count_50=performance_calculation.score.count_50,
             count_miss=performance_calculation.score.count_miss,

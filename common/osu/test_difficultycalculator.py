@@ -4,7 +4,10 @@ from common.osu.difficultycalculator import (
     Calculation,
     CalculationException,
     CalculatorClosedException,
+    DifficalcyCatchDifficultyCalculator,
+    DifficalcyManiaDifficultyCalculator,
     DifficalcyOsuDifficultyCalculator,
+    DifficalcyTaikoDifficultyCalculator,
     InvalidBeatmapException,
     OppaiDifficultyCalculator,
     RosuppDifficultyCalculator,
@@ -36,7 +39,7 @@ class TestOppaiDifficultyCalculator:
         calc = OppaiDifficultyCalculator()
         score = Score(
             "307618",
-            mods=Mods.DOUBLETIME + Mods.HIDDEN,
+            mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
             count_100=14,
             count_50=1,
             count_miss=1,
@@ -52,7 +55,7 @@ class TestOppaiDifficultyCalculator:
         scores = [
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
                 count_100=14,
                 count_50=1,
                 count_miss=1,
@@ -60,7 +63,7 @@ class TestOppaiDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
                 count_100=14,
                 count_50=1,
                 count_miss=1,
@@ -68,7 +71,7 @@ class TestOppaiDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
             ),
         ]
         assert calc.calculate_score_batch(scores) == [
@@ -151,7 +154,7 @@ class TestRosuppDifficultyCalculator:
         calc = RosuppDifficultyCalculator()
         score = Score(
             "307618",
-            mods=Mods.DOUBLETIME + Mods.HIDDEN,
+            mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
             count_100=14,
             count_50=1,
             count_miss=1,
@@ -167,7 +170,7 @@ class TestRosuppDifficultyCalculator:
         scores = [
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
                 count_100=14,
                 count_50=1,
                 count_miss=1,
@@ -175,7 +178,7 @@ class TestRosuppDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
                 count_100=14,
                 count_50=1,
                 count_miss=1,
@@ -183,7 +186,7 @@ class TestRosuppDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
             ),
         ]
         assert calc.calculate_score_batch(scores) == [
@@ -245,12 +248,6 @@ class TestRosuppDifficultyCalculator:
 
 
 class TestDifficalcyDifficultyCalculator:
-    def test_enigne(self):
-        assert DifficalcyOsuDifficultyCalculator.engine() == "osu.Game.Rulesets.Osu"
-
-    def test_version(self):
-        assert DifficalcyOsuDifficultyCalculator.version() == "2024.523.0.0"
-
     def test_context_manager(self):
         with DifficalcyOsuDifficultyCalculator() as calc:
             assert calc.calculate_score(Score("307618")) == Calculation(
@@ -274,38 +271,12 @@ class TestDifficalcyDifficultyCalculator:
             with DifficalcyOsuDifficultyCalculator() as calc:
                 calc.calculate_score(Score("notarealbeatmap"))
 
-    def test_calculate_score(self):
-        calc = DifficalcyOsuDifficultyCalculator()
-        score = Score(
-            "307618",
-            mods=Mods.DOUBLETIME + Mods.HIDDEN,
-            count_100=14,
-            count_50=1,
-            count_miss=1,
-            combo=2000,
-        )
-        assert calc.calculate_score(score) == Calculation(
-            difficulty_values={
-                "aim": 2.892063051954271,
-                "speed": 3.0958487396004704,
-                "flashlight": 0,
-                "total": 6.263707394408435,
-            },
-            performance_values={
-                "aim": 98.6032935956297,
-                "speed": 118.92511309917593,
-                "accuracy": 84.96884392557897,
-                "flashlight": 0,
-                "total": 312.36671287580185,
-            },
-        )
-
     def test_calculate_score_batch(self):
         calc = DifficalcyOsuDifficultyCalculator()
         scores = [
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
                 count_100=14,
                 count_50=1,
                 count_miss=1,
@@ -313,7 +284,7 @@ class TestDifficalcyDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
                 count_100=14,
                 count_50=1,
                 count_miss=1,
@@ -321,7 +292,7 @@ class TestDifficalcyDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK,
+                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
             ),
         ]
         assert calc.calculate_score_batch(scores) == [
@@ -371,3 +342,124 @@ class TestDifficalcyDifficultyCalculator:
                 },
             ),
         ]
+
+
+class TestDifficalcyOsuDifficultyCalculator:
+    def test_enigne(self):
+        assert DifficalcyOsuDifficultyCalculator.engine() == "osu.Game.Rulesets.Osu"
+
+    def test_version(self):
+        assert DifficalcyOsuDifficultyCalculator.version() == "2024.523.0.0"
+
+    def test_calculate_score(self):
+        calc = DifficalcyOsuDifficultyCalculator()
+        score = Score(
+            "307618",
+            mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
+            count_100=14,
+            count_50=1,
+            count_miss=1,
+            combo=2000,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty_values={
+                "aim": 2.892063051954271,
+                "speed": 3.0958487396004704,
+                "flashlight": 0,
+                "total": 6.263707394408435,
+            },
+            performance_values={
+                "aim": 98.6032935956297,
+                "speed": 118.92511309917593,
+                "accuracy": 84.96884392557897,
+                "flashlight": 0,
+                "total": 312.36671287580185,
+            },
+        )
+
+
+class TestDifficalcyTaikoDifficultyCalculator:
+    def test_enigne(self):
+        assert DifficalcyTaikoDifficultyCalculator.engine() == "osu.Game.Rulesets.Taiko"
+
+    def test_version(self):
+        assert DifficalcyTaikoDifficultyCalculator.version() == "2024.523.0.0"
+
+    def test_calculate_score(self):
+        calc = DifficalcyTaikoDifficultyCalculator()
+        score = Score(
+            "2",
+            mods=int(Mods.DOUBLETIME + Mods.HARDROCK),
+            count_100=3,
+            count_miss=5,
+            combo=150,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty_values={
+                "stamina": 2.30946001517734,
+                "rhythm": 0.06858773903139824,
+                "colour": 1.0836833699674413,
+                "total": 4.0789820318081444,
+            },
+            performance_values={
+                "difficulty": 65.7817691637774,
+                "accuracy": 100.62055832247681,
+                "total": 176.94088597258678,
+            },
+        )
+
+
+class TestDifficalcyCatchDifficultyCalculator:
+    def test_enigne(self):
+        assert DifficalcyCatchDifficultyCalculator.engine() == "osu.Game.Rulesets.Catch"
+
+    def test_version(self):
+        assert DifficalcyCatchDifficultyCalculator.version() == "2024.523.0.0"
+
+    def test_calculate_score(self):
+        calc = DifficalcyCatchDifficultyCalculator()
+        score = Score(
+            "3",
+            mods=int(Mods.DOUBLETIME + Mods.HARDROCK),
+            count_100=18,
+            count_50=200,
+            count_miss=5,
+            combo=100,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty_values={
+                "total": 5.739025024925009,
+            },
+            performance_values={
+                "total": 241.19384779497875,
+            },
+        )
+
+
+class TestDifficalcyManiaDifficultyCalculator:
+    def test_enigne(self):
+        assert DifficalcyManiaDifficultyCalculator.engine() == "osu.Game.Rulesets.Mania"
+
+    def test_version(self):
+        assert DifficalcyManiaDifficultyCalculator.version() == "2024.523.0.0"
+
+    def test_calculate_score(self):
+        calc = DifficalcyManiaDifficultyCalculator()
+        score = Score(
+            "4",
+            mods=int(Mods.DOUBLETIME),
+            count_300=1,
+            count_katu=2,
+            count_100=3,
+            count_50=4,
+            count_miss=5,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty_values={
+                "total": 2.797245912537965,
+            },
+            performance_values={
+                "difficulty": 5.3963454139130915,
+                "total": 43.17076331130473,
+            },
+        )

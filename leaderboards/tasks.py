@@ -2,7 +2,6 @@ from datetime import datetime
 
 from celery import shared_task
 from django.conf import settings
-from django.core.cache import cache
 from django.db import transaction
 
 from common.discord_webhook_sender import DiscordWebhookSender
