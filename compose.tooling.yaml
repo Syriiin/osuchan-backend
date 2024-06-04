@@ -17,3 +17,6 @@ services:
       - queue
       - cache
       - difficalcy-osu
+      - difficalcy-taiko
+      - difficalcy-catch
+      - difficalcy-mania

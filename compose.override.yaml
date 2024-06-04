@@ -34,3 +34,21 @@ services:
       - 6000:80
     volumes:
       - ./common/osu/stubdata/beatmap_provider:/beatmaps
+
+  difficalcy-taiko:
+    ports:
+      - 6001:80
+    volumes:
+      - ./common/osu/stubdata/beatmap_provider:/beatmaps
+
+  difficalcy-catch:
+    ports:
+      - 6002:80
+    volumes:
+      - ./common/osu/stubdata/beatmap_provider:/beatmaps
+
+  difficalcy-mania:
+    ports:
+      - 6003:80
+    volumes:
+      - ./common/osu/stubdata/beatmap_provider:/beatmaps

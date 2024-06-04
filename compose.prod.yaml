@@ -39,5 +39,14 @@ services:
   difficalcy-osu:
     restart: always
 
+  difficalcy-taiko:
+    restart: always
+
+  difficalcy-catch:
+    restart: always
+
+  difficalcy-mania:
+    restart: always
+
   difficalcy-cache:
     restart: always
