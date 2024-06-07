@@ -8,7 +8,7 @@ from common.osu.enums import BeatmapStatus, Gamemode
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
 from profiles.models import Beatmap
-from profiles.services import refresh_beatmap_from_api, refresh_user_from_api
+from profiles.services import refresh_beatmaps_from_api, refresh_user_from_api
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ def update_loved_beatmaps():
             logger.warning(f"Beatmap {beatmap.id} is not loved")
             return None
 
-        updated_beatmap = refresh_beatmap_from_api(beatmap.id)
+        updated_beatmap = refresh_beatmaps_from_api([beatmap.id])
         if updated_beatmap is None:
             logger.info(
                 f"Beatmap {beatmap.id} appears to have been unloved. Deleting..."

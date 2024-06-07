@@ -241,46 +241,57 @@ def refresh_user_from_api(
 
 
 @transaction.atomic
-def refresh_beatmap_from_api(beatmap_id: int):
+def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
     """
-    Fetch and add a beatmap
+    Fetches and adds a list of beatmaps from the osu api
     """
     osu_api_v1 = OsuApiV1()
-    beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
+    beatmaps = []
+    for beatmap_id in beatmap_ids:
+        beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
 
-    if beatmap_data is None:
-        return None
+        if beatmap_data is None:
+            return None
 
-    beatmap = Beatmap.from_data(beatmap_data)
-    if beatmap.status not in [
-        BeatmapStatus.APPROVED,
-        BeatmapStatus.RANKED,
-        BeatmapStatus.LOVED,
-    ]:
-        return None
+        beatmap = Beatmap.from_data(beatmap_data)
+        if beatmap.status not in [
+            BeatmapStatus.APPROVED,
+            BeatmapStatus.RANKED,
+            BeatmapStatus.LOVED,
+        ]:
+            return None
 
-    gamemode = Gamemode(beatmap.gamemode)
-
-    with get_default_difficulty_calculator_class(gamemode)() as calc:
-        calculation = calc.calculate_score(
-            DifficultyCalculatorScore(
-                mods=Mods.NONE.value,
-                beatmap_id=str(beatmap.id),
+        with get_default_difficulty_calculator_class(
+            Gamemode(beatmap.gamemode)
+        )() as calc:
+            calculation = calc.calculate_score(
+                DifficultyCalculatorScore(
+                    mods=Mods.NONE.value,
+                    beatmap_id=str(beatmap.id),
+                )
             )
-        )
-        beatmap.difficulty_total = calculation.difficulty_values["total"]
-        beatmap.difficulty_calculator_engine = calc.engine()
-        beatmap.difficulty_calculator_version = calc.version()
+            beatmap.difficulty_total = calculation.difficulty_values["total"]
+            beatmap.difficulty_calculator_engine = calc.engine()
+            beatmap.difficulty_calculator_version = calc.version()
 
-    beatmap.save()
+        beatmaps.append(beatmap)
 
-    for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
-        gamemode
-    ):
-        with difficulty_calculator_class() as difficulty_calculator:
-            update_difficulty_calculations([beatmap], difficulty_calculator)
+    Beatmap.objects.bulk_create(beatmaps, ignore_conflicts=True)
 
-    return beatmap
+    beatmaps_by_gamemode = {}
+    for beatmap in beatmaps:
+        if beatmap.gamemode not in beatmaps_by_gamemode:
+            beatmaps_by_gamemode[beatmap.gamemode] = []
+        beatmaps_by_gamemode[beatmap.gamemode].append(beatmap)
+
+    for gamemode, beatmaps in beatmaps_by_gamemode.items():
+        for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+            gamemode
+        ):
+            with difficulty_calculator_class() as difficulty_calculator:
+                update_difficulty_calculations(beatmaps, difficulty_calculator)
+
+    return beatmaps
 
 
 @transaction.atomic
@@ -366,6 +377,9 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
     beatmap_ids = [int(s["beatmap_id"]) for s in new_score_data_list]
     beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
 
+    missing_beatmaps = set(beatmap_ids) - set(beatmap.id for beatmap in beatmaps)
+    beatmaps.extend(refresh_beatmaps_from_api(missing_beatmaps))
+
     scores_to_create = []
     for score_data in new_score_data_list:
         score = Score()
@@ -388,19 +402,10 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
             continue
 
         # Update foreign keys
-        # Search for beatmap in fetched, else create it
         beatmap_id = int(score_data["beatmap_id"])
-        beatmap = next(
-            (beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None
+        score.beatmap = next(
+            beatmap for beatmap in beatmaps if beatmap.id == beatmap_id
         )
-        if beatmap is None:
-            beatmap = refresh_beatmap_from_api(beatmap_id)
-            if beatmap is None:
-                continue
-
-            # add to beatmaps incase another score is on this map
-            beatmaps.append(beatmap)
-        score.beatmap = beatmap
         score.user_stats = user_stats
 
         gamemode = Gamemode(user_stats.gamemode)
@@ -443,13 +448,15 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
             score.count_geki,
             gamemode=user_stats.gamemode,
         )
-        score.bpm = utils.get_bpm(beatmap.bpm, score.mods)
-        score.length = utils.get_length(beatmap.drain_time, score.mods)
+        score.bpm = utils.get_bpm(score.beatmap.bpm, score.mods)
+        score.length = utils.get_length(score.beatmap.drain_time, score.mods)
         score.circle_size = utils.get_cs(
-            beatmap.circle_size, score.mods, score.gamemode
+            score.beatmap.circle_size, score.mods, score.gamemode
         )
-        score.approach_rate = utils.get_ar(beatmap.approach_rate, score.mods)
-        score.overall_difficulty = utils.get_od(beatmap.overall_difficulty, score.mods)
+        score.approach_rate = utils.get_ar(score.beatmap.approach_rate, score.mods)
+        score.overall_difficulty = utils.get_od(
+            score.beatmap.overall_difficulty, score.mods
+        )
 
         # Process score
         score.process()
