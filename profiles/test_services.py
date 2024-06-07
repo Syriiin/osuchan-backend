@@ -9,8 +9,7 @@ from profiles.services import (
     fetch_user,
     refresh_user_from_api,
     update_difficulty_calculations,
-    update_performance_calculation,
-    update_performance_calculations_for_unique_beatmap,
+    update_performance_calculations,
 )
 
 
@@ -54,36 +53,9 @@ class TestDifficultyCalculationServices:
         assert difficulty_values[0].name == "total"
         assert difficulty_values[0].value == 6.711556915919059
 
-    def test_update_performance_calculations_for_unique_beatmap(self, score):
+    def test_update_performance_calculations(self, score):
         with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
-            update_performance_calculations_for_unique_beatmap(
-                score.beatmap_id, score.mods, [score], difficulty_calculator
-            )
-
-        difficulty_calculation = DifficultyCalculation.objects.get(
-            beatmap_id=score.beatmap_id, mods=score.mods
-        )
-
-        difficulty_values = difficulty_calculation.difficulty_values.all()
-        assert len(difficulty_values) == 1
-        assert difficulty_values[0].name == "total"
-        assert difficulty_values[0].value == 8.975730066553297
-
-        performance_calculation = difficulty_calculation.performance_calculations.get(
-            score_id=score.id
-        )
-
-        performance_values = performance_calculation.performance_values.all()
-        assert len(performance_values) == 1
-        assert performance_values[0].name == "total"
-        assert performance_values[0].value == 626.7353926695473
-
-    def test_update_performance_calculation(
-        self,
-        score,
-    ):
-        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
-            update_performance_calculation(score, difficulty_calculator)
+            update_performance_calculations([score], difficulty_calculator)
 
         difficulty_calculation = DifficultyCalculation.objects.get(
             beatmap_id=score.beatmap_id, mods=score.mods

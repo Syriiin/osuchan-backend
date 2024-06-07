@@ -18,7 +18,7 @@ from leaderboards.services import update_membership
 from profiles.models import Beatmap, Score, UserStats
 from profiles.services import (
     update_difficulty_calculations,
-    update_performance_calculations_for_unique_beatmap,
+    update_performance_calculations,
 )
 
 
@@ -291,8 +291,12 @@ class Command(BaseCommand):
         if force:
             self.stdout.write(f"Forcing recalculation of all scores...")
 
-            scores_to_recalculate = scores
-            initial = 0
+            paginator = Paginator(scores.order_by("beatmap_id", "mods"), per_page=2000)
+
+            with tqdm(desc="Scores", total=scores.count(), smoothing=0) as pbar:
+                for page in paginator:
+                    update_performance_calculations(page, difficulty_calculator)
+                    pbar.update(len(page))
         else:
             scores_to_recalculate = scores.exclude(
                 performance_calculations__calculator_engine=difficulty_calculator.engine(),
@@ -300,6 +304,7 @@ class Command(BaseCommand):
             )
             # NOTE: this query is way faster, but since it's raw, it can't be composed
             #   might be necessary to use it when the performance calculation table gets big
+            # NOTE: might be able to make a similar queryset using FilteredRelation
             # scores_to_recalculate = Score.objects.raw(
             #     f"""
             #     SELECT s.*
@@ -333,39 +338,29 @@ class Command(BaseCommand):
                     f"Found {count_up_to_date} scores already up to date. Resuming..."
                 )
 
-            initial = count_up_to_date
+            # order by beatmap_id and mods to group scores by unique beatmaps for efficiency
+            scores_to_recalculate = scores_to_recalculate.order_by("beatmap_id", "mods")
 
-        unique_beatmaps = (
-            scores_to_recalculate.values("beatmap_id", "mods")
-            .annotate(count=Count("*"))
-            .order_by("-count")
-        )
-
-        with tqdm(
-            desc="Scores",
-            total=scores.count(),
-            initial=initial,
-            smoothing=0,
-        ) as pbar:
-            for unique_beatmap in tqdm(unique_beatmaps, desc="Unique beatmaps"):
-                unique_beatmap_scores = scores_to_recalculate.filter(
-                    beatmap_id=unique_beatmap["beatmap_id"], mods=unique_beatmap["mods"]
-                )
-                try:
-                    update_performance_calculations_for_unique_beatmap(
-                        unique_beatmap["beatmap_id"],
-                        unique_beatmap["mods"],
-                        unique_beatmap_scores,
-                        difficulty_calculator,
-                    )
-                    pbar.update(unique_beatmap_scores.count())
-                except CalculationException as e:
-                    ErrorReporter().report_error(e)
-                    pbar.write(
-                        self.style.ERROR(
-                            f"Error calculating performance values for beatmap {unique_beatmap['beatmap_id']} with mods {unique_beatmap['mods']}: {e}"
+            with tqdm(
+                desc="Scores",
+                total=scores.count(),
+                initial=count_up_to_date,
+                smoothing=0,
+            ) as pbar:
+                while len(page := scores_to_recalculate[:2000]) > 0:
+                    try:
+                        update_performance_calculations(
+                            page,
+                            difficulty_calculator,
                         )
-                    )
+                        pbar.update(len(page))
+                    except CalculationException as e:
+                        ErrorReporter().report_error(e)
+                        pbar.write(
+                            self.style.ERROR(
+                                f"Error calculating performance values: {e}"
+                            )
+                        )
 
         self.stdout.write(
             self.style.SUCCESS(
