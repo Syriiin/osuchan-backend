@@ -1,6 +1,6 @@
 import pytest
 
-from common.osu.difficultycalculator import DifficultyCalculator
+from common.osu.difficultycalculator import get_difficulty_calculator_class
 from common.osu.enums import Mods
 from profiles.models import DifficultyCalculation, PerformanceCalculation
 from profiles.services import (
@@ -35,15 +35,15 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 5
+            == 15  # 5 scores * 3 calculators
         )
 
 
 @pytest.mark.django_db
 class TestDifficultyCalculationServices:
     def test_update_difficulty_calculations(self, beatmap):
-        difficulty_calculator = DifficultyCalculator()
-        update_difficulty_calculations([beatmap], difficulty_calculator)
+        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+            update_difficulty_calculations([beatmap], difficulty_calculator)
 
         calculation = DifficultyCalculation.objects.get(
             beatmap_id=beatmap.id, mods=Mods.NONE
@@ -55,10 +55,10 @@ class TestDifficultyCalculationServices:
         assert difficulty_values[0].value == 6.711556915919059
 
     def test_update_performance_calculations_for_unique_beatmap(self, score):
-        difficulty_calculator = DifficultyCalculator()
-        update_performance_calculations_for_unique_beatmap(
-            score.beatmap_id, score.mods, [score], difficulty_calculator
-        )
+        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+            update_performance_calculations_for_unique_beatmap(
+                score.beatmap_id, score.mods, [score], difficulty_calculator
+            )
 
         difficulty_calculation = DifficultyCalculation.objects.get(
             beatmap_id=score.beatmap_id, mods=score.mods
@@ -82,8 +82,8 @@ class TestDifficultyCalculationServices:
         self,
         score,
     ):
-        difficulty_calculator = DifficultyCalculator()
-        update_performance_calculation(score, difficulty_calculator)
+        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+            update_performance_calculation(score, difficulty_calculator)
 
         difficulty_calculation = DifficultyCalculation.objects.get(
             beatmap_id=score.beatmap_id, mods=score.mods
@@ -113,9 +113,10 @@ class TestDifficultyCalculationServices:
         )
 
     def test_calculate_difficulty_values(self, difficulty_calculation):
-        difficulty_values = calculate_difficulty_values(
-            [difficulty_calculation], DifficultyCalculator()
-        )
+        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+            difficulty_values = calculate_difficulty_values(
+                [difficulty_calculation], difficulty_calculator
+            )
         assert len(difficulty_values) == 1
         assert len(difficulty_values[0]) == 1
         assert difficulty_values[0][0].name == "total"
@@ -131,9 +132,10 @@ class TestDifficultyCalculationServices:
         )
 
     def test_calculate_performance_values(self, performance_calculation):
-        performance_values = calculate_performance_values(
-            [performance_calculation], DifficultyCalculator()
-        )
+        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+            performance_values = calculate_performance_values(
+                [performance_calculation], difficulty_calculator
+            )
         assert len(performance_values) == 1
         assert len(performance_values[0]) == 1
         assert performance_values[0][0].name == "total"

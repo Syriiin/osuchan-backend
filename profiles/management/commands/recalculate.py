@@ -9,8 +9,8 @@ from common.error_reporter import ErrorReporter
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
     CalculationException,
-    DifficultyCalculator,
     get_difficulty_calculator_class,
+    get_difficulty_calculators_for_gamemode,
 )
 from common.osu.enums import Gamemode
 from leaderboards.models import Membership
@@ -49,44 +49,45 @@ class Command(BaseCommand):
         if diffcalc_name:
             difficulty_calculator_class = get_difficulty_calculator_class(diffcalc_name)
         else:
-            difficulty_calculator_class = DifficultyCalculator
+            difficulty_calculator_class = get_difficulty_calculators_for_gamemode(
+                Gamemode.STANDARD
+            )[0]
 
-        difficulty_calculator = difficulty_calculator_class()
+        with difficulty_calculator_class() as difficulty_calculator:
 
-        gamemode = difficulty_calculator.gamemode()
+            gamemode = difficulty_calculator.gamemode()
+            self.stdout.write(
+                f"Gamemode: {Gamemode(gamemode).name}\n"
+                f"Difficulty Calculator Engine: {difficulty_calculator.engine()}\n"
+                f"Difficulty Calculator Version: {difficulty_calculator.version()}\n"
+            )
 
-        self.stdout.write(
-            f"Gamemode: {Gamemode(gamemode).name}\n"
-            f"Difficulty Calculator Engine: {difficulty_calculator.engine()}\n"
-            f"Difficulty Calculator Version: {difficulty_calculator.version()}\n"
-        )
+            if v2:
+                # Recalculate beatmaps
+                beatmaps = Beatmap.objects.filter(gamemode=gamemode)
+                self.recalculate_beatmaps_v2(difficulty_calculator, beatmaps, force)
 
-        if v2:
-            # Recalculate beatmaps
-            beatmaps = Beatmap.objects.filter(gamemode=gamemode)
-            self.recalculate_beatmaps_v2(difficulty_calculator, beatmaps, force)
+                # Recalculate scores
+                scores = Score.objects.filter(gamemode=gamemode)
+                self.recalculate_scores_v2(difficulty_calculator, scores, force)
+            else:
+                # Recalculate beatmaps
+                beatmaps = Beatmap.objects.filter(gamemode=gamemode)
+                self.recalculate_beatmaps(difficulty_calculator_class, beatmaps, force)
 
-            # Recalculate scores
-            scores = Score.objects.filter(gamemode=gamemode)
-            self.recalculate_scores_v2(difficulty_calculator, scores, force)
-        else:
-            # Recalculate beatmaps
-            beatmaps = Beatmap.objects.filter(gamemode=gamemode)
-            self.recalculate_beatmaps(difficulty_calculator_class, beatmaps, force)
+                # Recalculate scores
+                scores = Score.objects.filter(gamemode=gamemode)
+                self.recalculate_scores(difficulty_calculator_class, scores, force)
 
-            # Recalculate scores
-            scores = Score.objects.filter(gamemode=gamemode)
-            self.recalculate_scores(difficulty_calculator_class, scores, force)
+            # Recalculate user stats
+            all_user_stats = UserStats.objects.filter(gamemode=gamemode)
+            self.recalculate_user_stats(all_user_stats)
 
-        # Recalculate user stats
-        all_user_stats = UserStats.objects.filter(gamemode=gamemode)
-        self.recalculate_user_stats(all_user_stats)
-
-        # Recalculate memberships
-        memberships = Membership.objects.select_related("leaderboard").filter(
-            leaderboard__gamemode=gamemode
-        )
-        self.recalculate_memberships(memberships)
+            # Recalculate memberships
+            memberships = Membership.objects.select_related("leaderboard").filter(
+                leaderboard__gamemode=gamemode
+            )
+            self.recalculate_memberships(memberships)
 
     def recalculate_beatmap_page(
         self,

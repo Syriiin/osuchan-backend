@@ -9,10 +9,13 @@ from common.osu import utils
 from common.osu.apiv1 import OsuApiV1
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
-    DifficultyCalculator,
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
+from common.osu.difficultycalculator import (
+    get_default_difficulty_calculator_class,
+    get_difficulty_calculators_for_gamemode,
+)
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
 from profiles.models import (
@@ -217,24 +220,22 @@ def refresh_user_from_api(
     score_data_list.extend(
         osu_api_v1.get_user_best_scores(user_stats.user_id, gamemode)
     )
-    if gamemode == Gamemode.STANDARD:
-        # If standard, check user recent because we will be able to calculate pp for those scores
-        score_data_list.extend(
-            score
-            for score in osu_api_v1.get_user_recent_scores(user_stats.user_id, gamemode)
-            if score["rank"] != "F"
-        )
+    score_data_list.extend(
+        score
+        for score in osu_api_v1.get_user_recent_scores(user_stats.user_id, gamemode)
+        if score["rank"] != "F"
+    )
 
     user_stats.save()
 
     # Process and add scores
     created_scores = add_scores_from_data(user_stats, score_data_list)
 
-    # TODO: iterate all registered difficulty calculators for gamemode
-    if gamemode == Gamemode.STANDARD:
-        difficulty_calculator = DifficultyCalculator()
-        for score in created_scores:
-            update_performance_calculation(score, difficulty_calculator)
+    difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
+    for difficulty_calculator in difficulty_calculators:
+        with difficulty_calculator() as calc:
+            for score in created_scores:
+                update_performance_calculation(score, calc)
 
     return user_stats
 
@@ -258,7 +259,26 @@ def refresh_beatmap_from_api(beatmap_id: int):
     ]:
         return None
 
+    gamemode = Gamemode(beatmap.gamemode)
+
+    with get_default_difficulty_calculator_class(gamemode)() as calc:
+        calculation = calc.calculate_score(
+            DifficultyCalculatorScore(
+                mods=Mods.NONE.value,
+                beatmap_id=str(beatmap.id),
+            )
+        )
+        beatmap.difficulty_total = calculation.difficulty_values["total"]
+        beatmap.difficulty_calculator_engine = calc.engine()
+        beatmap.difficulty_calculator_version = calc.version()
+
     beatmap.save()
+
+    for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+        gamemode
+    ):
+        with difficulty_calculator_class() as difficulty_calculator:
+            update_difficulty_calculations([beatmap], difficulty_calculator)
 
     return beatmap
 
@@ -293,10 +313,12 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     # Process add scores
     created_scores = add_scores_from_data(user_stats, full_score_data_list)
 
-    # TODO: iterate all registered difficulty calculators for gamemode
-    difficulty_calculator = DifficultyCalculator()
-    for score in created_scores:
-        update_performance_calculation(score, difficulty_calculator)
+    for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+        gamemode
+    ):
+        with difficulty_calculator_class() as difficulty_calculator:
+            for score in created_scores:
+                update_performance_calculation(score, difficulty_calculator)
 
     return created_scores
 
@@ -382,36 +404,34 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
         score.beatmap = beatmap
         score.user_stats = user_stats
 
-        # Update pp
-        if "pp" in score_data and score_data["pp"] is not None:
-            score.performance_total = float(score_data["pp"])
-            score.difficulty_calculator_engine = "legacy"
-            score.difficulty_calculator_version = "legacy"
-        else:
-            # Check for gamemode
-            if user_stats.gamemode != Gamemode.STANDARD:
-                # We cant calculate pp for this mode yet so we need to disregard this score
-                continue
+        gamemode = Gamemode(user_stats.gamemode)
 
-            try:
-                with DifficultyCalculator() as calc:
-                    calculation = calc.calculate_score(
-                        DifficultyCalculatorScore(
-                            mods=score.mods,
-                            beatmap_id=beatmap_id,
-                            count_100=score.count_100,
-                            count_50=score.count_50,
-                            count_miss=score.count_miss,
-                            combo=score.best_combo,
-                        )
+        # Calculate performance total
+        try:
+            with get_default_difficulty_calculator_class(gamemode)() as calc:
+                calculation = calc.calculate_score(
+                    DifficultyCalculatorScore(
+                        mods=score.mods,
+                        beatmap_id=str(beatmap_id),
+                        count_katu=score.count_katu,
+                        count_300=score.count_300,
+                        count_100=score.count_100,
+                        count_50=score.count_50,
+                        count_miss=score.count_miss,
+                        combo=score.best_combo,
                     )
-                    score.performance_total = calculation.performance_values["total"]
-                    score.difficulty_calculator_engine = DifficultyCalculator.engine()
-                    score.difficulty_calculator_version = DifficultyCalculator.version()
-            except DifficultyCalculatorException as e:
-                error_reporter = ErrorReporter()
-                error_reporter.report_error(e)
-                continue
+                )
+                score.performance_total = calculation.performance_values["total"]
+                score.difficulty_total = calculation.difficulty_values["total"]
+                score.difficulty_calculator_engine = calc.engine()
+                score.difficulty_calculator_version = calc.version()
+        except DifficultyCalculatorException as e:
+            error_reporter = ErrorReporter()
+            error_reporter.report_error(e)
+            score.performance_total = 0
+            score.difficulty_total = 0
+            score.difficulty_calculator_engine = "error"
+            score.difficulty_calculator_version = "error"
 
         # Update convenience fields
         score.gamemode = user_stats.gamemode

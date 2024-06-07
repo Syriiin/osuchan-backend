@@ -8,10 +8,10 @@ from common.error_reporter import ErrorReporter
 from common.osu import utils
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
-    DifficultyCalculator,
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
+from common.osu.difficultycalculator import get_difficulty_calculator_class
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from profiles.enums import AllowedBeatmapStatus, ScoreResult, ScoreSet
 
@@ -259,10 +259,6 @@ class Beatmap(models.Model):
         beatmap.last_updated = datetime.strptime(
             beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S"
         ).replace(tzinfo=timezone.utc)
-
-        beatmap.difficulty_total = float(beatmap_data["difficultyrating"])
-        beatmap.difficulty_calculator_engine = "legacy"
-        beatmap.difficulty_calculator_version = "legacy"
 
         # Update foreign key ids
         beatmap.creator_id = int(beatmap_data["creator_id"])
@@ -541,7 +537,7 @@ class Score(models.Model):
             self.__process_score_result()
             try:
                 # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
-                with DifficultyCalculator() as calc:
+                with get_difficulty_calculator_class("rosupp")() as calc:
                     nochoke_calculation = calc.calculate_score(
                         DifficultyCalculatorScore(
                             beatmap_id=self.beatmap_id,
@@ -553,11 +549,6 @@ class Score(models.Model):
                     self.nochoke_performance_total = (
                         nochoke_calculation.performance_values["total"]
                     )
-                    self.difficulty_total = nochoke_calculation.difficulty_values[
-                        "total"
-                    ]
-                    self.difficulty_calculator_engine = "legacy"  # legacy because performance_total is still coming from the api response
-                    self.difficulty_calculator_version = "legacy"
             except DifficultyCalculatorException as e:
                 error_reporter = ErrorReporter()
                 error_reporter.report_error(e)

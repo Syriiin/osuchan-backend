@@ -5,7 +5,7 @@ from django.db.models import QuerySet
 
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
-    difficulty_calculators,
+    difficulty_calculators_classes,
 )
 from common.osu.enums import Gamemode
 from profiles.models import Beatmap, Score
@@ -15,7 +15,7 @@ class Command(BaseCommand):
     help = "Displays current db calculation status (old models)"
 
     def handle(self, *args, **options):
-        for name, difficulty_calculator_class in difficulty_calculators.items():
+        for name, difficulty_calculator_class in difficulty_calculators_classes.items():
             gamemode = difficulty_calculator_class.gamemode()
 
             self.stdout.write(

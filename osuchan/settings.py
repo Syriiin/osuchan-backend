@@ -8,6 +8,8 @@ from datetime import timedelta
 from celery.schedules import crontab
 from pydantic_settings import BaseSettings
 
+from common.osu.enums import Gamemode
+
 
 class EnvSettings(BaseSettings):
     SECRET_KEY: str
@@ -324,10 +326,6 @@ else:
 
 # Difficulty calculation
 
-DIFFICULTY_CALCULATOR_CLASS = (
-    "common.osu.difficultycalculator.RosuppDifficultyCalculator"
-)
-
 DIFFICULTY_CALCULATOR_CLASSES = {
     "oppai": "common.osu.difficultycalculator.OppaiDifficultyCalculator",
     "rosupp": "common.osu.difficultycalculator.RosuppDifficultyCalculator",
@@ -335,6 +333,13 @@ DIFFICULTY_CALCULATOR_CLASSES = {
     "difficalcy-taiko": "common.osu.difficultycalculator.DifficalcyTaikoDifficultyCalculator",
     "difficalcy-catch": "common.osu.difficultycalculator.DifficalcyCatchDifficultyCalculator",
     "difficalcy-mania": "common.osu.difficultycalculator.DifficalcyManiaDifficultyCalculator",
+}
+
+DEFAULT_DIFFICULTY_CALCULATORS = {
+    Gamemode.STANDARD: "rosupp",
+    Gamemode.TAIKO: "difficalcy-taiko",
+    Gamemode.CATCH: "difficalcy-catch",
+    Gamemode.MANIA: "difficalcy-mania",
 }
 
 DIFFICALCY_OSU_URL = f"http://{env_settings.DIFFICALCY_OSU_HOST}"
