@@ -3,16 +3,20 @@ from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
 from django.db import transaction
+from django.db.models import Q
 
 from common.error_reporter import ErrorReporter
 from common.osu import utils
 from common.osu.apiv1 import OsuApiV1
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
-    DifficultyCalculator,
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
+from common.osu.difficultycalculator import (
+    get_default_difficulty_calculator_class,
+    get_difficulty_calculators_for_gamemode,
+)
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
 from profiles.models import (
@@ -217,50 +221,77 @@ def refresh_user_from_api(
     score_data_list.extend(
         osu_api_v1.get_user_best_scores(user_stats.user_id, gamemode)
     )
-    if gamemode == Gamemode.STANDARD:
-        # If standard, check user recent because we will be able to calculate pp for those scores
-        score_data_list.extend(
-            score
-            for score in osu_api_v1.get_user_recent_scores(user_stats.user_id, gamemode)
-            if score["rank"] != "F"
-        )
+    score_data_list.extend(
+        score
+        for score in osu_api_v1.get_user_recent_scores(user_stats.user_id, gamemode)
+        if score["rank"] != "F"
+    )
 
     user_stats.save()
 
     # Process and add scores
     created_scores = add_scores_from_data(user_stats, score_data_list)
 
-    # TODO: iterate all registered difficulty calculators for gamemode
-    if gamemode == Gamemode.STANDARD:
-        difficulty_calculator = DifficultyCalculator()
-        for score in created_scores:
-            update_performance_calculation(score, difficulty_calculator)
+    difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
+    for difficulty_calculator in difficulty_calculators:
+        with difficulty_calculator() as calc:
+            update_performance_calculations(created_scores, calc)
 
     return user_stats
 
 
 @transaction.atomic
-def refresh_beatmap_from_api(beatmap_id: int):
+def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
     """
-    Fetch and add a beatmap
+    Fetches and adds a list of beatmaps from the osu api
     """
     osu_api_v1 = OsuApiV1()
-    beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
+    beatmaps = []
+    for beatmap_id in beatmap_ids:
+        beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
 
-    if beatmap_data is None:
-        return None
+        if beatmap_data is None:
+            return None
 
-    beatmap = Beatmap.from_data(beatmap_data)
-    if beatmap.status not in [
-        BeatmapStatus.APPROVED,
-        BeatmapStatus.RANKED,
-        BeatmapStatus.LOVED,
-    ]:
-        return None
+        beatmap = Beatmap.from_data(beatmap_data)
+        if beatmap.status not in [
+            BeatmapStatus.APPROVED,
+            BeatmapStatus.RANKED,
+            BeatmapStatus.LOVED,
+        ]:
+            return None
 
-    beatmap.save()
+        with get_default_difficulty_calculator_class(
+            Gamemode(beatmap.gamemode)
+        )() as calc:
+            calculation = calc.calculate_score(
+                DifficultyCalculatorScore(
+                    mods=Mods.NONE.value,
+                    beatmap_id=str(beatmap.id),
+                )
+            )
+            beatmap.difficulty_total = calculation.difficulty_values["total"]
+            beatmap.difficulty_calculator_engine = calc.engine()
+            beatmap.difficulty_calculator_version = calc.version()
 
-    return beatmap
+        beatmaps.append(beatmap)
+
+    Beatmap.objects.bulk_create(beatmaps, ignore_conflicts=True)
+
+    beatmaps_by_gamemode = {}
+    for beatmap in beatmaps:
+        if beatmap.gamemode not in beatmaps_by_gamemode:
+            beatmaps_by_gamemode[beatmap.gamemode] = []
+        beatmaps_by_gamemode[beatmap.gamemode].append(beatmap)
+
+    for gamemode, beatmaps in beatmaps_by_gamemode.items():
+        for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+            gamemode
+        ):
+            with difficulty_calculator_class() as difficulty_calculator:
+                update_difficulty_calculations(beatmaps, difficulty_calculator)
+
+    return beatmaps
 
 
 @transaction.atomic
@@ -293,10 +324,11 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     # Process add scores
     created_scores = add_scores_from_data(user_stats, full_score_data_list)
 
-    # TODO: iterate all registered difficulty calculators for gamemode
-    difficulty_calculator = DifficultyCalculator()
-    for score in created_scores:
-        update_performance_calculation(score, difficulty_calculator)
+    for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+        gamemode
+    ):
+        with difficulty_calculator_class() as difficulty_calculator:
+            update_performance_calculations(created_scores, difficulty_calculator)
 
     return created_scores
 
@@ -345,6 +377,9 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
     beatmap_ids = [int(s["beatmap_id"]) for s in new_score_data_list]
     beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
 
+    missing_beatmaps = set(beatmap_ids) - set(beatmap.id for beatmap in beatmaps)
+    beatmaps.extend(refresh_beatmaps_from_api(missing_beatmaps))
+
     scores_to_create = []
     for score_data in new_score_data_list:
         score = Score()
@@ -367,51 +402,40 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
             continue
 
         # Update foreign keys
-        # Search for beatmap in fetched, else create it
         beatmap_id = int(score_data["beatmap_id"])
-        beatmap = next(
-            (beatmap for beatmap in beatmaps if beatmap.id == beatmap_id), None
+        score.beatmap = next(
+            beatmap for beatmap in beatmaps if beatmap.id == beatmap_id
         )
-        if beatmap is None:
-            beatmap = refresh_beatmap_from_api(beatmap_id)
-            if beatmap is None:
-                continue
-
-            # add to beatmaps incase another score is on this map
-            beatmaps.append(beatmap)
-        score.beatmap = beatmap
         score.user_stats = user_stats
 
-        # Update pp
-        if "pp" in score_data and score_data["pp"] is not None:
-            score.performance_total = float(score_data["pp"])
-            score.difficulty_calculator_engine = "legacy"
-            score.difficulty_calculator_version = "legacy"
-        else:
-            # Check for gamemode
-            if user_stats.gamemode != Gamemode.STANDARD:
-                # We cant calculate pp for this mode yet so we need to disregard this score
-                continue
+        gamemode = Gamemode(user_stats.gamemode)
 
-            try:
-                with DifficultyCalculator() as calc:
-                    calculation = calc.calculate_score(
-                        DifficultyCalculatorScore(
-                            mods=score.mods,
-                            beatmap_id=beatmap_id,
-                            count_100=score.count_100,
-                            count_50=score.count_50,
-                            count_miss=score.count_miss,
-                            combo=score.best_combo,
-                        )
+        # Calculate performance total
+        try:
+            with get_default_difficulty_calculator_class(gamemode)() as calc:
+                calculation = calc.calculate_score(
+                    DifficultyCalculatorScore(
+                        mods=score.mods,
+                        beatmap_id=str(beatmap_id),
+                        count_katu=score.count_katu,
+                        count_300=score.count_300,
+                        count_100=score.count_100,
+                        count_50=score.count_50,
+                        count_miss=score.count_miss,
+                        combo=score.best_combo,
                     )
-                    score.performance_total = calculation.performance_values["total"]
-                    score.difficulty_calculator_engine = DifficultyCalculator.engine()
-                    score.difficulty_calculator_version = DifficultyCalculator.version()
-            except DifficultyCalculatorException as e:
-                error_reporter = ErrorReporter()
-                error_reporter.report_error(e)
-                continue
+                )
+                score.performance_total = calculation.performance_values["total"]
+                score.difficulty_total = calculation.difficulty_values["total"]
+                score.difficulty_calculator_engine = calc.engine()
+                score.difficulty_calculator_version = calc.version()
+        except DifficultyCalculatorException as e:
+            error_reporter = ErrorReporter()
+            error_reporter.report_error(e)
+            score.performance_total = 0
+            score.difficulty_total = 0
+            score.difficulty_calculator_engine = "error"
+            score.difficulty_calculator_version = "error"
 
         # Update convenience fields
         score.gamemode = user_stats.gamemode
@@ -424,13 +448,15 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
             score.count_geki,
             gamemode=user_stats.gamemode,
         )
-        score.bpm = utils.get_bpm(beatmap.bpm, score.mods)
-        score.length = utils.get_length(beatmap.drain_time, score.mods)
+        score.bpm = utils.get_bpm(score.beatmap.bpm, score.mods)
+        score.length = utils.get_length(score.beatmap.drain_time, score.mods)
         score.circle_size = utils.get_cs(
-            beatmap.circle_size, score.mods, score.gamemode
+            score.beatmap.circle_size, score.mods, score.gamemode
         )
-        score.approach_rate = utils.get_ar(beatmap.approach_rate, score.mods)
-        score.overall_difficulty = utils.get_od(beatmap.overall_difficulty, score.mods)
+        score.approach_rate = utils.get_ar(score.beatmap.approach_rate, score.mods)
+        score.overall_difficulty = utils.get_od(
+            score.beatmap.overall_difficulty, score.mods
+        )
 
         # Process score
         score.process()
@@ -498,49 +524,64 @@ def update_difficulty_calculations(
 
 
 @transaction.atomic
-def update_performance_calculations_for_unique_beatmap(
-    beatmap_id: int,
-    mods: Mods,
-    scores: Iterable[Score],
-    difficulty_calculator: AbstractDifficultyCalculator,
+def update_performance_calculations(
+    scores: Iterable[Score], difficulty_calculator: AbstractDifficultyCalculator
 ):
     """
     Update performance (and difficulty) calculations for passed scores using passed difficulty calculator.
-    All scores must be for the passed beatmap_id and mods.
     Existing calculations will be updated.
     """
-    # Validate all scores are of same beatmap/mods
-    for score in scores:
-        if score.beatmap_id != beatmap_id or score.mods != mods:
-            raise ValueError(
-                f"Score {score.id} does not match beatmap {beatmap_id} and mods {mods}"
+    # Create or update difficulty calculations
+    unique_beatmaps = set((score.beatmap_id, score.mods) for score in scores)
+    difficulty_calculations = []
+    for beatmap_id, mods in unique_beatmaps:
+        difficulty_calculations.append(
+            DifficultyCalculation(
+                beatmap_id=beatmap_id,
+                mods=mods,
+                calculator_engine=difficulty_calculator.engine(),
+                calculator_version=difficulty_calculator.version(),
             )
+        )
 
-    # Create or update difficulty calculation
-    difficulty_calculation, _ = DifficultyCalculation.objects.update_or_create(
-        beatmap_id=beatmap_id,
-        mods=mods,
+    DifficultyCalculation.objects.bulk_create(
+        difficulty_calculations,
+        update_conflicts=True,
+        update_fields=["calculator_version"],
+        unique_fields=["beatmap_id", "mods", "calculator_engine"],
+    )
+    # TODO: remove when bulk_create(update_conflicts) returns pks in django 5.0
+    unique_beatmap_query = Q()
+    for beatmap_id, mods in unique_beatmaps:
+        unique_beatmap_query |= Q(beatmap_id=beatmap_id, mods=mods)
+    difficulty_calculations = DifficultyCalculation.objects.filter(
+        unique_beatmap_query,
         calculator_engine=difficulty_calculator.engine(),
-        defaults={"calculator_version": difficulty_calculator.version()},
     )
 
-    # Do difficulty calculation
+    # Do difficulty calculations
     difficulty_values = calculate_difficulty_values(
-        [difficulty_calculation], difficulty_calculator
-    )[0]
+        difficulty_calculations, difficulty_calculator
+    )
+
+    # Create or update difficulty values
     DifficultyValue.objects.bulk_create(
-        difficulty_values,
+        itertools.chain.from_iterable(difficulty_values),
         update_conflicts=True,
         update_fields=["value"],
         unique_fields=["calculation_id", "name"],
     )
 
-    # TODO: delete potentially outdated (removed from calc) values?
-
-    # Create calculations
+    # Create or update performance calculations
     score_ids = []
     performance_calculations = []
     for score in scores:
+        difficulty_calculation = next(
+            calculation
+            for calculation in difficulty_calculations
+            if calculation.beatmap_id == score.beatmap_id
+            and calculation.mods == score.mods
+        )
         performance_calculations.append(
             PerformanceCalculation(
                 score=score,
@@ -561,14 +602,16 @@ def update_performance_calculations_for_unique_beatmap(
     performance_calculations = PerformanceCalculation.objects.filter(
         score_id__in=score_ids,
         calculator_engine=difficulty_calculator.engine(),
-    )
+    ).select_related("score")
 
-    values = calculate_performance_values(
+    # Do performance calculations
+    performance_values = calculate_performance_values(
         performance_calculations, difficulty_calculator
     )
 
+    # Create or update performance values
     PerformanceValue.objects.bulk_create(
-        itertools.chain.from_iterable(values),
+        itertools.chain.from_iterable(performance_values),
         update_conflicts=True,
         update_fields=["value"],
         unique_fields=["calculation_id", "name"],
@@ -577,52 +620,6 @@ def update_performance_calculations_for_unique_beatmap(
     # TODO: what happens if the calculator is updated to remove a perf value?
     #   do we need to delete all values not returned for a calculation?
     #   with update_conflicts=True returning pks in django 5.0 we can just add a delete where not id in pks
-
-
-@transaction.atomic
-def update_performance_calculation(
-    score: Score, difficulty_calculator: AbstractDifficultyCalculator
-):
-    """
-    Update performance (and difficulty) calculations for passed score using passed difficulty calculator.
-    """
-    # Create difficulty calculation
-    difficulty_calculation, _ = DifficultyCalculation.objects.update_or_create(
-        beatmap_id=score.beatmap_id,
-        mods=score.mods,
-        calculator_engine=difficulty_calculator.engine(),
-        defaults={"calculator_version": difficulty_calculator.version()},
-    )
-
-    # Do difficulty calculation
-    difficulty_values = calculate_difficulty_values(
-        [difficulty_calculation], difficulty_calculator
-    )[0]
-    DifficultyValue.objects.bulk_create(
-        difficulty_values,
-        update_conflicts=True,
-        update_fields=["value"],
-        unique_fields=["calculation_id", "name"],
-    )
-
-    # Create performance calculation
-    performance_calculation, _ = PerformanceCalculation.objects.update_or_create(
-        score=score,
-        difficulty_calculation_id=difficulty_calculation.id,
-        calculator_engine=difficulty_calculator.engine(),
-        defaults={"calculator_version": difficulty_calculator.version()},
-    )
-
-    performance_values = calculate_performance_values(
-        [performance_calculation], difficulty_calculator
-    )[0]
-
-    PerformanceValue.objects.bulk_create(
-        performance_values,
-        update_conflicts=True,
-        update_fields=["value"],
-        unique_fields=["calculation_id", "name"],
-    )
 
 
 def calculate_difficulty_values(
@@ -668,6 +665,8 @@ def calculate_performance_values(
         DifficultyCalculatorScore(
             beatmap_id=str(performance_calculation.score.beatmap_id),
             mods=performance_calculation.score.mods,
+            count_300=performance_calculation.score.count_300,
+            count_katu=performance_calculation.score.count_katu,
             count_100=performance_calculation.score.count_100,
             count_50=performance_calculation.score.count_50,
             count_miss=performance_calculation.score.count_miss,

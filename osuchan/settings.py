@@ -8,6 +8,8 @@ from datetime import timedelta
 from celery.schedules import crontab
 from pydantic_settings import BaseSettings
 
+from common.osu.enums import Gamemode
+
 
 class EnvSettings(BaseSettings):
     SECRET_KEY: str
@@ -26,6 +28,9 @@ class EnvSettings(BaseSettings):
     CELERY_HOST: str
     CELERY_PORT: str
     DIFFICALCY_OSU_HOST: str
+    DIFFICALCY_TAIKO_HOST: str
+    DIFFICALCY_CATCH_HOST: str
+    DIFFICALCY_MANIA_HOST: str
     OSU_CLIENT_ID: str
     OSU_CLIENT_SECRET: str
     OSU_CLIENT_REDIRECT_URI: str
@@ -321,17 +326,26 @@ else:
 
 # Difficulty calculation
 
-DIFFICULTY_CALCULATOR_CLASS = (
-    "common.osu.difficultycalculator.RosuppDifficultyCalculator"
-)
-
 DIFFICULTY_CALCULATOR_CLASSES = {
     "oppai": "common.osu.difficultycalculator.OppaiDifficultyCalculator",
     "rosupp": "common.osu.difficultycalculator.RosuppDifficultyCalculator",
     "difficalcy-osu": "common.osu.difficultycalculator.DifficalcyOsuDifficultyCalculator",
+    "difficalcy-taiko": "common.osu.difficultycalculator.DifficalcyTaikoDifficultyCalculator",
+    "difficalcy-catch": "common.osu.difficultycalculator.DifficalcyCatchDifficultyCalculator",
+    "difficalcy-mania": "common.osu.difficultycalculator.DifficalcyManiaDifficultyCalculator",
+}
+
+DEFAULT_DIFFICULTY_CALCULATORS = {
+    Gamemode.STANDARD: "rosupp",
+    Gamemode.TAIKO: "difficalcy-taiko",
+    Gamemode.CATCH: "difficalcy-catch",
+    Gamemode.MANIA: "difficalcy-mania",
 }
 
 DIFFICALCY_OSU_URL = f"http://{env_settings.DIFFICALCY_OSU_HOST}"
+DIFFICALCY_TAIKO_URL = f"http://{env_settings.DIFFICALCY_TAIKO_HOST}"
+DIFFICALCY_CATCH_URL = f"http://{env_settings.DIFFICALCY_CATCH_HOST}"
+DIFFICALCY_MANIA_URL = f"http://{env_settings.DIFFICALCY_MANIA_HOST}"
 
 
 # Error reporting

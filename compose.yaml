@@ -46,6 +46,9 @@ services:
       - queue
       - cache
       - difficalcy-osu
+      - difficalcy-taiko
+      - difficalcy-catch
+      - difficalcy-mania
 
   worker:
     build: .
@@ -58,6 +61,9 @@ services:
       - db
       - queue
       - difficalcy-osu
+      - difficalcy-taiko
+      - difficalcy-catch
+      - difficalcy-mania
 
   worker_monitor:
     build: .
@@ -96,9 +102,36 @@ services:
       - grafana_admin_password
 
   difficalcy-osu:
-    image: ghcr.io/syriiin/difficalcy-osu:v0.8.0
+    image: ghcr.io/syriiin/difficalcy-osu:v0.8.1
     env_file:
-      - config/active/difficalcy-osu.env
+      - config/active/difficalcy.env
+    volumes:
+      - beatmaps:/beatmaps
+    depends_on:
+      - difficalcy-cache
+
+  difficalcy-taiko:
+    image: ghcr.io/syriiin/difficalcy-taiko:v0.8.1
+    env_file:
+      - config/active/difficalcy.env
+    volumes:
+      - beatmaps:/beatmaps
+    depends_on:
+      - difficalcy-cache
+
+  difficalcy-catch:
+    image: ghcr.io/syriiin/difficalcy-catch:v0.8.1
+    env_file:
+      - config/active/difficalcy.env
+    volumes:
+      - beatmaps:/beatmaps
+    depends_on:
+      - difficalcy-cache
+
+  difficalcy-mania:
+    image: ghcr.io/syriiin/difficalcy-mania:v0.8.1
+    env_file:
+      - config/active/difficalcy.env
     volumes:
       - beatmaps:/beatmaps
     depends_on:

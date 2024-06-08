@@ -3,7 +3,7 @@ from django.db.models import Count
 
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
-    difficulty_calculators,
+    difficulty_calculators_classes,
 )
 from common.osu.enums import Gamemode
 from profiles.models import (
@@ -18,7 +18,7 @@ class Command(BaseCommand):
     help = "Displays current db calculation breakdown (new models)"
 
     def handle(self, *args, **options):
-        for name, difficulty_calculator_class in difficulty_calculators.items():
+        for name, difficulty_calculator_class in difficulty_calculators_classes.items():
             difficulty_calculator = difficulty_calculator_class()
             gamemode = difficulty_calculator.gamemode()
 
