@@ -232,10 +232,11 @@ def refresh_user_from_api(
     # Process and add scores
     created_scores = add_scores_from_data(user_stats, score_data_list)
 
-    difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
-    for difficulty_calculator in difficulty_calculators:
-        with difficulty_calculator() as calc:
-            update_performance_calculations(created_scores, calc)
+    if len(created_scores) > 0:
+        difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
+        for difficulty_calculator in difficulty_calculators:
+            with difficulty_calculator() as calc:
+                update_performance_calculations(created_scores, calc)
 
     return user_stats
 
