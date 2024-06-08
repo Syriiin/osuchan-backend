@@ -488,6 +488,13 @@ class Score(models.Model):
     user_stats = models.ForeignKey(
         UserStats, on_delete=models.CASCADE, related_name="scores"
     )
+    original_score = models.ForeignKey(
+        "Score",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="mutations",
+    )
 
     # Convenience fields (derived from above fields)
     gamemode = models.IntegerField()
@@ -509,6 +516,7 @@ class Score(models.Model):
     # osu!chan calculated data
     # null=True because result types are only supported by standard at the moment
     result = models.IntegerField(null=True, blank=True)
+    mutation = models.IntegerField()
 
     objects = ScoreQuerySet.as_manager()
 
@@ -599,9 +607,9 @@ class Score(models.Model):
 
     class Meta:
         constraints = [
-            # Scores are unique on user + date, so multiple scores from the same beatmaps + mods are allowed per user
+            # Scores are unique on user + date + mutation, so multiple scores from the same beatmaps + mods are allowed per user, as well as mutations
             models.UniqueConstraint(
-                fields=["user_stats_id", "date"], name="unique_score"
+                fields=["user_stats_id", "date", "mutation"], name="unique_score"
             )
         ]
 

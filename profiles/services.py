@@ -19,6 +19,7 @@ from common.osu.difficultycalculator import (
 )
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
+from profiles.enums import ScoreMutation
 from profiles.models import (
     Beatmap,
     DifficultyCalculation,
@@ -384,6 +385,8 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
     scores_to_create = []
     for score_data in new_score_data_list:
         score = Score()
+
+        score.mutation = ScoreMutation.NONE
 
         # Update Score fields
         score.score = int(score_data["score"])

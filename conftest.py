@@ -9,7 +9,7 @@ from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Invite, Leaderboard
 from leaderboards.services import create_membership
 from osuauth.models import User
-from profiles.enums import ScoreResult, ScoreSet
+from profiles.enums import ScoreMutation, ScoreResult, ScoreSet
 from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
 
 
@@ -130,6 +130,7 @@ def score(user_stats: UserStats, beatmap: Beatmap):
         difficulty_calculator_engine="test diffcalc engine",
         difficulty_calculator_version="test diffcalc version",
         result=ScoreResult.NO_BREAK,
+        mutation=ScoreMutation.NONE,
     )
 
 

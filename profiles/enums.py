@@ -25,3 +25,8 @@ class AllowedBeatmapStatus(IntEnum):
     ANY = 0
     RANKED_ONLY = 1  # ranked + approved
     LOVED_ONLY = 2
+
+
+class ScoreMutation(IntEnum):
+    NONE = 0
+    NO_CHOKE = 1
