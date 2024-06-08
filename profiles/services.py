@@ -551,7 +551,9 @@ def update_performance_calculations(
         unique_fields=["beatmap_id", "mods", "calculator_engine"],
     )
     # TODO: remove when bulk_create(update_conflicts) returns pks in django 5.0
-    unique_beatmap_query = Q()
+    unique_beatmap_query = Q(
+        pk__in=[]  # ensures no-op if somehow there are no unique beatmaps
+    )
     for beatmap_id, mods in unique_beatmaps:
         unique_beatmap_query |= Q(beatmap_id=beatmap_id, mods=mods)
     difficulty_calculations = DifficultyCalculation.objects.filter(
