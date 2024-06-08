@@ -77,7 +77,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
             rank=leaderboard.member_count + 1,
         )
 
-    scores = Score.objects.filter(
+    scores = Score.objects.filter_mutations().filter(
         user_stats__user_id=user_id, user_stats__gamemode=leaderboard.gamemode
     )
 

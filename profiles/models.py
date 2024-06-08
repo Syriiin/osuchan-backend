@@ -1,3 +1,4 @@
+import typing
 from datetime import datetime, timezone
 from typing import Type
 
@@ -11,9 +12,12 @@ from common.osu.difficultycalculator import (
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.difficultycalculator import get_difficulty_calculator_class
+from common.osu.difficultycalculator import (
+    get_default_difficulty_calculator_class,
+    get_difficulty_calculator_class,
+)
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
-from profiles.enums import AllowedBeatmapStatus, ScoreResult, ScoreSet
+from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 
 
 class OsuUserQuerySet(models.QuerySet):
@@ -96,7 +100,8 @@ class UserStats(models.Model):
         """
         # Fetch all scores currently in database and add to new_scores ensuring no duplicate scores
         scores = (
-            self.scores.select_related("beatmap")
+            self.scores.filter_mutations()
+            .select_related("beatmap")
             .filter(
                 beatmap__status__in=[
                     BeatmapStatus.RANKED,
@@ -368,6 +373,11 @@ class ScoreQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user_stats__user__disabled=False)
 
+    def filter_mutations(self, mutations: typing.Optional[list[ScoreMutation]] = None):
+        if mutations is None:
+            mutations = [ScoreMutation.NONE]
+        return self.filter(mutation__in=mutations)
+
     def apply_score_filter(self, score_filter):
         # Mods
         scores = self.filter(
@@ -560,6 +570,97 @@ class Score(models.Model):
             except DifficultyCalculatorException as e:
                 error_reporter = ErrorReporter()
                 error_reporter.report_error(e)
+
+    def get_nochoke_mutation(self):
+        """
+        Returns a copy of the score with nochoke mutations applied
+        """
+        gamemode = Gamemode(self.gamemode)
+        if gamemode != Gamemode.STANDARD:
+            raise ValueError(
+                "Nochoke mutations are only supported for standard gamemode"
+            )
+        if not self.result & ScoreResult.CHOKE:
+            raise ValueError("Nochoke mutations can only be applied to choke scores")
+
+        # Copy base attributes
+        score = Score(
+            score=self.score,
+            count_geki=self.count_geki,
+            count_katu=self.count_katu,
+            mods=self.mods,
+            date=self.date,
+            beatmap=self.beatmap,
+            user_stats=self.user_stats,
+            original_score=self,
+            gamemode=gamemode,
+            bpm=self.bpm,
+            length=self.length,
+            circle_size=self.circle_size,
+            approach_rate=self.approach_rate,
+            overall_difficulty=self.overall_difficulty,
+        )
+
+        # Adjust unchoked
+        score.result = ScoreResult.PERFECT
+        score.mutation = ScoreMutation.NO_CHOKE
+
+        score.count_300 = self.count_300 + self.count_miss
+        score.count_100 = self.count_100
+        score.count_50 = self.count_50
+        score.count_miss = 0
+        score.best_combo = self.beatmap.max_combo
+        score.perfect = True
+
+        # Calculate new accuracy
+        score.accuracy = utils.get_accuracy(
+            score.count_300,
+            score.count_100,
+            score.count_50,
+            score.count_miss,
+            score.count_katu,
+            score.count_geki,
+            gamemode=gamemode,
+        )
+        if score.accuracy == 1:
+            if score.mods & Mods.HIDDEN or score.mods & Mods.FLASHLIGHT:
+                score.rank = "XH"
+            else:
+                score.rank = "X"
+        else:
+            if score.mods & Mods.HIDDEN or score.mods & Mods.FLASHLIGHT:
+                score.rank = "SH"
+            else:
+                score.rank = "S"
+
+        # Calculate new performance values
+        try:
+            with get_default_difficulty_calculator_class(gamemode)() as calc:
+                calculation = calc.calculate_score(
+                    DifficultyCalculatorScore(
+                        mods=score.mods,
+                        beatmap_id=str(score.beatmap_id),
+                        count_katu=score.count_katu,
+                        count_300=score.count_300,
+                        count_100=score.count_100,
+                        count_50=score.count_50,
+                        count_miss=score.count_miss,
+                        combo=score.best_combo,
+                    )
+                )
+                score.performance_total = calculation.performance_values["total"]
+                score.difficulty_total = calculation.difficulty_values["total"]
+                score.difficulty_calculator_engine = calc.engine()
+                score.difficulty_calculator_version = calc.version()
+        except DifficultyCalculatorException as e:
+            error_reporter = ErrorReporter()
+            error_reporter.report_error(e)
+            score.performance_total = 0
+            score.difficulty_total = 0
+            score.difficulty_calculator_engine = "error"
+            score.difficulty_calculator_version = "error"
+
+        return score
 
     def update_performance_values(
         self, difficulty_calculator: Type[AbstractDifficultyCalculator]

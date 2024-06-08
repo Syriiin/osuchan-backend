@@ -36,7 +36,7 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 15  # 5 scores * 3 calculators
+            == 18  # 6 scores (5 real, 1 nochoke mutation) * 3 calculators
         )
         assert user_stats.score_style_accuracy == 97.30060082707615
         assert user_stats.score_style_bpm == 204.68228666627067
