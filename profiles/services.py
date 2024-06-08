@@ -232,10 +232,11 @@ def refresh_user_from_api(
     # Process and add scores
     created_scores = add_scores_from_data(user_stats, score_data_list)
 
-    difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
-    for difficulty_calculator in difficulty_calculators:
-        with difficulty_calculator() as calc:
-            update_performance_calculations(created_scores, calc)
+    if len(created_scores) > 0:
+        difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
+        for difficulty_calculator in difficulty_calculators:
+            with difficulty_calculator() as calc:
+                update_performance_calculations(created_scores, calc)
 
     return user_stats
 
@@ -551,7 +552,9 @@ def update_performance_calculations(
         unique_fields=["beatmap_id", "mods", "calculator_engine"],
     )
     # TODO: remove when bulk_create(update_conflicts) returns pks in django 5.0
-    unique_beatmap_query = Q()
+    unique_beatmap_query = Q(
+        pk__in=[]  # ensures no-op if somehow there are no unique beatmaps
+    )
     for beatmap_id, mods in unique_beatmaps:
         unique_beatmap_query |= Q(beatmap_id=beatmap_id, mods=mods)
     difficulty_calculations = DifficultyCalculation.objects.filter(

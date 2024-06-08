@@ -311,7 +311,7 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def __init__(self):
         super().__init__()
 
-        self.client = httpx.Client(timeout=120.0)
+        self.client = httpx.Client(timeout=20.0)
 
     def _close(self):
         self.client.close()
@@ -332,9 +332,13 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
             )
             response.raise_for_status()
             data = response.json()
+        except httpx.HTTPStatusError as e:
+            raise CalculationException(
+                f"An error occured in calculating the beatmap {score.beatmap_id}: {e.request.url} [{e.response.status_code}] {e.response.text}"
+            ) from e
         except httpx.HTTPError as e:
             raise CalculationException(
-                f"An error occured in calculating the beatmap {score.beatmap_id}: [{e.response.status_code}] {e.response.text}"
+                f"An error occured in calculating the beatmap {score.beatmap_id}: {e.request.url} - {e}"
             ) from e
 
         return Calculation(
@@ -350,9 +354,13 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
             )
             response.raise_for_status()
             data = response.json()
-        except httpx.HTTPError as e:
+        except httpx.HTTPStatusError as e:
             raise CalculationException(
                 f"An error occured in calculating the beatmaps {set(score.beatmap_id for score in scores)}: [{e.response.status_code}] {e.response.text}"
+            ) from e
+        except httpx.HTTPError as e:
+            raise CalculationException(
+                f"An error occured in calculating the beatmaps {set(score.beatmap_id for score in scores)}: {e}"
             ) from e
 
         return [
