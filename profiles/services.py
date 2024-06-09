@@ -252,7 +252,7 @@ def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
         beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
 
         if beatmap_data is None:
-            return None
+            continue
 
         beatmap = Beatmap.from_data(beatmap_data)
         if beatmap.status not in [
@@ -260,7 +260,7 @@ def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
             BeatmapStatus.RANKED,
             BeatmapStatus.LOVED,
         ]:
-            return None
+            continue
 
         with get_default_difficulty_calculator_class(
             Gamemode(beatmap.gamemode)
@@ -404,9 +404,14 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
 
         # Update foreign keys
         beatmap_id = int(score_data["beatmap_id"])
-        score.beatmap = next(
-            beatmap for beatmap in beatmaps if beatmap.id == beatmap_id
-        )
+        try:
+            score.beatmap = next(
+                beatmap for beatmap in beatmaps if beatmap.id == beatmap_id
+            )
+        except StopIteration:
+            # Beatmap not ranked/loved or otherwise missing
+            continue
+
         score.user_stats = user_stats
 
         gamemode = Gamemode(user_stats.gamemode)
