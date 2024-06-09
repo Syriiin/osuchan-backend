@@ -157,7 +157,7 @@ class TestLeaderboardMemberList:
         response = view(request, **kwargs)
 
         assert response.status_code == HTTPStatus.OK
-        assert len(response.data) == 1
+        assert len(response.data) == 2
 
     def test_post(self, arf, view, leaderboard, user):
         kwargs = {
