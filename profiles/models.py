@@ -109,60 +109,41 @@ class UserStats(models.Model):
                     BeatmapStatus.LOVED,
                 ]
             )
-            .order_by("-performance_total")
+            .get_score_set()[:100]
         )
 
         if len(scores) == 0:
             return
 
-        # Filter to be unique on maps (cant use .unique_maps() because duplicate maps might come from new scores)
-        #   (also this 1 liner is really inefficient for some reason so lets do it the standard way)
-        # unique_map_scores = [score for score in scores if score == next(s for s in scores if s.beatmap_id == score.beatmap_id)]
-        unique_map_scores = []
-        beatmap_ids = []
-        for score in scores:
-            if score.beatmap_id not in beatmap_ids:
-                unique_map_scores.append(score)
-                beatmap_ids.append(score.beatmap_id)
-
         # Calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - utils.calculate_pp_total(
-            score.performance_total for score in unique_map_scores[:100]
+            score.performance_total for score in scores[:100]
         )
 
         # Calculate score style
-        top_100_scores = unique_map_scores[
-            :100
-        ]  # score style limited to top 100 scores
-        weighting_value = sum(0.95**i for i in range(len(top_100_scores)))
+        weighting_value = sum(0.95**i for i in range(len(scores)))
         self.score_style_accuracy = (
-            sum(score.accuracy * (0.95**i) for i, score in enumerate(top_100_scores))
+            sum(score.accuracy * (0.95**i) for i, score in enumerate(scores))
             / weighting_value
         )
         self.score_style_bpm = (
-            sum(score.bpm * (0.95**i) for i, score in enumerate(top_100_scores))
+            sum(score.bpm * (0.95**i) for i, score in enumerate(scores))
             / weighting_value
         )
         self.score_style_length = (
-            sum(score.length * (0.95**i) for i, score in enumerate(top_100_scores))
+            sum(score.length * (0.95**i) for i, score in enumerate(scores))
             / weighting_value
         )
         self.score_style_cs = (
-            sum(score.circle_size * (0.95**i) for i, score in enumerate(top_100_scores))
+            sum(score.circle_size * (0.95**i) for i, score in enumerate(scores))
             / weighting_value
         )
         self.score_style_ar = (
-            sum(
-                score.approach_rate * (0.95**i)
-                for i, score in enumerate(top_100_scores)
-            )
+            sum(score.approach_rate * (0.95**i) for i, score in enumerate(scores))
             / weighting_value
         )
         self.score_style_od = (
-            sum(
-                score.overall_difficulty * (0.95**i)
-                for i, score in enumerate(top_100_scores)
-            )
+            sum(score.overall_difficulty * (0.95**i) for i, score in enumerate(scores))
             / weighting_value
         )
 
