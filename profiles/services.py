@@ -239,6 +239,10 @@ def refresh_user_from_api(
             with difficulty_calculator() as calc:
                 update_performance_calculations(created_scores, calc)
 
+        # Recalculate with new scores added
+        user_stats.recalculate()
+        user_stats.save()
+
     return user_stats
 
 
@@ -326,11 +330,16 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     # Process add scores
     created_scores = add_scores_from_data(user_stats, full_score_data_list)
 
-    for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
-        gamemode
-    ):
-        with difficulty_calculator_class() as difficulty_calculator:
-            update_performance_calculations(created_scores, difficulty_calculator)
+    if len(created_scores) > 0:
+        for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+            gamemode
+        ):
+            with difficulty_calculator_class() as difficulty_calculator:
+                update_performance_calculations(created_scores, difficulty_calculator)
+
+        # Recalculate with new scores added
+        user_stats.recalculate()
+        user_stats.save()
 
     return created_scores
 
@@ -482,10 +491,6 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
             if score.result & ScoreResult.CHOKE
         ]
         created_scores.extend(Score.objects.bulk_create(nochoke_mutations_to_create))
-
-    # Recalculate with new scores added
-    user_stats.recalculate()
-    user_stats.save()
 
     # Return new scores
     return created_scores

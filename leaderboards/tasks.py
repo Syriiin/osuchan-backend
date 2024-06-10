@@ -56,7 +56,6 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
 
     beatmap_details += f" **{difficulty_total:.2f} stars**"
 
-    # TODO: fix this for nochoke leaderboards. pp will display wrong. should use the MembershipScore value instead
     performance_calculation = score.get_default_performance_calculation()
     performance_total = performance_calculation.get_total_performance()
     score_details = f"**{performance_total:.0f}pp** ({score.accuracy:.2f}%)"

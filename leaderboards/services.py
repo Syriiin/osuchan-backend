@@ -77,7 +77,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
             rank=leaderboard.member_count + 1,
         )
 
-    scores = Score.objects.filter_mutations().filter(
+    scores = Score.objects.filter(
         user_stats__user_id=user_id, user_stats__gamemode=leaderboard.gamemode
     )
 
@@ -87,7 +87,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
     if leaderboard.score_filter:
         scores = scores.apply_score_filter(leaderboard.score_filter)
 
-    scores = scores.get_score_set(score_set=leaderboard.score_set)
+    scores = scores.get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
 
     def get_performance_total(score: Score, score_set: ScoreSet):
         if score_set == ScoreSet.NORMAL:
@@ -98,8 +98,8 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
                 if score.result & ScoreResult.CHOKE
                 else score.performance_total
             )
-        elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            return score.nochoke_performance_total
+        else:
+            raise ValueError(f"Invalid ScoreSet: {score_set}")
 
     membership_scores = [
         MembershipScore(

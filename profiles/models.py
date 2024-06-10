@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Type
 
 from django.db import models
-from django.db.models import Case, F, Subquery, When
+from django.db.models import FilteredRelation, Q, Subquery
 
 from common.error_reporter import ErrorReporter
 from common.osu import utils
@@ -100,8 +100,7 @@ class UserStats(models.Model):
         """
         # Fetch all scores currently in database and add to new_scores ensuring no duplicate scores
         scores = (
-            self.scores.filter_mutations()
-            .select_related("beatmap")
+            self.scores.select_related("beatmap")
             .filter(
                 beatmap__status__in=[
                     BeatmapStatus.RANKED,
@@ -109,7 +108,7 @@ class UserStats(models.Model):
                     BeatmapStatus.LOVED,
                 ]
             )
-            .get_score_set()[:100]
+            .get_score_set(self.gamemode)[:100]
         )
 
         if len(scores) == 0:
@@ -420,44 +419,56 @@ class ScoreQuerySet(models.QuerySet):
 
         return scores
 
-    def annotate_sorting_pp(self, score_set=ScoreSet.NORMAL):
-        if score_set == ScoreSet.NEVER_CHOKE:
-            # if choke use nochoke_performance_total, else use performance_total
-            scores = self.annotate(
-                sorting_pp=Case(
-                    When(
-                        result=F("result").bitand(ScoreResult.CHOKE),
-                        then=F("nochoke_performance_total"),
-                    ),
-                    default=F("performance_total"),
-                    output_field=models.FloatField(),
-                )
-            )
-        elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            scores = self.annotate(sorting_pp=F("nochoke_performance_total"))
-        else:
-            scores = self.annotate(sorting_pp=F("performance_total"))
-
-        return scores
-
-    def get_score_set(self, score_set=ScoreSet.NORMAL):
+    def get_score_set(self, gamemode: Gamemode, score_set: ScoreSet = ScoreSet.NORMAL):
         """
         Queryset that returns distinct on beatmap_id prioritising highest pp given the score_set.
         Remember to use at end of query to not unintentionally filter out scores before primary filtering.
         """
-        scores = self.annotate_sorting_pp(score_set)
+        gamemode_scores = self.filter(gamemode=gamemode)
+        if score_set == ScoreSet.NORMAL:
+            scores = gamemode_scores.filter_mutations([ScoreMutation.NONE])
+        elif score_set == ScoreSet.NEVER_CHOKE:
+            scores = gamemode_scores.filter_mutations(
+                [ScoreMutation.NONE, ScoreMutation.NO_CHOKE]
+            )
+        else:
+            raise ValueError(f"Invalid score set: {score_set}")
 
-        return scores.filter(
+        difficulty_calculator_class = get_default_difficulty_calculator_class(gamemode)
+
+        annotated_scores = (
+            scores.annotate(
+                default_performance_calculation=FilteredRelation(
+                    "performance_calculations",
+                    condition=Q(
+                        performance_calculations__calculator_engine=difficulty_calculator_class.engine()
+                    ),
+                )
+            )
+            .annotate(
+                default_performance_value=FilteredRelation(
+                    "default_performance_calculation__performance_values",
+                    condition=Q(
+                        default_performance_calculation__performance_values__name="total"
+                    ),
+                )
+            )
+            .annotate(
+                default_performance_total=models.F("default_performance_value__value")
+            )
+        )
+
+        return annotated_scores.filter(
             id__in=Subquery(
-                scores.all()
+                annotated_scores.all()
                 .order_by(
                     "beatmap_id",  # ordering first by beatmap_id is required for distinct
-                    "-sorting_pp",  # required to make sure we dont distinct out the wrong scores
+                    "-default_performance_total",  # required to make sure we dont distinct out the wrong scores
                 )
                 .distinct("beatmap_id")
                 .values("id")
             )
-        ).order_by("-sorting_pp", "date")
+        ).order_by("-default_performance_total", "date")
 
 
 class Score(models.Model):
