@@ -16,11 +16,6 @@ from profiles.views import (
 )
 
 
-@pytest.fixture
-def stub_user_stats():
-    return refresh_user_from_api(user_id=5701575, gamemode=Gamemode.STANDARD)
-
-
 @pytest.mark.django_db
 class TestUserStatsDetail:
     @pytest.fixture

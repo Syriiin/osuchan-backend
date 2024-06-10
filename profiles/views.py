@@ -9,7 +9,7 @@ from common.osu.enums import Gamemode, Mods
 from common.utils import parse_float_or_none, parse_int_or_none
 from leaderboards.models import Membership
 from leaderboards.serialisers import UserMembershipSerialiser
-from profiles.enums import AllowedBeatmapStatus, ScoreSet
+from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreSet
 from profiles.models import Beatmap, Score, ScoreFilter, UserStats
 from profiles.serialisers import (
     BeatmapSerialiser,
@@ -141,6 +141,7 @@ class UserScoreList(APIView):
         scores = (
             Score.objects.select_related("beatmap")
             .non_restricted()
+            .filter_mutations()
             .filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode)
             .apply_score_filter(score_filter)
             .get_score_set(score_set)
@@ -154,6 +155,7 @@ class UserScoreList(APIView):
         Add new Scores based on passes user_id, gamemode, beatmap_ids
         """
         scores = fetch_scores(user_id, request.data.get("beatmap_ids"), gamemode)
+        scores = [score for score in scores if score.mutation == ScoreMutation.NONE]
         serialiser = UserScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
 

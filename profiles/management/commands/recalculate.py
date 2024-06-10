@@ -2,7 +2,7 @@ from typing import Iterable, Type
 
 from django.core.management.base import BaseCommand
 from django.core.paginator import Paginator
-from django.db.models import Count, QuerySet
+from django.db.models import QuerySet
 from tqdm import tqdm
 
 from common.error_reporter import ErrorReporter

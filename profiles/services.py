@@ -19,6 +19,7 @@ from common.osu.difficultycalculator import (
 )
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
+from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import (
     Beatmap,
     DifficultyCalculation,
@@ -381,9 +382,13 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
     missing_beatmaps = set(beatmap_ids) - set(beatmap.id for beatmap in beatmaps)
     beatmaps.extend(refresh_beatmaps_from_api(missing_beatmaps))
 
+    gamemode = Gamemode(user_stats.gamemode)
+
     scores_to_create = []
     for score_data in new_score_data_list:
         score = Score()
+
+        score.mutation = ScoreMutation.NONE
 
         # Update Score fields
         score.score = int(score_data["score"])
@@ -413,8 +418,6 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
             continue
 
         score.user_stats = user_stats
-
-        gamemode = Gamemode(user_stats.gamemode)
 
         # Calculate performance total
         try:
@@ -471,6 +474,14 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
 
     # Bulk add and update and scores
     created_scores = Score.objects.bulk_create(scores_to_create)
+
+    if gamemode == Gamemode.STANDARD:
+        nochoke_mutations_to_create = [
+            score.get_nochoke_mutation()
+            for score in created_scores
+            if score.result & ScoreResult.CHOKE
+        ]
+        created_scores.extend(Score.objects.bulk_create(nochoke_mutations_to_create))
 
     # Recalculate with new scores added
     user_stats.recalculate()

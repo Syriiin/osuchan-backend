@@ -1,11 +1,12 @@
 import pytest
 
 from common.osu.difficultycalculator import get_difficulty_calculator_class
-from common.osu.enums import Mods
+from common.osu.enums import Gamemode, Mods
 from profiles.models import DifficultyCalculation, PerformanceCalculation
 from profiles.services import (
     calculate_difficulty_values,
     calculate_performance_values,
+    fetch_scores,
     fetch_user,
     refresh_user_from_api,
     update_difficulty_calculations,
@@ -29,13 +30,39 @@ class TestUserServices:
 
     def test_refresh_user_from_api(self):
         user_stats = refresh_user_from_api(user_id=5701575)
+        assert user_stats is not None
         assert user_stats.user.username == "Syrin"
         assert (
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 15  # 5 scores * 3 calculators
+            == 18  # 6 scores (5 real, 1 nochoke mutation) * 3 calculators
         )
+        assert user_stats.score_style_accuracy == 97.30060082707615
+        assert user_stats.score_style_bpm == 204.68228666627067
+        assert user_stats.score_style_cs == 4.402689732435789
+        assert user_stats.score_style_ar == 9.839811659329108
+        assert user_stats.score_style_od == 9.004677665408208
+        assert user_stats.score_style_length == 158.83277363433214
+
+    def test_fetch_scores(self):
+        user_stats = refresh_user_from_api(user_id=5701575)
+        scores = fetch_scores(user_stats.user_id, [362949], Gamemode.STANDARD)
+        assert len(scores) == 12  # 11 real scores + 1 nochoke mutation
+        assert user_stats is not None
+        user_stats.refresh_from_db()
+        assert (
+            PerformanceCalculation.objects.filter(
+                score__user_stats_id=user_stats.id
+            ).count()
+            == 54  # 18 scores (16 real, 2 nochoke mutation) * 3 calculators
+        )
+        assert user_stats.score_style_accuracy == 97.3569373221504
+        assert user_stats.score_style_bpm == 206.03421080151674
+        assert user_stats.score_style_cs == 4.326684182174256
+        assert user_stats.score_style_ar == 9.813108376003889
+        assert user_stats.score_style_od == 9.013232015574896
+        assert user_stats.score_style_length == 143.385919158249
 
 
 @pytest.mark.django_db

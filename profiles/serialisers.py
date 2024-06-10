@@ -94,6 +94,7 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "date",
             # osuchan data
             "result",
+            "mutation",
             # difficulty
             "performance_total",
             "nochoke_performance_total",

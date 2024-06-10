@@ -7,10 +7,11 @@ from common.osu.beatmap_provider import BeatmapProvider
 from common.osu.enums import Gamemode, Mods
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Invite, Leaderboard
-from leaderboards.services import create_membership
+from leaderboards.services import create_leaderboard, create_membership
 from osuauth.models import User
-from profiles.enums import ScoreResult, ScoreSet
+from profiles.enums import ScoreMutation, ScoreResult, ScoreSet
 from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
+from profiles.services import refresh_user_from_api
 
 
 @pytest.fixture
@@ -72,6 +73,11 @@ def user_stats(osu_user: OsuUser):
 
 
 @pytest.fixture
+def stub_user_stats():
+    return refresh_user_from_api(user_id=5701575, gamemode=Gamemode.STANDARD)
+
+
+@pytest.fixture
 def beatmap():
     return Beatmap.objects.create(
         id=1,
@@ -130,6 +136,7 @@ def score(user_stats: UserStats, beatmap: Beatmap):
         difficulty_calculator_engine="test diffcalc engine",
         difficulty_calculator_version="test diffcalc version",
         result=ScoreResult.NO_BREAK,
+        mutation=ScoreMutation.NONE,
     )
 
 
@@ -147,20 +154,22 @@ def leaderboard(score_filter: ScoreFilter):
         join_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
         disabled=False,
     )
-    user = User.objects.create(username=osu_user.id, osu_user=osu_user)
-    return Leaderboard.objects.create(
-        gamemode=Gamemode.STANDARD,
-        score_set=ScoreSet.NORMAL,
-        access_type=LeaderboardAccessType.PUBLIC,
-        name="test leaderboard",
-        description="test leaderboard",
-        icon_url="",
-        allow_past_scores=True,
-        member_count=0,
-        archived=False,
-        notification_discord_webhook_url="",
-        score_filter=score_filter,
-        owner=user.osu_user,
+    User.objects.create(username=osu_user.id, osu_user=osu_user)
+    return create_leaderboard(
+        osu_user.id,
+        Leaderboard(
+            gamemode=Gamemode.STANDARD,
+            score_set=ScoreSet.NORMAL,
+            access_type=LeaderboardAccessType.PUBLIC,
+            name="test leaderboard",
+            description="test leaderboard",
+            icon_url="",
+            allow_past_scores=True,
+            member_count=0,
+            archived=False,
+            notification_discord_webhook_url="",
+            score_filter=score_filter,
+        ),
     )
 
 
