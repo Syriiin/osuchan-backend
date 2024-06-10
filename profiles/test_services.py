@@ -38,12 +38,12 @@ class TestUserServices:
             ).count()
             == 18  # 6 scores (5 real, 1 nochoke mutation) * 3 calculators
         )
-        assert user_stats.score_style_accuracy == 97.30060082707615
-        assert user_stats.score_style_bpm == 204.68228666627067
-        assert user_stats.score_style_cs == 4.402689732435789
-        assert user_stats.score_style_ar == 9.839811659329108
-        assert user_stats.score_style_od == 9.004677665408208
-        assert user_stats.score_style_length == 158.83277363433214
+        assert user_stats.score_style_accuracy == 98.23948233070678
+        assert user_stats.score_style_bpm == 211.857710839314
+        assert user_stats.score_style_cs == 4.3374150072441795
+        assert user_stats.score_style_ar == 9.914417601671216
+        assert user_stats.score_style_od == 9.115480081314509
+        assert user_stats.score_style_length == 163.6261778811056
 
     def test_fetch_scores(self):
         user_stats = refresh_user_from_api(user_id=5701575)
@@ -57,12 +57,12 @@ class TestUserServices:
             ).count()
             == 54  # 18 scores (16 real, 2 nochoke mutation) * 3 calculators
         )
-        assert user_stats.score_style_accuracy == 97.3569373221504
-        assert user_stats.score_style_bpm == 206.03421080151674
-        assert user_stats.score_style_cs == 4.326684182174256
-        assert user_stats.score_style_ar == 9.813108376003889
-        assert user_stats.score_style_od == 9.013232015574896
-        assert user_stats.score_style_length == 143.385919158249
+        assert user_stats.score_style_accuracy == 98.09793775692623
+        assert user_stats.score_style_bpm == 211.85490142989167
+        assert user_stats.score_style_cs == 4.262837957123972
+        assert user_stats.score_style_ar == 9.866657641491493
+        assert user_stats.score_style_od == 9.101007366108533
+        assert user_stats.score_style_length == 144.47806905456227
 
 
 @pytest.mark.django_db

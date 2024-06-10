@@ -105,7 +105,6 @@ class UserStats(models.Model):
                 beatmap__status__in=[
                     BeatmapStatus.RANKED,
                     BeatmapStatus.APPROVED,
-                    BeatmapStatus.LOVED,
                 ]
             )
             .get_score_set(self.gamemode)[:100]
