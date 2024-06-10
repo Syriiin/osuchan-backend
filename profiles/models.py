@@ -115,7 +115,7 @@ class UserStats(models.Model):
 
         # Calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - utils.calculate_pp_total(
-            score.performance_total for score in scores[:100]
+            score.default_performance_total for score in scores[:100]
         )
 
         # Calculate score style
