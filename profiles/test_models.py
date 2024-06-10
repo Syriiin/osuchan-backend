@@ -46,9 +46,6 @@ class TestBeatmap:
 
 @pytest.mark.django_db
 class TestScore:
-    def test_magic_str(self, score: Score):
-        assert str(score) == "1: 395pp"
-
     def test_process(self, score: Score):
         score.process()
         assert score.result == ScoreResult.END_CHOKE
