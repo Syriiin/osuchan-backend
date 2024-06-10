@@ -13,4 +13,4 @@ class ScoreFilterPreset(models.Model):
     score_filter = models.ForeignKey(ScoreFilter, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.user_id}: {self.name}"
+        return self.name

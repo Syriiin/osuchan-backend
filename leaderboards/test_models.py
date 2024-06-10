@@ -1,13 +1,12 @@
 import pytest
 
 from leaderboards.models import Invite, Leaderboard, Membership
-from profiles.models import OsuUser
 
 
 @pytest.mark.django_db
 class TestLeaderboard:
     def test_magic_str(self, leaderboard: Leaderboard):
-        assert str(leaderboard) == "[STANDARD] test leaderboard"
+        assert str(leaderboard) == "test leaderboard"
 
     def test_get_pp_record(self):
         # TODO: this
@@ -29,7 +28,7 @@ class TestLeaderboard:
 @pytest.mark.django_db
 class TestMembership:
     def test_magic_str(self, membership: Membership):
-        assert str(membership) == "[STANDARD] test leaderboard: TestOsuUser"
+        assert str(membership) == "test leaderboard: TestOsuUser"
 
     def test_recalculate(self):
         # TODO: this
@@ -39,4 +38,4 @@ class TestMembership:
 @pytest.mark.django_db
 class TestInvite:
     def test_magic_str(self, invite: Invite):
-        assert str(invite) == "[STANDARD] test leaderboard: TestOsuUser"
+        assert str(invite) == "test leaderboard: TestOsuUser"

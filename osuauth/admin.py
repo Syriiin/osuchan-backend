@@ -9,7 +9,15 @@ class UserAdmin(BaseUserAdmin):
     Custom user admin
     """
 
-    list_display = ("username", "osu_user", "is_staff")
+    list_display = (
+        "username",
+        "osu_user",
+        "is_staff",
+        "last_login",
+        "date_joined",
+        "last_active",
+    )
+    list_select_related = ("osu_user",)
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (
