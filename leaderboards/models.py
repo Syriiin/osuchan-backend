@@ -116,7 +116,7 @@ class Leaderboard(models.Model):
         self.save()
 
     def __str__(self):
-        return f"[{Gamemode(self.gamemode).name}] {self.name}"
+        return f"{self.name}"
 
     class Meta:
         indexes = [models.Index(fields=["gamemode"])]

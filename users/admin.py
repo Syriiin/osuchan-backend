@@ -10,5 +10,11 @@ class ScoreFilterPresetAdmin(admin.ModelAdmin):
         "score_filter",
     )
 
+    list_display = [
+        "__str__",
+        "user",
+    ]
+    list_select_related = ["user__osu_user"]
+
 
 admin.site.register(ScoreFilterPreset, ScoreFilterPresetAdmin)
