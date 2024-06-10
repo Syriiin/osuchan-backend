@@ -685,7 +685,7 @@ class Score(models.Model):
             error_reporter.report_error(e)
 
     def __str__(self):
-        return f"{self.beatmap_id}: {self.performance_total:.0f}pp"
+        return f"{Gamemode(self.gamemode).name} {self.id}"
 
     class Meta:
         constraints = [
