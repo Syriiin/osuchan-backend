@@ -89,27 +89,15 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
 
     scores = scores.get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
 
-    def get_performance_total(score: Score, score_set: ScoreSet):
-        if score_set == ScoreSet.NORMAL:
-            return score.performance_total
-        elif score_set == ScoreSet.NEVER_CHOKE:
-            return (
-                score.nochoke_performance_total
-                if score.result & ScoreResult.CHOKE
-                else score.performance_total
-            )
-        else:
-            raise ValueError(f"Invalid ScoreSet: {score_set}")
-
     membership_scores = [
         MembershipScore(
             membership=membership,
             score=score,
-            performance_total=get_performance_total(
-                score, ScoreSet(leaderboard.score_set)
-            ),
+            performance_total=score.default_performance_total,
         )
         for score in scores
+        # Skip scores missing performance calculation
+        if score.default_performance_total is not None
     ]
 
     MembershipScore.objects.bulk_create(
