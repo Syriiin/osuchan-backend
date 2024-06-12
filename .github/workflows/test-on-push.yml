@@ -1,6 +1,12 @@
 name: test-on-push
 on: [push]
 jobs:
+  checkfixup:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: make checkfixup
+
   checkformatting:
     runs-on: ubuntu-22.04
     steps:

@@ -67,3 +67,6 @@ reset-dev:	## Resets config, data and containers to default states
 	$(COMPOSE_RUN_TOOLING) python manage.py flush --no-input
 	$(COMPOSE_APP_DEV) down --remove-orphans --volumes
 	make start-dev
+
+checkfixup:	## Checks for fixup! in commit messages
+	scripts/checkfixup
