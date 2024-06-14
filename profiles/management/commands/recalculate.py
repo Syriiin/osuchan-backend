@@ -2,7 +2,7 @@ from typing import Iterable, Type
 
 from django.core.management.base import BaseCommand
 from django.core.paginator import Paginator
-from django.db.models import QuerySet
+from django.db.models import FilteredRelation, Q, QuerySet
 from tqdm import tqdm
 
 from common.error_reporter import ErrorReporter
@@ -241,11 +241,16 @@ class Command(BaseCommand):
                     update_difficulty_calculations(page, difficulty_calculator)
                     pbar.update(len(page))
         else:
-            beatmaps_to_recalculate = beatmaps.exclude(
-                difficulty_calculations__mods=0,
-                difficulty_calculations__calculator_engine=difficulty_calculator.engine(),
-                difficulty_calculations__calculator_version=difficulty_calculator.version(),
-            )
+            beatmaps_to_recalculate = beatmaps.annotate(
+                difficulty_calculation=FilteredRelation(
+                    "difficulty_calculations",
+                    condition=Q(
+                        difficulty_calculations__mods=0,
+                        difficulty_calculations__calculator_engine=difficulty_calculator.engine(),
+                        difficulty_calculations__calculator_version=difficulty_calculator.version(),
+                    ),
+                )
+            ).filter(difficulty_calculation=None)
 
             if beatmaps_to_recalculate.count() == 0:
                 self.stdout.write(f"All {beatmaps.count()} beatmaps already up to date")
@@ -298,34 +303,15 @@ class Command(BaseCommand):
                     update_performance_calculations(page, difficulty_calculator)
                     pbar.update(len(page))
         else:
-            scores_to_recalculate = scores.exclude(
-                performance_calculations__calculator_engine=difficulty_calculator.engine(),
-                performance_calculations__calculator_version=difficulty_calculator.version(),
-            )
-            # NOTE: this query is way faster, but since it's raw, it can't be composed
-            #   might be necessary to use it when the performance calculation table gets big
-            # NOTE: might be able to make a similar queryset using FilteredRelation
-            # scores_to_recalculate = Score.objects.raw(
-            #     f"""
-            #     SELECT s.*
-            #     FROM profiles_score s
-            #     LEFT JOIN profiles_performancecalculation pc
-            #     ON (
-            #         s.id = pc.score_id
-            #         AND pc.calculator_engine = %s
-            #         AND pc.calculator_version = %s
-            #     )
-            #     WHERE (
-            #         s.gamemode = %s
-            #         AND pc.id IS NULL
-            #     )
-            #     """,
-            #     [
-            #         difficulty_calculator.engine(),
-            #         difficulty_calculator.version(),
-            #         difficulty_calculator.gamemode(),
-            #     ],
-            # )
+            scores_to_recalculate = scores.annotate(
+                performance_calculation=FilteredRelation(
+                    "performance_calculations",
+                    condition=Q(
+                        performance_calculations__calculator_engine=difficulty_calculator.engine(),
+                        performance_calculations__calculator_version=difficulty_calculator.version(),
+                    ),
+                )
+            ).filter(performance_calculation=None)
 
             if scores_to_recalculate.count() == 0:
                 self.stdout.write(f"All {scores.count()} scores already up to date")
