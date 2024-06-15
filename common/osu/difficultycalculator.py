@@ -311,7 +311,7 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def __init__(self):
         super().__init__()
 
-        self.client = httpx.Client(timeout=20.0)
+        self.client = httpx.Client(timeout=60.0)
 
     def _close(self):
         self.client.close()
