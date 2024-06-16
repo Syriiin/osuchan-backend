@@ -284,7 +284,10 @@ class LeaderboardScoreList(APIView):
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
-        scores = leaderboard.get_top_scores(limit=limit)
+        scores = leaderboard.get_top_scores(limit=limit).prefetch_related(
+            "performance_calculations__performance_values",
+            "performance_calculations__difficulty_calculation__difficulty_values",
+        )
 
         serialiser = LeaderboardScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
@@ -551,6 +554,10 @@ class LeaderboardBeatmapScoreList(APIView):
             .filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id)
             .select_related("user_stats", "user_stats__user")
             .get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
+            .prefetch_related(
+                "performance_calculations__performance_values",
+                "performance_calculations__difficulty_calculation__difficulty_values",
+            )
         )
         serialiser = BeatmapScoreSerialiser(scores[:50], many=True)
         return Response(serialiser.data)
@@ -586,6 +593,10 @@ class LeaderboardMemberScoreList(APIView):
             )
             .select_related("beatmap")
             .get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
+            .prefetch_related(
+                "performance_calculations__performance_values",
+                "performance_calculations__difficulty_calculation__difficulty_values",
+            )
         )
         serialiser = UserScoreSerialiser(scores[:100], many=True)
         return Response(serialiser.data)

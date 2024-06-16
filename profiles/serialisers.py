@@ -1,6 +1,16 @@
 from rest_framework import serializers
 
-from profiles.models import Beatmap, OsuUser, Score, ScoreFilter, UserStats
+from profiles.models import (
+    Beatmap,
+    DifficultyCalculation,
+    DifficultyValue,
+    OsuUser,
+    PerformanceCalculation,
+    PerformanceValue,
+    Score,
+    ScoreFilter,
+    UserStats,
+)
 
 
 class OsuUserSerialiser(serializers.ModelSerializer):
@@ -43,6 +53,27 @@ class UserStatsSerialiser(serializers.ModelSerializer):
         )
 
 
+class DifficultyValueSerialiser(serializers.ModelSerializer):
+    class Meta:
+        model = DifficultyValue
+        fields = (
+            "name",
+            "value",
+        )
+
+
+class DifficultyCalculationSerialiser(serializers.ModelSerializer):
+    difficulty_values = DifficultyValueSerialiser(many=True)
+
+    class Meta:
+        model = DifficultyCalculation
+        fields = (
+            "calculator_engine",
+            "calculator_version",
+            "difficulty_values",
+        )
+
+
 class BeatmapSerialiser(serializers.ModelSerializer):
     class Meta:
         model = Beatmap
@@ -74,7 +105,32 @@ class BeatmapSerialiser(serializers.ModelSerializer):
         )
 
 
+class PerformanceValueSerialiser(serializers.ModelSerializer):
+    class Meta:
+        model = PerformanceValue
+        fields = (
+            "name",
+            "value",
+        )
+
+
+class PerformanceCalculationSerialiser(serializers.ModelSerializer):
+    performance_values = PerformanceValueSerialiser(many=True)
+    difficulty_calculation = DifficultyCalculationSerialiser()
+
+    class Meta:
+        model = PerformanceCalculation
+        fields = (
+            "calculator_engine",
+            "calculator_version",
+            "performance_values",
+            "difficulty_calculation",
+        )
+
+
 class ScoreSerialiser(serializers.ModelSerializer):
+    performance_calculations = PerformanceCalculationSerialiser(many=True)
+
     class Meta:
         model = Score
         fields = (
@@ -102,6 +158,7 @@ class ScoreSerialiser(serializers.ModelSerializer):
             # relations
             "beatmap",
             "user_stats",
+            "performance_calculations",
             # convenience fields
             "gamemode",
             "accuracy",
