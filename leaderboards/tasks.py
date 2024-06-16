@@ -49,15 +49,16 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     if score.mods != Mods.NONE:
         beatmap_details += f" +{get_mods_string(score.mods)}"
 
-    if score.difficulty_total is not None:
-        beatmap_details += f" **{score.difficulty_total:.2f} stars**"
-    else:
-        beatmap_details += (
-            f" **{score.beatmap.difficulty_total:.2f} stars (without mods)**"
-        )
+    performance_calculation = score.get_default_performance_calculation()
+    difficulty_total = (
+        performance_calculation.difficulty_calculation.get_total_difficulty()
+    )
 
-    # TODO: fix this for nochoke leaderboards. pp will display wrong
-    score_details = f"**{score.performance_total:.0f}pp** ({score.accuracy:.2f}%)"
+    beatmap_details += f" **{difficulty_total:.2f} stars**"
+
+    performance_calculation = score.get_default_performance_calculation()
+    performance_total = performance_calculation.get_total_performance()
+    score_details = f"**{performance_total:.0f}pp** ({score.accuracy:.2f}%)"
     if score.result is not None and score.result & ScoreResult.FULL_COMBO:
         score_details += " FC"
     else:
@@ -72,7 +73,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
             "content": None,
             "embeds": [
                 {
-                    "title": f"New pp record! ({score.performance_total:.0f}pp by {score.user_stats.user.username})",
+                    "title": f"New pp record! ({performance_total:.0f}pp by {score.user_stats.user.username})",
                     "description": f"{leaderboard_link}",
                     "url": f"{leaderboard_link}",
                     "color": 3816140,  # #3A3ACC

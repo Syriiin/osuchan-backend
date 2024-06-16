@@ -78,7 +78,7 @@ class Leaderboard(models.Model):
         CommunityLeaderboardQuerySet
     )()
 
-    def get_pp_record(self) -> typing.Union[Score, None]:
+    def get_pp_record(self) -> float:
         scores = self.get_top_scores()
 
         return scores.aggregate(Max("membership_scores__performance_total"))[

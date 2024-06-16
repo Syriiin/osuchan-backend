@@ -77,7 +77,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
             rank=leaderboard.member_count + 1,
         )
 
-    scores = Score.objects.filter_mutations().filter(
+    scores = Score.objects.filter(
         user_stats__user_id=user_id, user_stats__gamemode=leaderboard.gamemode
     )
 
@@ -87,29 +87,17 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
     if leaderboard.score_filter:
         scores = scores.apply_score_filter(leaderboard.score_filter)
 
-    scores = scores.get_score_set(score_set=leaderboard.score_set)
-
-    def get_performance_total(score: Score, score_set: ScoreSet):
-        if score_set == ScoreSet.NORMAL:
-            return score.performance_total
-        elif score_set == ScoreSet.NEVER_CHOKE:
-            return (
-                score.nochoke_performance_total
-                if score.result & ScoreResult.CHOKE
-                else score.performance_total
-            )
-        elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            return score.nochoke_performance_total
+    scores = scores.get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
 
     membership_scores = [
         MembershipScore(
             membership=membership,
             score=score,
-            performance_total=get_performance_total(
-                score, ScoreSet(leaderboard.score_set)
-            ),
+            performance_total=score.default_performance_total,
         )
         for score in scores
+        # Skip scores missing performance calculation
+        if score.default_performance_total is not None
     ]
 
     MembershipScore.objects.bulk_create(
@@ -137,11 +125,10 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
     if leaderboard.notification_discord_webhook_url != "":
         # Check for new top score
         pp_record = leaderboard.get_pp_record()
-        player_top_score = scores.first()
         if (
             pp_record is not None
-            and player_top_score is not None
-            and player_top_score.performance_total > pp_record
+            and len(membership_scores) > 0
+            and membership_scores[0].performance_total > pp_record
         ):
             # NOTE: need to use a function with default params here so the closure has the correct variables
             def send_notification(

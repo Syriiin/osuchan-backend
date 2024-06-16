@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Type
 
 from django.db import models
-from django.db.models import Case, F, Subquery, When
+from django.db.models import FilteredRelation, Q, Subquery
 
 from common.error_reporter import ErrorReporter
 from common.osu import utils
@@ -100,16 +100,14 @@ class UserStats(models.Model):
         """
         # Fetch all scores currently in database and add to new_scores ensuring no duplicate scores
         scores = (
-            self.scores.filter_mutations()
-            .select_related("beatmap")
+            self.scores.select_related("beatmap")
             .filter(
                 beatmap__status__in=[
                     BeatmapStatus.RANKED,
                     BeatmapStatus.APPROVED,
-                    BeatmapStatus.LOVED,
                 ]
             )
-            .get_score_set()[:100]
+            .get_score_set(self.gamemode)[:100]
         )
 
         if len(scores) == 0:
@@ -117,7 +115,7 @@ class UserStats(models.Model):
 
         # Calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - utils.calculate_pp_total(
-            score.performance_total for score in scores[:100]
+            score.default_performance_total for score in scores[:100]
         )
 
         # Calculate score style
@@ -194,9 +192,9 @@ class Beatmap(models.Model):
     last_updated = models.DateTimeField()
 
     # Difficulty values
-    difficulty_total = models.FloatField()
-    difficulty_calculator_engine = models.CharField(max_length=100)
-    difficulty_calculator_version = models.CharField(max_length=100)
+    difficulty_total = models.FloatField()  # deprecated
+    difficulty_calculator_engine = models.CharField(max_length=100)  # deprecated
+    difficulty_calculator_version = models.CharField(max_length=100)  # deprecated
 
     # Relations
     # db_constraint=False because the creator might be restricted or otherwise not in the database
@@ -271,6 +269,13 @@ class Beatmap(models.Model):
             error_reporter = ErrorReporter()
             error_reporter.report_error(e)
 
+    def get_default_difficulty_calculation(self):
+        return DifficultyCalculation.objects.get(
+            beatmap=self,
+            mods=Mods.NONE,
+            calculator_engine=DifficultyCalculator.engine(),
+        )
+
     def __str__(self):
         return "{} - {} [{}] (by {})".format(
             self.artist, self.title, self.difficulty_name, self.creator_name
@@ -291,6 +296,9 @@ class DifficultyCalculation(models.Model):
     mods = models.IntegerField()
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
+
+    def get_total_difficulty(self):
+        return self.difficulty_values.get(name="total").value
 
     def __str__(self):
         if self.mods == 0:
@@ -410,44 +418,56 @@ class ScoreQuerySet(models.QuerySet):
 
         return scores
 
-    def annotate_sorting_pp(self, score_set=ScoreSet.NORMAL):
-        if score_set == ScoreSet.NEVER_CHOKE:
-            # if choke use nochoke_performance_total, else use performance_total
-            scores = self.annotate(
-                sorting_pp=Case(
-                    When(
-                        result=F("result").bitand(ScoreResult.CHOKE),
-                        then=F("nochoke_performance_total"),
-                    ),
-                    default=F("performance_total"),
-                    output_field=models.FloatField(),
-                )
-            )
-        elif score_set == ScoreSet.ALWAYS_FULL_COMBO:
-            scores = self.annotate(sorting_pp=F("nochoke_performance_total"))
-        else:
-            scores = self.annotate(sorting_pp=F("performance_total"))
-
-        return scores
-
-    def get_score_set(self, score_set=ScoreSet.NORMAL):
+    def get_score_set(self, gamemode: Gamemode, score_set: ScoreSet = ScoreSet.NORMAL):
         """
         Queryset that returns distinct on beatmap_id prioritising highest pp given the score_set.
         Remember to use at end of query to not unintentionally filter out scores before primary filtering.
         """
-        scores = self.annotate_sorting_pp(score_set)
+        gamemode_scores = self.filter(gamemode=gamemode)
+        if score_set == ScoreSet.NORMAL:
+            scores = gamemode_scores.filter_mutations([ScoreMutation.NONE])
+        elif score_set == ScoreSet.NEVER_CHOKE:
+            scores = gamemode_scores.filter_mutations(
+                [ScoreMutation.NONE, ScoreMutation.NO_CHOKE]
+            )
+        else:
+            raise ValueError(f"Invalid score set: {score_set}")
 
-        return scores.filter(
+        difficulty_calculator_class = get_default_difficulty_calculator_class(gamemode)
+
+        annotated_scores = (
+            scores.annotate(
+                default_performance_calculation=FilteredRelation(
+                    "performance_calculations",
+                    condition=Q(
+                        performance_calculations__calculator_engine=difficulty_calculator_class.engine()
+                    ),
+                )
+            )
+            .annotate(
+                default_performance_value=FilteredRelation(
+                    "default_performance_calculation__performance_values",
+                    condition=Q(
+                        default_performance_calculation__performance_values__name="total"
+                    ),
+                )
+            )
+            .annotate(
+                default_performance_total=models.F("default_performance_value__value")
+            )
+        )
+
+        return annotated_scores.filter(
             id__in=Subquery(
-                scores.all()
+                annotated_scores.all()
                 .order_by(
                     "beatmap_id",  # ordering first by beatmap_id is required for distinct
-                    "-sorting_pp",  # required to make sure we dont distinct out the wrong scores
+                    "-default_performance_total",  # required to make sure we dont distinct out the wrong scores
                 )
                 .distinct("beatmap_id")
                 .values("id")
             )
-        ).order_by("-sorting_pp", "date")
+        ).order_by("-default_performance_total", "date")
 
 
 class Score(models.Model):
@@ -500,9 +520,9 @@ class Score(models.Model):
     # null=True because oppai only supports standard, and rosu-pp doesnt support converts
     performance_total = models.FloatField()
     nochoke_performance_total = models.FloatField(null=True, blank=True)
-    difficulty_total = models.FloatField(null=True, blank=True)
-    difficulty_calculator_engine = models.CharField(max_length=100)
-    difficulty_calculator_version = models.CharField(max_length=100)
+    difficulty_total = models.FloatField(null=True, blank=True)  # deprecated
+    difficulty_calculator_engine = models.CharField(max_length=100)  # deprecated
+    difficulty_calculator_version = models.CharField(max_length=100)  # deprecated
 
     # osu!chan calculated data
     # null=True because result types are only supported by standard at the moment
@@ -684,6 +704,12 @@ class Score(models.Model):
             error_reporter = ErrorReporter()
             error_reporter.report_error(e)
 
+    def get_default_performance_calculation(self):
+        return PerformanceCalculation.objects.get(
+            score=self,
+            calculator_engine=DifficultyCalculator.engine(),
+        )
+
     def __str__(self):
         return f"{Gamemode(self.gamemode).name} {self.id}"
 
@@ -740,6 +766,9 @@ class PerformanceCalculation(models.Model):
 
     calculator_engine = models.CharField(max_length=50)
     calculator_version = models.CharField(max_length=50)
+
+    def get_total_performance(self):
+        return self.performance_values.get(name="total").value
 
     def __str__(self):
         return f"{self.score_id}: {self.calculator_engine} ({self.calculator_version})"

@@ -18,7 +18,7 @@ class ScoreResult(IntEnum):
 class ScoreSet(IntEnum):
     NORMAL = 0
     NEVER_CHOKE = 1
-    ALWAYS_FULL_COMBO = 2
+    ALWAYS_FULL_COMBO = 2  # deprecated
 
 
 class AllowedBeatmapStatus(IntEnum):

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+COMMIT_MESSAGES=$(git log --oneline)
+
+if echo "$COMMIT_MESSAGES" | grep -q "fixup!"; then
+    echo "Found fixup commits:"
+    echo "$COMMIT_MESSAGES" | grep "fixup!"
+else
+    echo "No fixup commits found."
+fi

@@ -2,8 +2,11 @@ from django.core.management.base import BaseCommand
 from django.db.models import F, FilteredRelation, Q, QuerySet
 from tqdm import tqdm
 
+from common.osu.difficultycalculator import get_difficulty_calculators_for_gamemode
+from common.osu.enums import Gamemode
 from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import Score
+from profiles.services import update_performance_calculations
 
 
 class Command(BaseCommand):
@@ -18,16 +21,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         fix = options["fix"]
-        self.check_nochoke_mutations(fix)
+        gamemode = Gamemode.STANDARD
+        self.check_nochoke_mutations(gamemode, fix)
 
-    def check_nochoke_mutations(self, create_missing_mutations: bool):
+    def check_nochoke_mutations(
+        self, gamemode: Gamemode, create_missing_mutations: bool
+    ):
         choke_scores = Score.objects.filter_mutations().filter(
             result=F("result").bitand(ScoreResult.CHOKE)
         )
 
         choke_scores_missing_nochoke_mutation = (
             Score.objects.filter_mutations()
-            .filter(result=F("result").bitand(ScoreResult.CHOKE))
+            .filter(gamemode=gamemode, result=F("result").bitand(ScoreResult.CHOKE))
             .annotate(
                 nochoke_mutation=FilteredRelation(
                     "mutations",
@@ -54,7 +60,9 @@ class Command(BaseCommand):
             )
         )
         if create_missing_mutations:
-            self.create_missing_nochoke_mutations(choke_scores_missing_nochoke_mutation)
+            self.create_missing_nochoke_mutations(
+                gamemode, choke_scores_missing_nochoke_mutation
+            )
             self.stdout.write(
                 self.style.SUCCESS(
                     f"Created {missing_count} missing nochoke mutations for choke scores"
@@ -67,18 +75,26 @@ class Command(BaseCommand):
                 )
             )
 
-    def create_missing_nochoke_mutations(self, choke_scores: QuerySet[Score]):
+    def create_missing_nochoke_mutations(
+        self, gamemode: Gamemode, choke_scores: QuerySet[Score]
+    ):
         with tqdm(
             desc="No-choke", total=choke_scores.count(), smoothing=0
         ) as progress_bar:
             while len(page := choke_scores.select_related("beatmap")[:2000]) > 0:
-                self.create_missing_nochoke_mutations_page(page, progress_bar)
+                self.create_missing_nochoke_mutations_page(gamemode, page)
+                progress_bar.update(len(page))
 
     def create_missing_nochoke_mutations_page(
-        self, choke_scores: QuerySet[Score], progress_bar: tqdm
+        self, gamemode: Gamemode, choke_scores: QuerySet[Score]
     ):
         scores_to_create = []
         for score in choke_scores:
             scores_to_create.append(score.get_nochoke_mutation())
-            progress_bar.update(1)
-        Score.objects.bulk_create(scores_to_create)
+        created_scores = Score.objects.bulk_create(scores_to_create)
+
+        for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+            gamemode
+        ):
+            with difficulty_calculator_class() as difficulty_calculator:
+                update_performance_calculations(created_scores, difficulty_calculator)

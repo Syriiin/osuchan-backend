@@ -141,10 +141,9 @@ class UserScoreList(APIView):
         scores = (
             Score.objects.select_related("beatmap")
             .non_restricted()
-            .filter_mutations()
             .filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode)
             .apply_score_filter(score_filter)
-            .get_score_set(score_set)
+            .get_score_set(gamemode, score_set)
         )
 
         serialiser = UserScoreSerialiser(scores[:100], many=True)
