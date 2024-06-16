@@ -131,6 +131,7 @@ class ScoreAdmin(admin.ModelAdmin):
     raw_id_fields = (
         "beatmap",
         "user_stats",
+        "original_score",
     )
 
     list_display = [
@@ -160,6 +161,8 @@ class ScoreAdmin(admin.ModelAdmin):
 
     @admin.display(description="Result")
     def result_display(self, obj: Score):
+        if obj.result == None:
+            return None
         return ScoreResult(obj.result).name
 
     @admin.display(description="Mutation")
