@@ -70,6 +70,7 @@ class DifficultyCalculationSerialiser(serializers.ModelSerializer):
         fields = (
             "calculator_engine",
             "calculator_version",
+            "mods",
             "difficulty_values",
         )
 
