@@ -144,6 +144,10 @@ class UserScoreList(APIView):
             .filter(user_stats__user_id=user_id, user_stats__gamemode=gamemode)
             .apply_score_filter(score_filter)
             .get_score_set(gamemode, score_set)
+            .prefetch_related(
+                "performance_calculations__performance_values",
+                "performance_calculations__difficulty_calculation__difficulty_values",
+            )
         )
 
         serialiser = UserScoreSerialiser(scores[:100], many=True)

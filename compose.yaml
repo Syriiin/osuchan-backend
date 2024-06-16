@@ -73,6 +73,8 @@ services:
     env_file:
       - config/active/django.env
       - config/active/flower.env
+    volumes:
+      - beatmaps:/beatmaps
     depends_on:
       - worker
 
@@ -81,6 +83,8 @@ services:
     command: celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
     env_file:
       - config/active/django.env
+    volumes:
+      - beatmaps:/beatmaps
     depends_on:
       - queue
 
