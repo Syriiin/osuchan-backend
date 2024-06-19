@@ -238,7 +238,16 @@ class Command(BaseCommand):
 
             with tqdm(desc="Beatmaps", total=beatmaps.count(), smoothing=0) as pbar:
                 for page in paginator:
-                    update_difficulty_calculations(page, difficulty_calculator)
+                    try:
+                        update_difficulty_calculations(page, difficulty_calculator)
+                    except CalculationException as e:
+                        ErrorReporter().report_error(e)
+                        pbar.write(
+                            self.style.ERROR(
+                                f"Error calculating difficulty values for beatmaps: {e}"
+                            )
+                        )
+
                     pbar.update(len(page))
         else:
             beatmaps_to_recalculate = beatmaps.annotate(
@@ -272,14 +281,19 @@ class Command(BaseCommand):
                 while len(page := beatmaps_to_recalculate[:2000]) > 0:
                     try:
                         update_difficulty_calculations(page, difficulty_calculator)
-                        pbar.update(len(page))
                     except CalculationException as e:
                         ErrorReporter().report_error(e)
                         pbar.write(
                             self.style.ERROR(
-                                f"Error calculating difficulty values for beatmaps: {e}"
+                                f"Error calculating difficulty values for beatmaps: {e}\n"
+                                f"Skipping {len(page)} beatmaps in batch"
                             )
                         )
+                        beatmaps_to_recalculate = beatmaps_to_recalculate.exclude(
+                            pk__in=[beatmap.pk for beatmap in page]
+                        )
+
+                    pbar.update(len(page))
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -300,7 +314,16 @@ class Command(BaseCommand):
 
             with tqdm(desc="Scores", total=scores.count(), smoothing=0) as pbar:
                 for page in paginator:
-                    update_performance_calculations(page, difficulty_calculator)
+                    try:
+                        update_performance_calculations(page, difficulty_calculator)
+                    except CalculationException as e:
+                        ErrorReporter().report_error(e)
+                        pbar.write(
+                            self.style.ERROR(
+                                f"Error calculating performance values: {e}"
+                            )
+                        )
+
                     pbar.update(len(page))
         else:
             scores_to_recalculate = scores.annotate(
@@ -339,14 +362,19 @@ class Command(BaseCommand):
                             page,
                             difficulty_calculator,
                         )
-                        pbar.update(len(page))
                     except CalculationException as e:
                         ErrorReporter().report_error(e)
                         pbar.write(
                             self.style.ERROR(
-                                f"Error calculating performance values: {e}"
+                                f"Error calculating performance values: {e}\n"
+                                f"Skipping {len(page)} scores in batch"
                             )
                         )
+                        scores_to_recalculate = scores_to_recalculate.exclude(
+                            pk__in=[score.pk for score in page]
+                        )
+
+                    pbar.update(len(page))
 
         self.stdout.write(
             self.style.SUCCESS(
