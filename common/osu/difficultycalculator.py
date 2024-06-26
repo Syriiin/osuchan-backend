@@ -11,7 +11,7 @@ from django.utils.module_loading import import_string
 from oppaipy.oppaipy import OppaiError
 
 from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import Gamemode
 
 OPPAIPY_VERSION = metadata.version("oppaipy")
 ROSUPP_VERSION = metadata.version("rosu_pp_py")

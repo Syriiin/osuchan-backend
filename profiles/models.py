@@ -270,10 +270,13 @@ class Beatmap(models.Model):
             error_reporter.report_error(e)
 
     def get_default_difficulty_calculation(self):
+        difficulty_calculator = get_default_difficulty_calculator_class(
+            Gamemode(self.gamemode)
+        )
         return DifficultyCalculation.objects.get(
             beatmap=self,
             mods=Mods.NONE,
-            calculator_engine=DifficultyCalculator.engine(),
+            calculator_engine=difficulty_calculator.engine(),
         )
 
     def __str__(self):
@@ -571,6 +574,7 @@ class Score(models.Model):
             except DifficultyCalculatorException as e:
                 error_reporter = ErrorReporter()
                 error_reporter.report_error(e)
+                self.nochoke_performance_total = 0
 
     def get_nochoke_mutation(self):
         """
@@ -635,8 +639,8 @@ class Score(models.Model):
                 score.rank = "S"
 
         # Calculate new performance values
-        try:
-            with get_default_difficulty_calculator_class(gamemode)() as calc:
+        with get_default_difficulty_calculator_class(gamemode)() as calc:
+            try:
                 calculation = calc.calculate_score(
                     DifficultyCalculatorScore(
                         mods=score.mods,
@@ -653,21 +657,21 @@ class Score(models.Model):
                 score.difficulty_total = calculation.difficulty_values["total"]
                 score.difficulty_calculator_engine = calc.engine()
                 score.difficulty_calculator_version = calc.version()
-        except DifficultyCalculatorException as e:
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
-            score.performance_total = 0
-            score.difficulty_total = 0
-            score.difficulty_calculator_engine = "error"
-            score.difficulty_calculator_version = "error"
+            except DifficultyCalculatorException as e:
+                error_reporter = ErrorReporter()
+                error_reporter.report_error(e)
+                score.performance_total = 0
+                score.difficulty_total = 0
+                score.difficulty_calculator_engine = calc.engine()
+                score.difficulty_calculator_version = calc.version()
 
         return score
 
     def update_performance_values(
         self, difficulty_calculator: Type[AbstractDifficultyCalculator]
     ):
-        try:
-            with difficulty_calculator() as calculator:
+        with difficulty_calculator() as calculator:
+            try:
                 calculation = calculator.calculate_score(
                     DifficultyCalculatorScore(
                         beatmap_id=self.beatmap_id,
@@ -694,20 +698,23 @@ class Score(models.Model):
                 self.nochoke_performance_total = nochoke_calculation.performance_values[
                     "total"
                 ]
-        except DifficultyCalculatorException as e:
-            # TODO: handle this properly
-            self.nochoke_performance_total = 0
-            self.performance_total = 0
-            self.difficulty_total = 0
-            self.difficulty_calculator_engine = difficulty_calculator.engine()
-            self.difficulty_calculator_version = difficulty_calculator.version()
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
+            except DifficultyCalculatorException as e:
+                # TODO: handle this properly
+                self.nochoke_performance_total = 0
+                self.performance_total = 0
+                self.difficulty_total = 0
+                self.difficulty_calculator_engine = calculator.engine()
+                self.difficulty_calculator_version = calculator.version()
+                error_reporter = ErrorReporter()
+                error_reporter.report_error(e)
 
     def get_default_performance_calculation(self):
+        difficulty_calculator = get_default_difficulty_calculator_class(
+            Gamemode(self.gamemode)
+        )
         return PerformanceCalculation.objects.get(
             score=self,
-            calculator_engine=DifficultyCalculator.engine(),
+            calculator_engine=difficulty_calculator.engine(),
         )
 
     def __str__(self):
