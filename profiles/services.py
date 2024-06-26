@@ -668,7 +668,20 @@ def calculate_difficulty_values(
         for difficulty_calculation in difficulty_calculations
     ]
 
-    results = difficulty_calculator.calculate_score_batch(calc_scores)
+    results = []
+    try:
+        results.extend(difficulty_calculator.calculate_score_batch(calc_scores))
+    except DifficultyCalculatorException as e:
+        error_reporter = ErrorReporter()
+        error_reporter.report_error(e)
+
+        # Batch failed, so let's try one by one to get as many values as possible
+        for calc_score in calc_scores:
+            try:
+                results.append(difficulty_calculator.calculate_score(calc_score))
+            except DifficultyCalculatorException as e:
+                error_reporter.report_error(e)
+                results.append(None)
 
     values = [
         [
@@ -680,6 +693,7 @@ def calculate_difficulty_values(
             for name, value in result.difficulty_values.items()
         ]
         for difficulty_calculation, result in zip(difficulty_calculations, results)
+        if result is not None
     ]
 
     return values
@@ -706,7 +720,20 @@ def calculate_performance_values(
         for performance_calculation in performance_calculations
     ]
 
-    results = difficulty_calculator.calculate_score_batch(calc_scores)
+    results = []
+    try:
+        results.extend(difficulty_calculator.calculate_score_batch(calc_scores))
+    except DifficultyCalculatorException as e:
+        error_reporter = ErrorReporter()
+        error_reporter.report_error(e)
+
+        # Batch failed, so let's try one by one to get as many values as possible
+        for calc_score in calc_scores:
+            try:
+                results.append(difficulty_calculator.calculate_score(calc_score))
+            except DifficultyCalculatorException as e:
+                error_reporter.report_error(e)
+                results.append(None)
 
     values = [
         [
@@ -715,9 +742,10 @@ def calculate_performance_values(
                 name=name,
                 value=value,
             )
+            for name, value in result.performance_values.items()
         ]
         for performance_calculation, result in zip(performance_calculations, results)
-        for name, value in result.performance_values.items()
+        if result is not None
     ]
 
     return values
