@@ -270,15 +270,22 @@ def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
         with get_default_difficulty_calculator_class(
             Gamemode(beatmap.gamemode)
         )() as calc:
-            calculation = calc.calculate_score(
-                DifficultyCalculatorScore(
-                    mods=Mods.NONE.value,
-                    beatmap_id=str(beatmap.id),
+            try:
+                calculation = calc.calculate_score(
+                    DifficultyCalculatorScore(
+                        mods=Mods.NONE.value,
+                        beatmap_id=str(beatmap.id),
+                    )
                 )
-            )
-            beatmap.difficulty_total = calculation.difficulty_values["total"]
-            beatmap.difficulty_calculator_engine = calc.engine()
-            beatmap.difficulty_calculator_version = calc.version()
+                beatmap.difficulty_total = calculation.difficulty_values["total"]
+                beatmap.difficulty_calculator_engine = calc.engine()
+                beatmap.difficulty_calculator_version = calc.version()
+            except DifficultyCalculatorException as e:
+                error_reporter = ErrorReporter()
+                error_reporter.report_error(e)
+                beatmap.difficulty_total = 0
+                beatmap.difficulty_calculator_engine = calc.engine()
+                beatmap.difficulty_calculator_version = calc.engine()
 
         beatmaps.append(beatmap)
 
@@ -429,8 +436,8 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
         score.user_stats = user_stats
 
         # Calculate performance total
-        try:
-            with get_default_difficulty_calculator_class(gamemode)() as calc:
+        with get_default_difficulty_calculator_class(gamemode)() as calc:
+            try:
                 calculation = calc.calculate_score(
                     DifficultyCalculatorScore(
                         mods=score.mods,
@@ -447,13 +454,13 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
                 score.difficulty_total = calculation.difficulty_values["total"]
                 score.difficulty_calculator_engine = calc.engine()
                 score.difficulty_calculator_version = calc.version()
-        except DifficultyCalculatorException as e:
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
-            score.performance_total = 0
-            score.difficulty_total = 0
-            score.difficulty_calculator_engine = "error"
-            score.difficulty_calculator_version = "error"
+            except DifficultyCalculatorException as e:
+                error_reporter = ErrorReporter()
+                error_reporter.report_error(e)
+                score.performance_total = 0
+                score.difficulty_total = 0
+                score.difficulty_calculator_engine = calc.engine()
+                score.difficulty_calculator_version = calc.engine()
 
         # Update convenience fields
         score.gamemode = user_stats.gamemode
