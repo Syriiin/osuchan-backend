@@ -191,11 +191,6 @@ class Beatmap(models.Model):
     approval_date = models.DateTimeField()
     last_updated = models.DateTimeField()
 
-    # Difficulty values
-    difficulty_total = models.FloatField()  # deprecated
-    difficulty_calculator_engine = models.CharField(max_length=100)  # deprecated
-    difficulty_calculator_version = models.CharField(max_length=100)  # deprecated
-
     # Relations
     # db_constraint=False because the creator might be restricted or otherwise not in the database
     # not using nullable, because we still want to have the creator_id field
@@ -248,26 +243,6 @@ class Beatmap(models.Model):
         beatmap.creator_id = int(beatmap_data["creator_id"])
 
         return beatmap
-
-    def update_difficulty_values(
-        self, difficulty_calculator: Type[AbstractDifficultyCalculator]
-    ):
-        try:
-            with difficulty_calculator() as calculator:
-                calculation = calculator.calculate_score(
-                    DifficultyCalculatorScore(beatmap_id=self.id)
-                )
-
-                self.difficulty_total = calculation.difficulty_values["total"]
-                self.difficulty_calculator_engine = difficulty_calculator.engine()
-                self.difficulty_calculator_version = difficulty_calculator.version()
-        except DifficultyCalculatorException as e:
-            # TODO: handle this properly
-            self.difficulty_total = 0
-            self.difficulty_calculator_engine = difficulty_calculator.engine()
-            self.difficulty_calculator_version = difficulty_calculator.version()
-            error_reporter = ErrorReporter()
-            error_reporter.report_error(e)
 
     def get_default_difficulty_calculation(self):
         difficulty_calculator = get_default_difficulty_calculator_class(
@@ -519,14 +494,6 @@ class Score(models.Model):
     approach_rate = models.FloatField()
     overall_difficulty = models.FloatField()
 
-    # Difficulty values
-    # null=True because oppai only supports standard, and rosu-pp doesnt support converts
-    performance_total = models.FloatField()
-    nochoke_performance_total = models.FloatField(null=True, blank=True)
-    difficulty_total = models.FloatField(null=True, blank=True)  # deprecated
-    difficulty_calculator_engine = models.CharField(max_length=100)  # deprecated
-    difficulty_calculator_version = models.CharField(max_length=100)  # deprecated
-
     # osu!chan calculated data
     # null=True because result types are only supported by standard at the moment
     result = models.IntegerField(null=True, blank=True)
@@ -557,24 +524,6 @@ class Score(models.Model):
         if self.user_stats.gamemode == Gamemode.STANDARD:
             # determine score result
             self.__process_score_result()
-            try:
-                # only need to pass beatmap_id, 100s, 50s, and mods since all other options default to best possible
-                with get_difficulty_calculator_class("rosupp")() as calc:
-                    nochoke_calculation = calc.calculate_score(
-                        DifficultyCalculatorScore(
-                            beatmap_id=self.beatmap_id,
-                            mods=self.mods,
-                            count_100=self.count_100,
-                            count_50=self.count_50,
-                        )
-                    )
-                    self.nochoke_performance_total = (
-                        nochoke_calculation.performance_values["total"]
-                    )
-            except DifficultyCalculatorException as e:
-                error_reporter = ErrorReporter()
-                error_reporter.report_error(e)
-                self.nochoke_performance_total = 0
 
     def get_nochoke_mutation(self):
         """
@@ -638,75 +587,7 @@ class Score(models.Model):
             else:
                 score.rank = "S"
 
-        # Calculate new performance values
-        with get_default_difficulty_calculator_class(gamemode)() as calc:
-            try:
-                calculation = calc.calculate_score(
-                    DifficultyCalculatorScore(
-                        mods=score.mods,
-                        beatmap_id=str(score.beatmap_id),
-                        count_katu=score.count_katu,
-                        count_300=score.count_300,
-                        count_100=score.count_100,
-                        count_50=score.count_50,
-                        count_miss=score.count_miss,
-                        combo=score.best_combo,
-                    )
-                )
-                score.performance_total = calculation.performance_values["total"]
-                score.difficulty_total = calculation.difficulty_values["total"]
-                score.difficulty_calculator_engine = calc.engine()
-                score.difficulty_calculator_version = calc.version()
-            except DifficultyCalculatorException as e:
-                error_reporter = ErrorReporter()
-                error_reporter.report_error(e)
-                score.performance_total = 0
-                score.difficulty_total = 0
-                score.difficulty_calculator_engine = calc.engine()
-                score.difficulty_calculator_version = calc.version()
-
         return score
-
-    def update_performance_values(
-        self, difficulty_calculator: Type[AbstractDifficultyCalculator]
-    ):
-        with difficulty_calculator() as calculator:
-            try:
-                calculation = calculator.calculate_score(
-                    DifficultyCalculatorScore(
-                        beatmap_id=self.beatmap_id,
-                        mods=self.mods,
-                        count_100=self.count_100,
-                        count_50=self.count_50,
-                        count_miss=self.count_miss,
-                        combo=self.best_combo,
-                    )
-                )
-                self.performance_total = calculation.performance_values["total"]
-                self.difficulty_total = calculation.difficulty_values["total"]
-                self.difficulty_calculator_engine = calculator.engine()
-                self.difficulty_calculator_version = calculator.version()
-
-                nochoke_calculation = calculator.calculate_score(
-                    DifficultyCalculatorScore(
-                        beatmap_id=self.beatmap_id,
-                        mods=self.mods,
-                        count_100=self.count_100,
-                        count_50=self.count_50,
-                    )
-                )
-                self.nochoke_performance_total = nochoke_calculation.performance_values[
-                    "total"
-                ]
-            except DifficultyCalculatorException as e:
-                # TODO: handle this properly
-                self.nochoke_performance_total = 0
-                self.performance_total = 0
-                self.difficulty_total = 0
-                self.difficulty_calculator_engine = calculator.engine()
-                self.difficulty_calculator_version = calculator.version()
-                error_reporter = ErrorReporter()
-                error_reporter.report_error(e)
 
     def get_default_performance_calculation(self):
         difficulty_calculator = get_default_difficulty_calculator_class(
@@ -727,8 +608,6 @@ class Score(models.Model):
                 fields=["user_stats_id", "date", "mutation"], name="unique_score"
             )
         ]
-
-        indexes = [models.Index(fields=["performance_total"])]
 
 
 class ScoreFilter(models.Model):

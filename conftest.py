@@ -99,9 +99,6 @@ def beatmap():
         submission_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
         approval_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
         last_updated=datetime(2023, 1, 1, tzinfo=timezone.utc),
-        difficulty_total=4.4574,
-        difficulty_calculator_engine="test diffcalc engine",
-        difficulty_calculator_version="test diffcalc version",
         creator_id=1,
     )
 
@@ -130,11 +127,6 @@ def score(user_stats: UserStats, beatmap: Beatmap):
         circle_size=4,
         approach_rate=9.7,
         overall_difficulty=8.4,
-        performance_total=395.282,
-        nochoke_performance_total=395.282,
-        difficulty_total=6.26,
-        difficulty_calculator_engine="test diffcalc engine",
-        difficulty_calculator_version="test diffcalc version",
         result=ScoreResult.NO_BREAK,
         mutation=ScoreMutation.NONE,
     )

@@ -99,8 +99,6 @@ class BeatmapSerialiser(serializers.ModelSerializer):
             "submission_date",
             "approval_date",
             "last_updated",
-            # difficulty
-            "difficulty_total",
             # relations
             "creator",
         )
@@ -152,10 +150,6 @@ class ScoreSerialiser(serializers.ModelSerializer):
             # osuchan data
             "result",
             "mutation",
-            # difficulty
-            "performance_total",
-            "nochoke_performance_total",
-            "difficulty_total",
             # relations
             "beatmap",
             "user_stats",
