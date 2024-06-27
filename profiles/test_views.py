@@ -7,7 +7,6 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from common.osu.enums import Gamemode
 from leaderboards.services import create_membership
-from profiles.services import refresh_user_from_api
 from profiles.views import (
     BeatmapDetail,
     UserMembershipList,
@@ -64,18 +63,6 @@ class TestUserScoreList:
 
         assert response.status_code == HTTPStatus.OK
         assert len(response.data) == 4
-        assert response.data[0]["difficulty_total"] == 6.264344677869616
-        assert response.data[0]["performance_total"] == 395.2821554526868
-        assert response.data[0]["nochoke_performance_total"] == 395.39084780089814
-        assert response.data[1]["difficulty_total"] == 6.679077669651381
-        assert response.data[1]["performance_total"] == 381.60801992603007
-        assert response.data[1]["nochoke_performance_total"] == 381.60801992603007
-        assert response.data[2]["difficulty_total"] == 6.28551550473302
-        assert response.data[2]["performance_total"] == 371.203519484766
-        assert response.data[2]["nochoke_performance_total"] == 371.203519484766
-        assert response.data[3]["difficulty_total"] == 5.5699192504372625
-        assert response.data[3]["performance_total"] == 143.53942289330428
-        assert response.data[3]["nochoke_performance_total"] == 171.45912084552145
 
     def test_post(self, arf: APIRequestFactory, view, stub_user_stats, user):
         kwargs = {"user_id": 5701575, "gamemode": Gamemode.STANDARD}
