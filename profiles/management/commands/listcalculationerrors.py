@@ -38,7 +38,7 @@ class Command(BaseCommand):
             value_count=Count("difficulty_values")
         ).filter(value_count=0)
 
-        if errored_difficulty_calculations.count() == 0:
+        if len(errored_difficulty_calculations) == 0:
             self.stdout.write(
                 self.style.SUCCESS(f"No difficulty calculation errors found.")
             )
@@ -46,7 +46,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.ERROR(
-                f"Difficulty calculations errors: {errored_difficulty_calculations.count()}"
+                f"Difficulty calculations errors: {len(errored_difficulty_calculations)}"
             )
         )
 
@@ -69,7 +69,7 @@ class Command(BaseCommand):
             value_count=Count("performance_values")
         ).filter(value_count=0)
 
-        if errored_performance_calculations.count() == 0:
+        if len(errored_performance_calculations) == 0:
             self.stdout.write(
                 self.style.SUCCESS(f"No performance calculation errors found.")
             )
@@ -77,7 +77,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.ERROR(
-                f"Performance calculations errors: {errored_performance_calculations.count()}"
+                f"Performance calculations errors: {len(errored_performance_calculations)}"
             )
         )
 
