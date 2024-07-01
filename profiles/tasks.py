@@ -86,7 +86,7 @@ def update_loved_beatmaps():
             logger.warning(f"Beatmap {beatmap.id} is not loved")
             return None
 
-        updated_beatmap = refresh_beatmaps_from_api([beatmap.id])
+        updated_beatmap = refresh_beatmaps_from_api([beatmap.id])[0]
         if updated_beatmap is None:
             logger.info(
                 f"Beatmap {beatmap.id} appears to have been unloved. Deleting..."
