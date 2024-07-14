@@ -65,6 +65,9 @@ class Leaderboard(models.Model):
     members = models.ManyToManyField(
         OsuUser, through="Membership", related_name="leaderboards"
     )
+    scores = models.ManyToManyField(
+        Score, through="MembershipScore", related_name="leaderboards"
+    )
     invitees = models.ManyToManyField(
         OsuUser, through="Invite", related_name="invited_leaderboards"
     )
@@ -220,8 +223,18 @@ class MembershipScore(models.Model):
 
     performance_total = models.FloatField()
 
+    # denormalised foreign key purely for performance
+    # filtering via membership__leaderboard_id and ordering by performance_total
+    #   is very slow in some cases (few scores / low pp scores) as the index need to scan much more
+    leaderboard = models.ForeignKey(
+        Leaderboard, on_delete=models.CASCADE, related_name="+"
+    )
+
     class Meta:
-        indexes = [models.Index(fields=["performance_total"])]
+        indexes = [
+            models.Index(fields=["performance_total"]),
+            models.Index(fields=["leaderboard", "performance_total"]),
+        ]
 
 
 class Invite(models.Model):

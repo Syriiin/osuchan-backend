@@ -92,6 +92,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
     membership_scores = [
         MembershipScore(
             membership=membership,
+            leaderboard=leaderboard,
             score=score,
             performance_total=score.default_performance_total,
         )
