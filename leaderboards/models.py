@@ -89,14 +89,9 @@ class Leaderboard(models.Model):
         ]
 
     def get_top_scores(self, limit=5):
-        scores = (
-            Score.objects.non_restricted()
-            .filter(membership__leaderboard_id=self.id)
-            .order_by("-membership_scores__performance_total", "date")
-            .select_related("user_stats", "user_stats__user", "beatmap")
-        )
-
-        return scores[:limit]
+        return self.scores.order_by(
+            "-membership_scores__performance_total", "date"
+        ).select_related("user_stats", "user_stats__user", "beatmap")[:limit]
 
     def get_top_membership(self):
         if self.access_type == LeaderboardAccessType.GLOBAL:
