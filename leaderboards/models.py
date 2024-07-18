@@ -65,6 +65,9 @@ class Leaderboard(models.Model):
     members = models.ManyToManyField(
         OsuUser, through="Membership", related_name="leaderboards"
     )
+    scores = models.ManyToManyField(
+        Score, through="MembershipScore", related_name="leaderboards"
+    )
     invitees = models.ManyToManyField(
         OsuUser, through="Invite", related_name="invited_leaderboards"
     )
@@ -86,14 +89,9 @@ class Leaderboard(models.Model):
         ]
 
     def get_top_scores(self, limit=5):
-        scores = (
-            Score.objects.non_restricted()
-            .filter(membership__leaderboard_id=self.id)
-            .order_by("-membership_scores__performance_total", "date")
-            .select_related("user_stats", "user_stats__user", "beatmap")
-        )
-
-        return scores[:limit]
+        return self.scores.order_by(
+            "-membership_scores__performance_total", "date"
+        ).select_related("user_stats", "user_stats__user", "beatmap")[:limit]
 
     def get_top_membership(self):
         if self.access_type == LeaderboardAccessType.GLOBAL:
@@ -140,12 +138,12 @@ class CommunityMembershipManager(models.Manager):
         )
 
 
-class GlobalMembershipQuerySet(models.QuerySet):
+class MembershipQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user__disabled=False)
 
 
-class CommunityMembershipQuerySet(GlobalMembershipQuerySet):
+class CommunityMembershipQuerySet(MembershipQuerySet):
     def visible_to(self, user_id):
         # return memberships of leaderboards that are not private or that the user is a member/invitee of
         if user_id is None:
@@ -183,10 +181,8 @@ class Membership(models.Model):
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
 
-    objects = models.Manager()
-    global_memberships = GlobalMembershipManager.from_queryset(
-        GlobalMembershipQuerySet
-    )()
+    objects = models.Manager.from_queryset(MembershipQuerySet)()
+    global_memberships = GlobalMembershipManager.from_queryset(MembershipQuerySet)()
     community_memberships = CommunityMembershipManager.from_queryset(
         CommunityMembershipQuerySet
     )()
@@ -220,8 +216,18 @@ class MembershipScore(models.Model):
 
     performance_total = models.FloatField()
 
+    # denormalised foreign key purely for performance
+    # filtering via membership__leaderboard_id and ordering by performance_total
+    #   is very slow in some cases (few scores / low pp scores) as the index need to scan much more
+    leaderboard = models.ForeignKey(
+        Leaderboard, on_delete=models.CASCADE, related_name="+"
+    )
+
     class Meta:
-        indexes = [models.Index(fields=["performance_total"])]
+        indexes = [
+            models.Index(fields=["performance_total"]),
+            models.Index(fields=["leaderboard", "performance_total"]),
+        ]
 
 
 class Invite(models.Model):

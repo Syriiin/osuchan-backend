@@ -76,7 +76,7 @@ def refresh_user_from_api(
         - timedelta(seconds=cooldown_seconds)
     ):
         # User was last updated less than 5 minutes ago, so just return it
-        return user_stats
+        return user_stats, False
 
     osu_api_v1 = OsuApiV1()
 
@@ -98,7 +98,7 @@ def refresh_user_from_api(
             except OsuUser.DoesNotExist:
                 # Doesnt exist (or was restricted before osuchan ever saw them)
                 pass
-            return None
+            return None, False
         else:
             # User either doesnt exist, is restricted, or name changed
             try:
@@ -110,10 +110,10 @@ def refresh_user_from_api(
                     # Restricted
                     osu_user.disabled = True
                     osu_user.save()
-                    return None
+                    return None, False
             except OsuUser.DoesNotExist:
                 # Doesnt exist
-                return None
+                return None, False
 
     # try to fetch user stats by id in case of namechange
     if user_id is None and user_stats is None:
@@ -243,7 +243,7 @@ def refresh_user_from_api(
         user_stats.recalculate()
         user_stats.save()
 
-    return user_stats
+    return user_stats, True
 
 
 @transaction.atomic

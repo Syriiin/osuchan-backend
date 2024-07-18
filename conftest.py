@@ -74,7 +74,8 @@ def user_stats(osu_user: OsuUser):
 
 @pytest.fixture
 def stub_user_stats():
-    return refresh_user_from_api(user_id=5701575, gamemode=Gamemode.STANDARD)
+    user_stats, _ = refresh_user_from_api(user_id=5701575, gamemode=Gamemode.STANDARD)
+    return user_stats
 
 
 @pytest.fixture

@@ -306,13 +306,18 @@ class LeaderboardMemberList(APIView):
         )
 
         if leaderboard_type == "global":
-            memberships = Membership.global_memberships
+            leaderboards = Leaderboard.global_leaderboards
         elif leaderboard_type == "community":
-            memberships = Membership.community_memberships.visible_to(osu_user_id)
+            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
+
+        try:
+            leaderboard = leaderboards.get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
 
         memberships = (
-            memberships.non_restricted()
-            .filter(leaderboard_id=leaderboard_id)
+            Membership.objects.non_restricted()
+            .filter(leaderboard_id=leaderboard.id)
             .select_related("user")
             .order_by("-pp")
         )
@@ -354,15 +359,21 @@ class LeaderboardMemberDetail(APIView):
         )
 
         if leaderboard_type == "global":
-            memberships = Membership.global_memberships
+            leaderboards = Leaderboard.global_leaderboards
         elif leaderboard_type == "community":
-            memberships = Membership.community_memberships.visible_to(osu_user_id)
+            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
+
+        try:
+            leaderboard = leaderboards.get(id=leaderboard_id)
+        except Leaderboard.DoesNotExist:
+            raise NotFound("Leaderboard not found.")
 
         try:
             membership = (
-                memberships.non_restricted()
+                Membership.objects.non_restricted()
+                .filter(leaderboard_id=leaderboard.id)
                 .select_related("user")
-                .get(leaderboard_id=leaderboard_id, user_id=user_id)
+                .get(user_id=user_id)
             )
         except Membership.DoesNotExist:
             raise NotFound("Membership not found.")

@@ -26,10 +26,10 @@ class TestUserServices:
         assert fetch_user(username="TestOsuUser") == user_stats
 
     def test_refresh_user_not_exists(self):
-        assert refresh_user_from_api(user_id=123123) == None
+        assert refresh_user_from_api(user_id=123123) == (None, False)
 
     def test_refresh_user_from_api(self):
-        user_stats = refresh_user_from_api(user_id=5701575)
+        user_stats, _ = refresh_user_from_api(user_id=5701575)
         assert user_stats is not None
         assert user_stats.user.username == "Syrin"
         assert (
@@ -46,7 +46,7 @@ class TestUserServices:
         assert user_stats.score_style_length == 163.6261778811056
 
     def test_fetch_scores(self):
-        user_stats = refresh_user_from_api(user_id=5701575)
+        user_stats, _ = refresh_user_from_api(user_id=5701575)
         scores = fetch_scores(user_stats.user_id, [362949], Gamemode.STANDARD)
         assert len(scores) == 12  # 11 real scores + 1 nochoke mutation
         assert user_stats is not None
