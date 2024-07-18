@@ -138,12 +138,12 @@ class CommunityMembershipManager(models.Manager):
         )
 
 
-class GlobalMembershipQuerySet(models.QuerySet):
+class MembershipQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user__disabled=False)
 
 
-class CommunityMembershipQuerySet(GlobalMembershipQuerySet):
+class CommunityMembershipQuerySet(MembershipQuerySet):
     def visible_to(self, user_id):
         # return memberships of leaderboards that are not private or that the user is a member/invitee of
         if user_id is None:
@@ -181,10 +181,8 @@ class Membership(models.Model):
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
 
-    objects = models.Manager()
-    global_memberships = GlobalMembershipManager.from_queryset(
-        GlobalMembershipQuerySet
-    )()
+    objects = models.Manager.from_queryset(MembershipQuerySet)()
+    global_memberships = GlobalMembershipManager.from_queryset(MembershipQuerySet)()
     community_memberships = CommunityMembershipManager.from_queryset(
         CommunityMembershipQuerySet
     )()
