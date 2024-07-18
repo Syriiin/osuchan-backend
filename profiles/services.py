@@ -363,7 +363,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
 
     # Remove scores which already exist in db
     score_dates = [s["date"] for s in unique_score_data_list]
-    existing_score_dates = Score.objects.filter(date__in=score_dates).values_list(
+    existing_score_dates = user_stats.scores.filter(date__in=score_dates).values_list(
         "date", flat=True
     )
     new_score_data_list = []
