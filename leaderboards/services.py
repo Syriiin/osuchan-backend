@@ -77,6 +77,10 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
             rank=leaderboard.member_count + 1,
         )
 
+    # Get leaderboard records before updating, so we can compare
+    pp_record = leaderboard.get_pp_record()
+    leaderboard_top_player = leaderboard.get_top_membership()
+
     scores = Score.objects.filter(
         user_stats__user_id=user_id, user_stats__gamemode=leaderboard.gamemode
     )
@@ -125,7 +129,6 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
 
     if leaderboard.notification_discord_webhook_url != "":
         # Check for new top score
-        pp_record = leaderboard.get_pp_record()
         if (
             pp_record is not None
             and len(membership_scores) > 0
@@ -134,7 +137,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
             # NOTE: need to use a function with default params here so the closure has the correct variables
             def send_notification(
                 leaderboard_id=leaderboard.id,
-                score_id=player_top_score.id,
+                score_id=membership_scores[0].score_id,
             ):
                 from leaderboards.tasks import send_leaderboard_top_score_notification
 
@@ -143,7 +146,6 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
             transaction.on_commit(send_notification)
 
         # Check for new top player
-        leaderboard_top_player = leaderboard.get_top_membership()
         if (
             leaderboard_top_player is not None
             and leaderboard_top_player.user_id != membership.user_id
