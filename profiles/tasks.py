@@ -48,10 +48,10 @@ def update_user(
     """
     Runs an update for a given user
     """
-    user_stats = refresh_user_from_api(
+    user_stats, updated = refresh_user_from_api(
         user_id=user_id, gamemode=Gamemode(gamemode), cooldown_seconds=cooldown_seconds
     )
-    if user_stats is not None:
+    if user_stats is not None and updated:
         update_memberships.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
@@ -63,8 +63,10 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
     """
     Runs an update for a given user
     """
-    user_stats = refresh_user_from_api(username=username, gamemode=Gamemode(gamemode))
-    if user_stats is not None:
+    user_stats, updated = refresh_user_from_api(
+        username=username, gamemode=Gamemode(gamemode)
+    )
+    if user_stats is not None and updated:
         update_memberships.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
