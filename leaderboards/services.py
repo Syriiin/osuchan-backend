@@ -130,8 +130,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
     if leaderboard.notification_discord_webhook_url != "":
         # Check for new top score
         if (
-            pp_record is not None
-            and len(membership_scores) > 0
+            len(membership_scores) > 0
             and membership_scores[0].performance_total > pp_record
         ):
             # NOTE: need to use a function with default params here so the closure has the correct variables
