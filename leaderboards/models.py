@@ -84,9 +84,11 @@ class Leaderboard(models.Model):
     def get_pp_record(self) -> float:
         scores = self.get_top_scores()
 
-        return scores.aggregate(Max("membership_scores__performance_total"))[
+        max_pp = scores.aggregate(Max("membership_scores__performance_total"))[
             "membership_scores__performance_total__max"
         ]
+
+        return max_pp if max_pp is not None else 0
 
     def get_top_scores(self, limit=5):
         return self.scores.order_by(
