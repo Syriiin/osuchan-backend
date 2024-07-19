@@ -14,6 +14,7 @@ services:
   worker:
     build:
       target: development-runner
+    command: watchmedo auto-restart --pattern=*.py --recursive -- celery --app osuchan worker --loglevel info
     volumes:
       - .:/app
 
@@ -26,6 +27,7 @@ services:
   scheduler:
     build:
       target: development-runner
+    command: watchmedo auto-restart --pattern=*.py --recursive -- celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
     volumes:
       - .:/app
 
