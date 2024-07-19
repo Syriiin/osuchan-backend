@@ -204,6 +204,7 @@ CACHES = {
 CELERY_BROKER_URL = f"amqp://{env_settings.CELERY_USER}:{env_settings.CELERY_PASSWORD}@{env_settings.CELERY_HOST}:{env_settings.CELERY_PORT}"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 CELERY_BEAT_SCHEDULE = {
     "update-top-global-members-every-day": {

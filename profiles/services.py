@@ -337,17 +337,8 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
     Adds a list of scores to the passed user_stats from the passed score_data_list.
     (requires all dicts to have beatmap_id set along with usual score data)
     """
-    # Remove unranked scores
-    # Only process "high scores" (highest scorev1 per mod per map per user)
-    # (need to make this distinction to prevent lazer scores from being treated as ranked)
-    ranked_score_data_list = [
-        score_data
-        for score_data in score_data_list
-        if score_data.get("score_id", None) is not None
-    ]
-
     # Parse dates
-    for score_data in ranked_score_data_list:
+    for score_data in score_data_list:
         score_data["date"] = datetime.strptime(
             score_data["date"], "%Y-%m-%d %H:%M:%S"
         ).replace(tzinfo=timezone.utc)
@@ -356,9 +347,8 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
     # Unique on date since we don't track score_id (not ideal but not much we can do)
     unique_score_data_list = [
         score
-        for score in ranked_score_data_list
-        if score
-        == next(s for s in ranked_score_data_list if s["date"] == score["date"])
+        for score in score_data_list
+        if score == next(s for s in score_data_list if s["date"] == score["date"])
     ]
 
     # Remove scores which already exist in db
