@@ -8,6 +8,7 @@ volumes:
   cache-data:
   difficalcy-cache-data:
 
+
 secrets:
   grafana_admin_password:
     file: ./config/active/secrets/grafana_admin_password
@@ -143,5 +144,7 @@ services:
 
   difficalcy-cache:
     image: redis:7
+    command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
+      - ./config/active/difficalcy-redis.conf:/usr/local/etc/redis/redis.conf
       - difficalcy-cache-data:/data
