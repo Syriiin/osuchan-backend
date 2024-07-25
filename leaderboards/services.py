@@ -4,7 +4,6 @@ from rest_framework.exceptions import PermissionDenied
 from common.osu.utils import calculate_pp_total
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership, MembershipScore
-from profiles.enums import ScoreResult, ScoreSet
 from profiles.models import OsuUser, Score
 
 

@@ -205,6 +205,7 @@ CELERY_BROKER_URL = f"amqp://{env_settings.CELERY_USER}:{env_settings.CELERY_PAS
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_WORKER_MAX_MEMORY_PER_CHILD = 250000  # 250MB TODO: investigate this memory leak
 
 CELERY_BEAT_SCHEDULE = {
     "update-top-global-members-every-day": {
