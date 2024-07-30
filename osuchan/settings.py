@@ -220,44 +220,64 @@ CELERY_BEAT_SCHEDULE = {
         "task": "profiles.tasks.update_loved_beatmaps",
         "schedule": crontab(minute="0", hour="0", day_of_month="1"),
     },
-    "update-coe-top-members-osu-every-10-minutes": {
+    "update-coe-top-10-members-osu-every-10-minutes": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
         "schedule": 60 * 10,
         "args": (804, 50),
     },
-    "update-coe-top-members-taiko-every-10-minutes": {
+    "update-coe-top-10-members-taiko-every-10-minutes": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
         "schedule": 60 * 10,
         "args": (805, 50),
     },
-    "update-coe-top-members-catch-every-10-minutes": {
+    "update-coe-top-10-members-catch-every-10-minutes": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
         "schedule": 60 * 10,
         "args": (806, 50),
     },
-    "update-coe-top-members-mania-every-10-minutes": {
+    "update-coe-top-10-members-mania-every-10-minutes": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
         "schedule": 60 * 10,
         "args": (807, 50),
     },
-    "update-coe-all-members-osu-every-hour": {
+    "update-coe-top-100-members-osu-every-hour": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
         "schedule": 60 * 60,
+        "args": (804, 50),
+    },
+    "update-coe-top-100-members-taiko-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": 60 * 60,
+        "args": (805, 50),
+    },
+    "update-coe-top-100-members-catch-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": 60 * 60,
+        "args": (806, 50),
+    },
+    "update-coe-top-100-members-mania-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": 60 * 60,
+        "args": (807, 50),
+    },
+    "update-coe-all-members-osu-every-day": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
         "args": (804, 1000),
     },
-    "update-coe-all-members-taiko-every-hour": {
+    "update-coe-all-members-taiko-every-day": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 60,
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
         "args": (805, 1000),
     },
-    "update-coe-all-members-catch-every-hour": {
+    "update-coe-all-members-catch-every-day": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 60,
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
         "args": (806, 1000),
     },
-    "update-coe-all-members-mania-every-hour": {
+    "update-coe-all-members-mania-every-day": {
         "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
-        "schedule": 60 * 60,
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
         "args": (807, 1000),
     },
     "send-coe-podium-osu-every-day": {
