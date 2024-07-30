@@ -5,6 +5,10 @@ services:
     ports:
       - 5432:5432
 
+  queue:
+    ports:
+      - 15672:15672
+
   api:
     build:
       target: development-runner
@@ -30,6 +34,10 @@ services:
     command: watchmedo auto-restart --pattern=*.py --recursive -- celery --app osuchan beat --loglevel info --schedule /tmp/celerybeat-schedule
     volumes:
       - .:/app
+
+  prometheus:
+    ports:
+      - 9090:9090
 
   difficalcy-osu:
     ports:
