@@ -338,7 +338,7 @@ DIFFICULTY_CALCULATOR_CLASSES = {
 }
 
 DEFAULT_DIFFICULTY_CALCULATORS = {
-    Gamemode.STANDARD: "rosupp",
+    Gamemode.STANDARD: "difficalcy-osu",
     Gamemode.TAIKO: "difficalcy-taiko",
     Gamemode.CATCH: "difficalcy-catch",
     Gamemode.MANIA: "difficalcy-mania",
