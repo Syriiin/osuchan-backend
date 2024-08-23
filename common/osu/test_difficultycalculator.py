@@ -7,6 +7,7 @@ from common.osu.difficultycalculator import (
     DifficalcyCatchDifficultyCalculator,
     DifficalcyManiaDifficultyCalculator,
     DifficalcyOsuDifficultyCalculator,
+    DifficalcyPerformancePlusDifficultyCalculator,
     DifficalcyTaikoDifficultyCalculator,
     InvalidBeatmapException,
     OppaiDifficultyCalculator,
@@ -461,5 +462,52 @@ class TestDifficalcyManiaDifficultyCalculator:
             performance_values={
                 "difficulty": 5.3963454139130915,
                 "total": 43.17076331130473,
+            },
+        )
+
+
+class TestDifficalcyPerformancePlusDifficultyCalculator:
+    def test_enigne(self):
+        assert (
+            DifficalcyPerformancePlusDifficultyCalculator.engine()
+            == "https://github.com/Syriiin/osu"
+        )
+
+    def test_version(self):
+        assert (
+            DifficalcyPerformancePlusDifficultyCalculator.version()
+            == "bec9a43e5984fa755606dc2e60666ef6f3dfeb56"
+        )
+
+    def test_calculate_score(self):
+        calc = DifficalcyPerformancePlusDifficultyCalculator()
+        score = Score(
+            "307618",
+            mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
+            count_100=14,
+            count_50=1,
+            count_miss=1,
+            combo=2000,
+        )
+        assert calc.calculate_score(score) == Calculation(
+            difficulty_values={
+                "aim": 2.8804685309467284,
+                "jumpAim": 2.8763118223866133,
+                "flowAim": 1.6727417520197583,
+                "precision": 1.714528074416766,
+                "speed": 3.179656468968935,
+                "stamina": 2.8045880770770752,
+                "accuracy": 1.0546478295311437,
+                "total": 6.123075221732318,
+            },
+            performance_values={
+                "aim": 68.38232334186907,
+                "jumpAim": 68.08670955755021,
+                "flowAim": 13.391867347855435,
+                "precision": 14.420763347653594,
+                "speed": 99.53445865488443,
+                "stamina": 68.30305130767819,
+                "accuracy": 87.89378488351228,
+                "total": 259.5756907401086,
             },
         )

@@ -55,6 +55,7 @@ services:
       - difficalcy-taiko
       - difficalcy-catch
       - difficalcy-mania
+      - difficalcy-performanceplus
 
   worker:
     build: .
@@ -70,6 +71,7 @@ services:
       - difficalcy-taiko
       - difficalcy-catch
       - difficalcy-mania
+      - difficalcy-performanceplus
 
   worker_monitor:
     build: .
@@ -140,6 +142,15 @@ services:
 
   difficalcy-mania:
     image: ghcr.io/syriiin/difficalcy-mania:v0.8.1
+    env_file:
+      - config/active/difficalcy.env
+    volumes:
+      - beatmaps:/beatmaps
+    depends_on:
+      - difficalcy-cache
+
+  difficalcy-performanceplus:
+    image: ghcr.io/syriiin/difficalcy-performanceplus:v0.8.2
     env_file:
       - config/active/difficalcy.env
     volumes:

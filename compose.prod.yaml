@@ -48,5 +48,8 @@ services:
   difficalcy-mania:
     restart: always
 
+  difficalcy-performanceplus:
+    restart: always
+
   difficalcy-cache:
     restart: always

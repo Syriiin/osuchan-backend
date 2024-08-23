@@ -31,6 +31,7 @@ class EnvSettings(BaseSettings):
     DIFFICALCY_TAIKO_HOST: str
     DIFFICALCY_CATCH_HOST: str
     DIFFICALCY_MANIA_HOST: str
+    DIFFICALCY_PERFORMANCEPLUS_HOST: str
     OSU_CLIENT_ID: str
     OSU_CLIENT_SECRET: str
     OSU_CLIENT_REDIRECT_URI: str
@@ -335,6 +336,7 @@ DIFFICULTY_CALCULATOR_CLASSES = {
     "difficalcy-taiko": "common.osu.difficultycalculator.DifficalcyTaikoDifficultyCalculator",
     "difficalcy-catch": "common.osu.difficultycalculator.DifficalcyCatchDifficultyCalculator",
     "difficalcy-mania": "common.osu.difficultycalculator.DifficalcyManiaDifficultyCalculator",
+    "difficalcy-performanceplus": "common.osu.difficultycalculator.DifficalcyPerformancePlusDifficultyCalculator",
 }
 
 DEFAULT_DIFFICULTY_CALCULATORS = {
@@ -348,6 +350,9 @@ DIFFICALCY_OSU_URL = f"http://{env_settings.DIFFICALCY_OSU_HOST}"
 DIFFICALCY_TAIKO_URL = f"http://{env_settings.DIFFICALCY_TAIKO_HOST}"
 DIFFICALCY_CATCH_URL = f"http://{env_settings.DIFFICALCY_CATCH_HOST}"
 DIFFICALCY_MANIA_URL = f"http://{env_settings.DIFFICALCY_MANIA_HOST}"
+DIFFICALCY_PERFORMANCEPLUS_URL = (
+    f"http://{env_settings.DIFFICALCY_PERFORMANCEPLUS_HOST}"
+)
 
 
 # Error reporting
