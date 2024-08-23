@@ -3,133 +3,14 @@ import pytest
 from common.osu.difficultycalculator import (
     Calculation,
     CalculationException,
-    CalculatorClosedException,
     DifficalcyCatchDifficultyCalculator,
     DifficalcyManiaDifficultyCalculator,
     DifficalcyOsuDifficultyCalculator,
     DifficalcyPerformancePlusDifficultyCalculator,
     DifficalcyTaikoDifficultyCalculator,
-    InvalidBeatmapException,
-    OppaiDifficultyCalculator,
     Score,
 )
 from common.osu.enums import Mods
-
-
-class TestOppaiDifficultyCalculator:
-    def test_enigne(self):
-        assert OppaiDifficultyCalculator.engine() == "oppaipy"
-
-    def test_version(self):
-        assert OppaiDifficultyCalculator.version() == "1.0.4"
-
-    def test_context_manager(self):
-        with OppaiDifficultyCalculator() as calc:
-            calc.set_beatmap("307618")
-            calc.calculate()
-            assert calc.difficulty_total == 4.200401306152344
-
-    def test_invalid_beatmap(self):
-        with pytest.raises(InvalidBeatmapException):
-            with OppaiDifficultyCalculator() as calc:
-                calc.set_beatmap("notarealbeatmap")
-                calc.calculate()
-
-    def test_calculate_score(self):
-        calc = OppaiDifficultyCalculator()
-        score = Score(
-            "307618",
-            mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
-            count_100=14,
-            count_50=1,
-            count_miss=1,
-            combo=2000,
-        )
-        assert calc.calculate_score(score) == Calculation(
-            difficulty_values={"total": 5.919765949249268},
-            performance_values={"total": 298.1595153808594},
-        )
-
-    def test_calculate_score_batch(self):
-        calc = OppaiDifficultyCalculator()
-        scores = [
-            Score(
-                "307618",
-                mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
-                count_100=14,
-                count_50=1,
-                count_miss=1,
-                combo=2000,
-            ),
-            Score(
-                "307618",
-                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
-                count_100=14,
-                count_50=1,
-                count_miss=1,
-                combo=2000,
-            ),
-            Score(
-                "307618",
-                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
-            ),
-        ]
-        assert calc.calculate_score_batch(scores) == [
-            Calculation(
-                difficulty_values={"total": 5.919765949249268},
-                performance_values={"total": 298.1595153808594},
-            ),
-            Calculation(
-                difficulty_values={"total": 6.20743465423584},
-                performance_values={"total": 476.4307861328125},
-            ),
-            Calculation(
-                difficulty_values={"total": 6.20743465423584},
-                performance_values={"total": 630.419677734375},
-            ),
-        ]
-
-    @pytest.fixture
-    def calc(self):
-        calc = OppaiDifficultyCalculator()
-        calc.set_beatmap("307618")
-        calc.calculate()
-        return calc
-
-    def test_difficulty_total(self, calc: OppaiDifficultyCalculator):
-        assert calc.difficulty_total == 4.200401306152344
-
-    def test_performance_total(self, calc: OppaiDifficultyCalculator):
-        assert calc.performance_total == 126.96746063232422
-
-    def test_close(self, calc: OppaiDifficultyCalculator):
-        calc.close()
-        with pytest.raises(CalculatorClosedException):
-            calc.calculate()
-
-    def test_set_accuracy(self, calc: OppaiDifficultyCalculator):
-        calc.set_accuracy(14, 1)
-        calc.calculate()
-        assert calc.difficulty_total == 4.200401306152344
-        assert calc.performance_total == 118.77462005615234
-
-    def test_set_misses(self, calc: OppaiDifficultyCalculator):
-        calc.set_misses(1)
-        calc.calculate()
-        assert calc.difficulty_total == 4.200401306152344
-        assert calc.performance_total == 123.09051513671875
-
-    def test_set_combo(self, calc: OppaiDifficultyCalculator):
-        calc.set_combo(2000)
-        calc.calculate()
-        assert calc.difficulty_total == 4.200401306152344
-        assert calc.performance_total == 106.42977142333984
-
-    def test_set_mods(self, calc: OppaiDifficultyCalculator):
-        calc.set_mods(Mods.DOUBLETIME + Mods.HIDDEN)
-        calc.calculate()
-        assert calc.difficulty_total == 5.919765949249268
-        assert calc.performance_total == 397.2521057128906
 
 
 class TestDifficalcyDifficultyCalculator:

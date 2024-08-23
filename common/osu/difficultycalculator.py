@@ -1,18 +1,12 @@
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
-from importlib import metadata
 from typing import Iterable, NamedTuple, Optional, Type
 
 import httpx
-import oppaipy
 from django.conf import settings
 from django.utils.module_loading import import_string
-from oppaipy.oppaipy import OppaiError
 
-from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
 from common.osu.enums import Gamemode
-
-OPPAIPY_VERSION = metadata.version("oppaipy")
 
 # TODO: lazy load this instead of doing at import
 difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
@@ -173,72 +167,6 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
     @abstractmethod
     def gamemode() -> Gamemode:
         raise NotImplementedError()
-
-
-class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
-    def __init__(self):
-        super().__init__()
-
-        self.oppai_calc = None
-        self.beatmap_path = None
-
-    def _close(self):
-        if self.oppai_calc is not None:
-            self.oppai_calc.close()
-
-    def _reset(self):
-        if self.oppai_calc is not None:
-            self.oppai_calc.reset()
-
-    def set_beatmap(self, beatmap_id: str) -> None:
-        beatmap_provider = BeatmapProvider()
-        try:
-            self.beatmap_path = beatmap_provider.get_beatmap_file(beatmap_id)
-        except BeatmapNotFoundException as e:
-            raise InvalidBeatmapException(
-                f"An error occured in fetching the beatmap {beatmap_id}"
-            ) from e
-        self.oppai_calc = oppaipy.Calculator(self.beatmap_path)
-
-    def set_accuracy(self, count_100: int, count_50: int):
-        self.oppai_calc.set_accuracy(count_100, count_50)
-
-    def set_misses(self, count_miss: int):
-        self.oppai_calc.set_misses(count_miss)
-
-    def set_combo(self, combo: int):
-        self.oppai_calc.set_combo(combo)
-
-    def set_mods(self, mods: int):
-        self.oppai_calc.set_mods(mods)
-
-    def _calculate(self):
-        try:
-            self.oppai_calc.calculate()
-        except OppaiError as e:
-            raise CalculationException(
-                f'An error occured in calculating the beatmap "{self.beatmap_path}"'
-            ) from e
-
-    @property
-    def difficulty_total(self):
-        return self.oppai_calc.stars
-
-    @property
-    def performance_total(self):
-        return self.oppai_calc.pp
-
-    @staticmethod
-    def engine():
-        return "oppaipy"
-
-    @staticmethod
-    def version():
-        return OPPAIPY_VERSION
-
-    @staticmethod
-    def gamemode():
-        return Gamemode.STANDARD
 
 
 class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):

@@ -735,60 +735,6 @@ files = [
 ]
 
 [[package]]
-name = "oppai"
-version = "4.1.0"
-description = "osu! pp and difficulty calculator, C bindings"
-optional = false
-python-versions = "*"
-files = [
-    {file = "oppai-4.1.0-cp27-cp27m-win32.whl", hash = "sha256:9e7b89cf004699311e66b763d1f3647d33fb99f6c64aab63f58ead7c9e48806f"},
-    {file = "oppai-4.1.0-cp27-cp27m-win_amd64.whl", hash = "sha256:261cd83383af4196524cf78e41c0f8a8b0e0b5eb855ee8a51aa80adf74a0eae3"},
-    {file = "oppai-4.1.0-cp34-cp34m-win32.whl", hash = "sha256:a241cec7b7b596803329c0742b44ce22dfa9d35286695f82fd5e6780837755f1"},
-    {file = "oppai-4.1.0-cp34-cp34m-win_amd64.whl", hash = "sha256:bdd268ab48929fd1cbcd32026979fd8dae5938e36932bddf3dba53ffcb66176c"},
-    {file = "oppai-4.1.0-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:9648554f9b65a8419ce25acb4f4e50ba0fc863f0bbec0ef929ead16c6fed9a6c"},
-    {file = "oppai-4.1.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:af7793a9f2e43d781378311ae9fd831905b64ecf44dc6331f4e258e4b22695a0"},
-    {file = "oppai-4.1.0-cp35-cp35m-manylinux2010_i686.whl", hash = "sha256:8591714358e414fb9958108bace83823a61c81c94cf719236c11d5f546c60514"},
-    {file = "oppai-4.1.0-cp35-cp35m-manylinux2010_x86_64.whl", hash = "sha256:690b64b455415a081c3735017687aa7f557e48f27a94839e2ec9d386c3f5c8c7"},
-    {file = "oppai-4.1.0-cp35-cp35m-win32.whl", hash = "sha256:b640c6d8da9acf1bd33a1e544a54844102a29c394687f555979ba601c92938b7"},
-    {file = "oppai-4.1.0-cp35-cp35m-win_amd64.whl", hash = "sha256:10cfb75870feea261f020c1157dca973f7637569da12d53242067e7cf77fc34d"},
-    {file = "oppai-4.1.0-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:83ef0b8749f6e12df7a61e738737b0bd4897a90ef13f2a73e3457894e5d6c76e"},
-    {file = "oppai-4.1.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:115387a8535e1e44fb974f481de7b4241828d039d12da7d5ec7f3d91d97ada6b"},
-    {file = "oppai-4.1.0-cp36-cp36m-manylinux2010_i686.whl", hash = "sha256:f024afd2f0b2750e9ee9fc704dbb9c86a97bb3531960f00aee9257b1acbf0578"},
-    {file = "oppai-4.1.0-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:a3a30fad6e1097330cb38318968610875b55c2235291194152fd07a2e4ba8cdb"},
-    {file = "oppai-4.1.0-cp36-cp36m-win32.whl", hash = "sha256:000778fd3defc80003aec07b9ecce72da29df8d046ca643b26b94aff7899dd43"},
-    {file = "oppai-4.1.0-cp36-cp36m-win_amd64.whl", hash = "sha256:c2f0d64eebc573aacbac4286fb1a6ffeb15bc660b6c8ce3c7ded0ac2381b86a8"},
-    {file = "oppai-4.1.0-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:b59e71dfae3c84134778f0dcd5065adb4c08d63c09a7107b6dc869b588b8b2c4"},
-    {file = "oppai-4.1.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:2e76ae100c39c9b86423f23f8dadbd80396a91430c8ef1bd15ecace11a10aa5a"},
-    {file = "oppai-4.1.0-cp37-cp37m-manylinux2010_i686.whl", hash = "sha256:13a0cc1d44df24bf2774d945e36c7582fc8887e54c4efbbb9d6177125ee8d106"},
-    {file = "oppai-4.1.0-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:366635772f62fcd47a780acb00c121c86e09b39ee16263adb6ee541ca1b6a112"},
-    {file = "oppai-4.1.0-cp37-cp37m-win32.whl", hash = "sha256:11a16d64f534e46fb5814ce34df1bb7cd454a339d4bccec3872ada8eaf9f6314"},
-    {file = "oppai-4.1.0-cp37-cp37m-win_amd64.whl", hash = "sha256:37652d999a7706c48f81a7b2a99d9bde38debd3674acc070978aed36bfa4fa45"},
-    {file = "oppai-4.1.0-cp38-cp38-manylinux1_i686.whl", hash = "sha256:0ea5d7d4ab2f86bfe65f0625a04b96d740067d8e5faccccc71659912b6354b28"},
-    {file = "oppai-4.1.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:3fa926efc6a64b5f16abaed75a542e05989f384f80d90a0747a8e42203bb32d0"},
-    {file = "oppai-4.1.0-cp38-cp38-manylinux2010_i686.whl", hash = "sha256:177b7f59853b42470f62c335d12d659b317da2357a1154a8d0f75dfa7bb583d6"},
-    {file = "oppai-4.1.0-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:2571a0557c60c914a20bdeea67f58d4b13fe1c16f8151e81262a9486a2900f12"},
-    {file = "oppai-4.1.0-cp39-cp39-manylinux1_i686.whl", hash = "sha256:44ab74e5d065084f824826898153d576525dff847ab6198893bcab67d28c3804"},
-    {file = "oppai-4.1.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:17a5eac1d608b2a449d3d7e2bd1383ad2e464e1b06a921bb1a918af4f7afb031"},
-    {file = "oppai-4.1.0-cp39-cp39-manylinux2010_i686.whl", hash = "sha256:7417a9267ad548aaf7b377add8e1a1cebb995182ff37f615a4f6b421e83f1947"},
-    {file = "oppai-4.1.0-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:59c458e5bdb781880d8c1eda70761cfe50ffca3d3a8da035bdce5f204812a20b"},
-    {file = "oppai-4.1.0.tar.gz", hash = "sha256:494d661090e0c1f6b2ea5e1d6d1c5bbe941f339ce193d8b1df8d0a7acfa742ae"},
-]
-
-[[package]]
-name = "oppaipy"
-version = "1.0.4"
-description = "A simple object-oriented python3 wrapper around the python bindings of oppai-ng"
-optional = false
-python-versions = "*"
-files = [
-    {file = "oppaipy-1.0.4-py3-none-any.whl", hash = "sha256:a176175f0706815d4f6278ab30ea79942953f1f911dd5d9892b5f653633efb8b"},
-    {file = "oppaipy-1.0.4.tar.gz", hash = "sha256:43c854f13406125bafca5068ed0ebd87a6c6f68735b6f1f755fa114da1e66021"},
-]
-
-[package.dependencies]
-oppai = ">=4.1,<5.0"
-
-[[package]]
 name = "packaging"
 version = "24.0"
 description = "Core utilities for Python packages"
@@ -1456,4 +1402,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "03269d5a2907b3be683312b4a6547f20cefb5116bba3d6d0106f9c1f2e1a20fe"
+content-hash = "c549d8e955a08e26a6ead1394cf5b582a164e77e7b7f4563a7b75a89f8167d45"
