@@ -330,8 +330,6 @@ else:
 # Difficulty calculation
 
 DIFFICULTY_CALCULATOR_CLASSES = {
-    "oppai": "common.osu.difficultycalculator.OppaiDifficultyCalculator",
-    "rosupp": "common.osu.difficultycalculator.RosuppDifficultyCalculator",
     "difficalcy-osu": "common.osu.difficultycalculator.DifficalcyOsuDifficultyCalculator",
     "difficalcy-taiko": "common.osu.difficultycalculator.DifficalcyTaikoDifficultyCalculator",
     "difficalcy-catch": "common.osu.difficultycalculator.DifficalcyCatchDifficultyCalculator",
