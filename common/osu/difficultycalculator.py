@@ -5,7 +5,6 @@ from typing import Iterable, NamedTuple, Optional, Type
 
 import httpx
 import oppaipy
-import rosu_pp_py
 from django.conf import settings
 from django.utils.module_loading import import_string
 from oppaipy.oppaipy import OppaiError
@@ -14,7 +13,6 @@ from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvide
 from common.osu.enums import Gamemode
 
 OPPAIPY_VERSION = metadata.version("oppaipy")
-ROSUPP_VERSION = metadata.version("rosu_pp_py")
 
 # TODO: lazy load this instead of doing at import
 difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
@@ -237,77 +235,6 @@ class OppaiDifficultyCalculator(AbstractDifficultyCalculator):
     @staticmethod
     def version():
         return OPPAIPY_VERSION
-
-    @staticmethod
-    def gamemode():
-        return Gamemode.STANDARD
-
-
-class RosuppDifficultyCalculator(AbstractDifficultyCalculator):
-    def __init__(self):
-        super().__init__()
-
-        self.rosupp_calc = rosu_pp_py.Performance()
-        self.results = None
-
-    def _close(self):
-        pass
-
-    def _reset(self):
-        self.rosupp_calc = rosu_pp_py.Performance()
-        self.results = None
-
-    def set_beatmap(self, beatmap_id: str) -> None:
-        beatmap_provider = BeatmapProvider()
-        try:
-            beatmap_path = beatmap_provider.get_beatmap_file(beatmap_id)
-        except BeatmapNotFoundException as e:
-            raise InvalidBeatmapException(
-                f"An error occured in fetching the beatmap {beatmap_id}"
-            ) from e
-
-        try:
-            self.beatmap = rosu_pp_py.Beatmap(path=beatmap_path)
-        except Exception as e:
-            raise InvalidBeatmapException(
-                f'An error occured in parsing the beatmap "{self.beatmap_path}"'
-            ) from e
-
-    def set_accuracy(self, count_100: int, count_50: int):
-        self.rosupp_calc.set_n100(count_100)
-        self.rosupp_calc.set_n50(count_50)
-
-    def set_misses(self, count_miss: int):
-        self.rosupp_calc.set_misses(count_miss)
-
-    def set_combo(self, combo: int):
-        self.rosupp_calc.set_combo(combo)
-
-    def set_mods(self, mods: int):
-        self.rosupp_calc.set_mods(mods)
-
-    def _calculate(self):
-        self.results = self.rosupp_calc.calculate(self.beatmap)
-
-    @property
-    def difficulty_total(self) -> float:
-        if self.results is None:
-            raise NotYetCalculatedException("Results have not been calculated")
-        return self.results.difficulty.stars
-
-    @property
-    def performance_total(self) -> float:
-        if self.results is None:
-            raise NotYetCalculatedException("Results have not been calculated")
-        return self.results.pp
-
-    @staticmethod
-    def engine():
-        return "rosu-pp-py"
-
-    @staticmethod
-    def version():
-        return ROSUPP_VERSION
 
     @staticmethod
     def gamemode():

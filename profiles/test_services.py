@@ -36,7 +36,7 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 24  # 6 scores (5 real, 1 nochoke mutation) * 4 calculators
+            == 18  # 6 scores (5 real, 1 nochoke mutation) * 3 calculators
         )
         assert user_stats.score_style_accuracy == 98.23948233070678
         assert user_stats.score_style_bpm == 211.857710839314
@@ -55,7 +55,7 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 72  # 18 scores (16 real, 2 nochoke mutation) * 4 calculators
+            == 54  # 18 scores (16 real, 2 nochoke mutation) * 3 calculators
         )
         assert user_stats.score_style_accuracy == 98.09793775692623
         assert user_stats.score_style_bpm == 211.85490142989167
@@ -68,7 +68,9 @@ class TestUserServices:
 @pytest.mark.django_db
 class TestDifficultyCalculationServices:
     def test_update_difficulty_calculations(self, beatmap):
-        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+        with get_difficulty_calculator_class(
+            "difficalcy-osu"
+        )() as difficulty_calculator:
             update_difficulty_calculations([beatmap], difficulty_calculator)
 
         calculation = DifficultyCalculation.objects.get(
@@ -76,12 +78,20 @@ class TestDifficultyCalculationServices:
         )
 
         difficulty_values = calculation.difficulty_values.all()
-        assert len(difficulty_values) == 1
-        assert difficulty_values[0].name == "total"
-        assert difficulty_values[0].value == 6.711556915919059
+        assert len(difficulty_values) == 4
+        assert difficulty_values[0].name == "aim"
+        assert difficulty_values[0].value == 3.7411300722624867
+        assert difficulty_values[1].name == "speed"
+        assert difficulty_values[1].value == 2.3157471874819255
+        assert difficulty_values[2].name == "flashlight"
+        assert difficulty_values[2].value == 0
+        assert difficulty_values[3].name == "total"
+        assert difficulty_values[3].value == 6.710442985146793
 
     def test_update_performance_calculations(self, score):
-        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+        with get_difficulty_calculator_class(
+            "difficalcy-osu"
+        )() as difficulty_calculator:
             update_performance_calculations([score], difficulty_calculator)
 
         difficulty_calculation = DifficultyCalculation.objects.get(
@@ -89,18 +99,32 @@ class TestDifficultyCalculationServices:
         )
 
         difficulty_values = difficulty_calculation.difficulty_values.all()
-        assert len(difficulty_values) == 1
-        assert difficulty_values[0].name == "total"
-        assert difficulty_values[0].value == 8.975730066553297
+        assert len(difficulty_values) == 4
+        assert difficulty_values[0].name == "aim"
+        assert difficulty_values[0].value == 5.004063221789009
+        assert difficulty_values[1].name == "speed"
+        assert difficulty_values[1].value == 3.098688373295117
+        assert difficulty_values[2].name == "flashlight"
+        assert difficulty_values[2].value == 0
+        assert difficulty_values[3].name == "total"
+        assert difficulty_values[3].value == 8.974295270307167
 
         performance_calculation = difficulty_calculation.performance_calculations.get(
             score_id=score.id
         )
 
         performance_values = performance_calculation.performance_values.all()
-        assert len(performance_values) == 1
-        assert performance_values[0].name == "total"
-        assert performance_values[0].value == 626.7353926695473
+        assert len(performance_values) == 5
+        assert performance_values[0].name == "aim"
+        assert performance_values[0].value == 488.67755492710745
+        assert performance_values[1].name == "speed"
+        assert performance_values[1].value == 78.47196514149276
+        assert performance_values[2].name == "accuracy"
+        assert performance_values[2].value == 3.199536008089327
+        assert performance_values[3].name == "flashlight"
+        assert performance_values[3].value == 0
+        assert performance_values[4].name == "total"
+        assert performance_values[4].value == 626.4140587588132
 
     @pytest.fixture
     def difficulty_calculation(self, beatmap):
@@ -112,14 +136,22 @@ class TestDifficultyCalculationServices:
         )
 
     def test_calculate_difficulty_values(self, difficulty_calculation):
-        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+        with get_difficulty_calculator_class(
+            "difficalcy-osu"
+        )() as difficulty_calculator:
             difficulty_values = calculate_difficulty_values(
                 [difficulty_calculation], difficulty_calculator
             )
         assert len(difficulty_values) == 1
-        assert len(difficulty_values[0]) == 1
-        assert difficulty_values[0][0].name == "total"
-        assert difficulty_values[0][0].value == 8.975730066553297
+        assert len(difficulty_values[0]) == 4
+        assert difficulty_values[0][0].name == "aim"
+        assert difficulty_values[0][0].value == 5.004063221789009
+        assert difficulty_values[0][1].name == "speed"
+        assert difficulty_values[0][1].value == 3.098688373295117
+        assert difficulty_values[0][2].name == "flashlight"
+        assert difficulty_values[0][2].value == 0
+        assert difficulty_values[0][3].name == "total"
+        assert difficulty_values[0][3].value == 8.974295270307167
 
     @pytest.fixture
     def performance_calculation(self, score, difficulty_calculation):
@@ -131,11 +163,21 @@ class TestDifficultyCalculationServices:
         )
 
     def test_calculate_performance_values(self, performance_calculation):
-        with get_difficulty_calculator_class("rosupp")() as difficulty_calculator:
+        with get_difficulty_calculator_class(
+            "difficalcy-osu"
+        )() as difficulty_calculator:
             performance_values = calculate_performance_values(
                 [performance_calculation], difficulty_calculator
             )
         assert len(performance_values) == 1
-        assert len(performance_values[0]) == 1
-        assert performance_values[0][0].name == "total"
-        assert performance_values[0][0].value == 626.7353926695473
+        assert len(performance_values[0]) == 5
+        assert performance_values[0][0].name == "aim"
+        assert performance_values[0][0].value == 488.67755492710745
+        assert performance_values[0][1].name == "speed"
+        assert performance_values[0][1].value == 78.47196514149276
+        assert performance_values[0][2].name == "accuracy"
+        assert performance_values[0][2].value == 3.199536008089327
+        assert performance_values[0][3].name == "flashlight"
+        assert performance_values[0][3].value == 0
+        assert performance_values[0][4].name == "total"
+        assert performance_values[0][4].value == 626.4140587588132
