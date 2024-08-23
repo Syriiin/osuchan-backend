@@ -20,3 +20,4 @@ services:
       - difficalcy-taiko
       - difficalcy-catch
       - difficalcy-mania
+      - difficalcy-performanceplus

@@ -62,3 +62,9 @@ services:
       - 6003:80
     volumes:
       - ./common/osu/stubdata/beatmap_provider:/beatmaps
+
+  difficalcy-performanceplus:
+    ports:
+      - 6004:80
+    volumes:
+      - ./common/osu/stubdata/beatmap_provider:/beatmaps

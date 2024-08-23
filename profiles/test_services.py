@@ -36,7 +36,7 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 18  # 6 scores (5 real, 1 nochoke mutation) * 3 calculators
+            == 24  # 6 scores (5 real, 1 nochoke mutation) * 4 calculators
         )
         assert user_stats.score_style_accuracy == 98.23948233070678
         assert user_stats.score_style_bpm == 211.857710839314
@@ -55,7 +55,7 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 54  # 18 scores (16 real, 2 nochoke mutation) * 3 calculators
+            == 72  # 18 scores (16 real, 2 nochoke mutation) * 4 calculators
         )
         assert user_stats.score_style_accuracy == 98.09793775692623
         assert user_stats.score_style_bpm == 211.85490142989167

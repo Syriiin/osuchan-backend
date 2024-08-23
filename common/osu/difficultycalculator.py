@@ -21,6 +21,9 @@ difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json(
 difficalcy_taiko_info = httpx.get(f"{settings.DIFFICALCY_TAIKO_URL}/api/info").json()
 difficalcy_catch_info = httpx.get(f"{settings.DIFFICALCY_CATCH_URL}/api/info").json()
 difficalcy_mania_info = httpx.get(f"{settings.DIFFICALCY_MANIA_URL}/api/info").json()
+difficalcy_performanceplus_info = httpx.get(
+    f"{settings.DIFFICALCY_PERFORMANCEPLUS_URL}/api/info"
+).json()
 
 DIFFICALCY_OSU_ENGINE = difficalcy_osu_info["calculatorPackage"]
 DIFFICALCY_OSU_VERSION = difficalcy_osu_info["calculatorVersion"]
@@ -30,6 +33,10 @@ DIFFICALCY_CATCH_ENGINE = difficalcy_catch_info["calculatorPackage"]
 DIFFICALCY_CATCH_VERSION = difficalcy_catch_info["calculatorVersion"]
 DIFFICALCY_MANIA_ENGINE = difficalcy_mania_info["calculatorPackage"]
 DIFFICALCY_MANIA_VERSION = difficalcy_mania_info["calculatorVersion"]
+DIFFICALCY_PERFORMANCEPLUS_ENGINE = difficalcy_performanceplus_info["calculatorPackage"]
+DIFFICALCY_PERFORMANCEPLUS_VERSION = difficalcy_performanceplus_info[
+    "calculatorVersion"
+]
 
 
 class Score(NamedTuple):
@@ -524,6 +531,39 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
     @staticmethod
     def gamemode():
         return Gamemode.MANIA
+
+
+class DifficalcyPerformancePlusDifficultyCalculator(
+    AbstractDifficalcyDifficultyCalculator
+):
+    def _get_url(self) -> str:
+        return settings.DIFFICALCY_PERFORMANCEPLUS_URL
+
+    def _difficalcy_score_from_score(self, score: Score) -> dict:
+        return {
+            k: v
+            for k, v in {
+                "BeatmapId": score.beatmap_id,
+                "Mods": score.mods,
+                "Combo": score.combo,
+                "Misses": score.count_miss,
+                "Mehs": score.count_50,
+                "Oks": score.count_100,
+            }.items()
+            if v is not None
+        }
+
+    @staticmethod
+    def engine() -> str:
+        return DIFFICALCY_PERFORMANCEPLUS_ENGINE
+
+    @staticmethod
+    def version() -> str:
+        return DIFFICALCY_PERFORMANCEPLUS_VERSION
+
+    @staticmethod
+    def gamemode():
+        return Gamemode.STANDARD
 
 
 difficulty_calculators_classes: dict[str, type[AbstractDifficultyCalculator]] = {
