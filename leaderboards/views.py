@@ -8,6 +8,7 @@ from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import Gamemode, Mods
 from common.utils import parse_int_or_none
 from leaderboards.enums import LeaderboardAccessType
@@ -115,6 +116,17 @@ class LeaderboardList(APIView):
         if score_filter_data is None:
             raise ParseError("Missing score_filter parameter.")
 
+        calculator_engine = request.data.get("calculator_engine")
+        if calculator_engine is None:
+            calculator_engine = get_default_difficulty_calculator_class(
+                gamemode
+            ).engine()
+            primary_performance_value = "total"
+        else:
+            primary_performance_value = request.data.get(
+                "primary_performance_value", "total"
+            )
+
         leaderboard = Leaderboard(
             gamemode=gamemode,
             score_set=score_set,
@@ -123,6 +135,8 @@ class LeaderboardList(APIView):
             description=description or "",
             icon_url=icon_url or "",
             allow_past_scores=request.data.get("allow_past_scores"),
+            calculator_engine=calculator_engine,
+            primary_performance_value=primary_performance_value,
             score_filter=ScoreFilter(
                 allowed_beatmap_status=score_filter_data.get(
                     "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY
@@ -564,7 +578,12 @@ class LeaderboardBeatmapScoreList(APIView):
             .distinct()
             .filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id)
             .select_related("user_stats", "user_stats__user")
-            .get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
+            .get_score_set(
+                leaderboard.gamemode,
+                score_set=leaderboard.score_set,
+                calculator_engine=leaderboard.calculator_engine,
+                primary_performance_value=leaderboard.primary_performance_value,
+            )
             .prefetch_related(
                 "performance_calculations__performance_values",
                 "performance_calculations__difficulty_calculation__difficulty_values",
@@ -603,7 +622,12 @@ class LeaderboardMemberScoreList(APIView):
                 membership__leaderboard_id=leaderboard_id, membership__user_id=user_id
             )
             .select_related("beatmap")
-            .get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
+            .get_score_set(
+                leaderboard.gamemode,
+                score_set=leaderboard.score_set,
+                calculator_engine=leaderboard.calculator_engine,
+                primary_performance_value=leaderboard.primary_performance_value,
+            )
             .prefetch_related(
                 "performance_calculations__performance_values",
                 "performance_calculations__difficulty_calculation__difficulty_values",

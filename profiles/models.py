@@ -5,7 +5,10 @@ from django.db import models
 from django.db.models import FilteredRelation, Q, Subquery
 
 from common.osu import utils
-from common.osu.difficultycalculator import get_default_difficulty_calculator_class
+from common.osu.difficultycalculator import (
+    get_default_difficulty_calculator_class,
+    get_difficulty_calculator_class_for_engine,
+)
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 
@@ -105,7 +108,7 @@ class UserStats(models.Model):
 
         # Calculate bonus pp (+ pp from non-top100 scores)
         self.extra_pp = self.pp - utils.calculate_pp_total(
-            score.default_performance_total for score in scores[:100]
+            score.performance_total for score in scores[:100]
         )
 
         # Calculate score style
@@ -234,14 +237,20 @@ class Beatmap(models.Model):
 
         return beatmap
 
-    def get_default_difficulty_calculation(self):
-        difficulty_calculator = get_default_difficulty_calculator_class(
-            Gamemode(self.gamemode)
-        )
+    def get_difficulty_calculation(
+        self, calculator_engine: typing.Optional[str] = None
+    ):
+        if calculator_engine is not None:
+            calculator_engine_name = calculator_engine
+        else:
+            calculator_engine_name = get_default_difficulty_calculator_class(
+                Gamemode(self.gamemode)
+            ).engine()
+
         return DifficultyCalculation.objects.get(
             beatmap=self,
             mods=Mods.NONE,
-            calculator_engine=difficulty_calculator.engine(),
+            calculator_engine=calculator_engine_name,
         )
 
     def __str__(self):
@@ -386,7 +395,13 @@ class ScoreQuerySet(models.QuerySet):
 
         return scores
 
-    def get_score_set(self, gamemode: Gamemode, score_set: ScoreSet = ScoreSet.NORMAL):
+    def get_score_set(
+        self,
+        gamemode: Gamemode,
+        score_set: ScoreSet = ScoreSet.NORMAL,
+        calculator_engine: typing.Optional[str] = None,
+        primary_performance_value: str = "total",
+    ):
         """
         Queryset that returns distinct on beatmap_id prioritising highest pp given the score_set.
         Remember to use at end of query to not unintentionally filter out scores before primary filtering.
@@ -401,11 +416,15 @@ class ScoreQuerySet(models.QuerySet):
         else:
             raise ValueError(f"Invalid score set: {score_set}")
 
-        difficulty_calculator_class = get_default_difficulty_calculator_class(gamemode)
+        difficulty_calculator_class = (
+            get_default_difficulty_calculator_class(gamemode)
+            if calculator_engine is None
+            else get_difficulty_calculator_class_for_engine(calculator_engine)
+        )
 
         annotated_scores = (
             scores.annotate(
-                default_performance_calculation=FilteredRelation(
+                performance_calculation=FilteredRelation(
                     "performance_calculations",
                     condition=Q(
                         performance_calculations__calculator_engine=difficulty_calculator_class.engine()
@@ -413,16 +432,14 @@ class ScoreQuerySet(models.QuerySet):
                 )
             )
             .annotate(
-                default_performance_value=FilteredRelation(
-                    "default_performance_calculation__performance_values",
+                performance_value=FilteredRelation(
+                    "performance_calculation__performance_values",
                     condition=Q(
-                        default_performance_calculation__performance_values__name="total"
+                        performance_calculation__performance_values__name=primary_performance_value
                     ),
                 )
             )
-            .annotate(
-                default_performance_total=models.F("default_performance_value__value")
-            )
+            .annotate(performance_total=models.F("performance_value__value"))
         )
 
         return annotated_scores.filter(
@@ -430,12 +447,12 @@ class ScoreQuerySet(models.QuerySet):
                 annotated_scores.all()
                 .order_by(
                     "beatmap_id",  # ordering first by beatmap_id is required for distinct
-                    "-default_performance_total",  # required to make sure we dont distinct out the wrong scores
+                    "-performance_total",  # required to make sure we dont distinct out the wrong scores
                 )
                 .distinct("beatmap_id")
                 .values("id")
             )
-        ).order_by("-default_performance_total", "date")
+        ).order_by("-performance_total", "date")
 
 
 class Score(models.Model):
@@ -579,13 +596,19 @@ class Score(models.Model):
 
         return score
 
-    def get_default_performance_calculation(self):
-        difficulty_calculator = get_default_difficulty_calculator_class(
-            Gamemode(self.gamemode)
-        )
+    def get_performance_calculation(
+        self, calculator_engine: typing.Optional[str] = None
+    ):
+        if calculator_engine is not None:
+            calculator_engine_name = calculator_engine
+        else:
+            calculator_engine_name = get_default_difficulty_calculator_class(
+                Gamemode(self.gamemode)
+            ).engine()
+
         return PerformanceCalculation.objects.get(
             score=self,
-            calculator_engine=difficulty_calculator.engine(),
+            calculator_engine=calculator_engine_name,
         )
 
     def __str__(self):

@@ -27,6 +27,8 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "allow_past_scores",
             "member_count",
             "archived",
+            "calculator_engine",
+            "primary_performance_value",
             # relations
             "score_filter",
             "owner",

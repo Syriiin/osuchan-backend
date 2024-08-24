@@ -13,10 +13,7 @@ from common.osu.difficultycalculator import (
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.difficultycalculator import (
-    get_default_difficulty_calculator_class,
-    get_difficulty_calculators_for_gamemode,
-)
+from common.osu.difficultycalculator import get_difficulty_calculators_for_gamemode
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from leaderboards.models import Leaderboard, Membership
 from profiles.enums import ScoreMutation, ScoreResult

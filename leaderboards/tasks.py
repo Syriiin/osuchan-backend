@@ -49,14 +49,14 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     if score.mods != Mods.NONE:
         beatmap_details += f" +{get_mods_string(score.mods)}"
 
-    performance_calculation = score.get_default_performance_calculation()
+    performance_calculation = score.get_performance_calculation()
     difficulty_total = (
         performance_calculation.difficulty_calculation.get_total_difficulty()
     )
 
     beatmap_details += f" **{difficulty_total:.2f} stars**"
 
-    performance_calculation = score.get_default_performance_calculation()
+    performance_calculation = score.get_performance_calculation()
     performance_total = performance_calculation.get_total_performance()
     score_details = f"**{performance_total:.0f}pp** ({score.accuracy:.2f}%)"
     if score.result is not None and score.result & ScoreResult.FULL_COMBO:
