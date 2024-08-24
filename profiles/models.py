@@ -1,21 +1,11 @@
 import typing
 from datetime import datetime, timezone
-from typing import Type
 
 from django.db import models
 from django.db.models import FilteredRelation, Q, Subquery
 
-from common.error_reporter import ErrorReporter
 from common.osu import utils
-from common.osu.difficultycalculator import (
-    AbstractDifficultyCalculator,
-    DifficultyCalculatorException,
-)
-from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.difficultycalculator import (
-    get_default_difficulty_calculator_class,
-    get_difficulty_calculator_class,
-)
+from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
 from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 

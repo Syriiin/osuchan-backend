@@ -1,5 +1,3 @@
-from typing import Iterable, Type
-
 from django.core.management.base import BaseCommand
 from django.core.paginator import Paginator
 from django.db.models import FilteredRelation, Q, QuerySet

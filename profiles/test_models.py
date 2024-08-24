@@ -1,6 +1,5 @@
 import pytest
 
-from common.osu.difficultycalculator import get_difficulty_calculator_class
 from profiles.enums import ScoreResult
 from profiles.models import Beatmap, OsuUser, Score, UserStats
 
