@@ -116,7 +116,9 @@ class LeaderboardList(APIView):
         if score_filter_data is None:
             raise ParseError("Missing score_filter parameter.")
 
-        calculator_engine = request.data.get("calculator_engine")
+        # TODO: enable this once we have a frontend for it
+        # calculator_engine = request.data.get("calculator_engine")
+        calculator_engine = None
         if calculator_engine is None:
             calculator_engine = get_default_difficulty_calculator_class(
                 gamemode
