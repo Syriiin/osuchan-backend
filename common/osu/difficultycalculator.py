@@ -431,6 +431,19 @@ def get_difficulty_calculator_class(name: str) -> Type[AbstractDifficultyCalcula
     return difficulty_calculators_classes[name]
 
 
+def get_difficulty_calculator_class_for_engine(
+    engine: str,
+) -> Type[AbstractDifficultyCalculator]:
+    try:
+        return next(
+            calculator_class
+            for calculator_class in difficulty_calculators_classes.values()
+            if calculator_class.engine() == engine
+        )
+    except StopIteration as e:
+        raise ValueError(f"No difficulty calculator found for engine {engine}") from e
+
+
 def get_default_difficulty_calculator_class(
     gamemode: Gamemode,
 ) -> Type[AbstractDifficultyCalculator]:

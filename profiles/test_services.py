@@ -1,6 +1,6 @@
 import pytest
 
-from common.osu.difficultycalculator import get_difficulty_calculator_class
+from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import Gamemode, Mods
 from profiles.models import DifficultyCalculation, PerformanceCalculation
 from profiles.services import (
@@ -68,8 +68,8 @@ class TestUserServices:
 @pytest.mark.django_db
 class TestDifficultyCalculationServices:
     def test_update_difficulty_calculations(self, beatmap):
-        with get_difficulty_calculator_class(
-            "difficalcy-osu"
+        with get_default_difficulty_calculator_class(
+            Gamemode.STANDARD
         )() as difficulty_calculator:
             update_difficulty_calculations([beatmap], difficulty_calculator)
 
@@ -89,8 +89,8 @@ class TestDifficultyCalculationServices:
         assert difficulty_values[3].value == 6.710442985146793
 
     def test_update_performance_calculations(self, score):
-        with get_difficulty_calculator_class(
-            "difficalcy-osu"
+        with get_default_difficulty_calculator_class(
+            Gamemode.STANDARD
         )() as difficulty_calculator:
             update_performance_calculations([score], difficulty_calculator)
 
@@ -136,8 +136,8 @@ class TestDifficultyCalculationServices:
         )
 
     def test_calculate_difficulty_values(self, difficulty_calculation):
-        with get_difficulty_calculator_class(
-            "difficalcy-osu"
+        with get_default_difficulty_calculator_class(
+            Gamemode.STANDARD
         )() as difficulty_calculator:
             difficulty_values = calculate_difficulty_values(
                 [difficulty_calculation], difficulty_calculator
@@ -163,8 +163,8 @@ class TestDifficultyCalculationServices:
         )
 
     def test_calculate_performance_values(self, performance_calculation):
-        with get_difficulty_calculator_class(
-            "difficalcy-osu"
+        with get_default_difficulty_calculator_class(
+            Gamemode.STANDARD
         )() as difficulty_calculator:
             performance_values = calculate_performance_values(
                 [performance_calculation], difficulty_calculator

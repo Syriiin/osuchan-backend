@@ -30,6 +30,8 @@ class TestMembershipServices:
                 member_count=0,
                 archived=False,
                 notification_discord_webhook_url="",
+                calculator_engine="osu.Game.Rulesets.Osu",
+                primary_performance_value="total",
                 score_filter=ScoreFilter.objects.create(),
             ),
         )

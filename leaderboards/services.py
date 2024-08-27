@@ -90,18 +90,23 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
     if leaderboard.score_filter:
         scores = scores.apply_score_filter(leaderboard.score_filter)
 
-    scores = scores.get_score_set(leaderboard.gamemode, score_set=leaderboard.score_set)
+    scores = scores.get_score_set(
+        leaderboard.gamemode,
+        score_set=leaderboard.score_set,
+        calculator_engine=leaderboard.calculator_engine,
+        primary_performance_value=leaderboard.primary_performance_value,
+    )
 
     membership_scores = [
         MembershipScore(
             membership=membership,
             leaderboard=leaderboard,
             score=score,
-            performance_total=score.default_performance_total,
+            performance_total=score.performance_total,
         )
         for score in scores
         # Skip scores missing performance calculation
-        if score.default_performance_total is not None
+        if score.performance_total is not None
     ]
 
     MembershipScore.objects.bulk_create(

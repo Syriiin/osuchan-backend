@@ -52,6 +52,8 @@ class Leaderboard(models.Model):
     )  # global leaderboards will have null member count
     archived = models.BooleanField(default=False)
     notification_discord_webhook_url = models.CharField(max_length=250, blank=True)
+    calculator_engine = models.CharField(max_length=50)
+    primary_performance_value = models.CharField(max_length=20)
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
