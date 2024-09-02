@@ -2,9 +2,13 @@ from django.conf import settings
 from django.conf.urls import include
 from django.contrib import admin
 from django.http import Http404, HttpResponse
-from django.urls import path
+from django.urls import path, register_converter
 
+from common.converters import GamemodeConverter, LeaderboardTypeConverter
 from common.osu.beatmap_provider import BeatmapNotFoundException, BeatmapProvider
+
+register_converter(GamemodeConverter, "gm")
+register_converter(LeaderboardTypeConverter, "lb_type")
 
 
 def getBeatmapFile(request, beatmap_id):

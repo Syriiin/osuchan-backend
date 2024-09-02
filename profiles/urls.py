@@ -1,10 +1,6 @@
-from django.urls import path, register_converter
+from django.urls import path
 
-from common.converters import GamemodeConverter, LeaderboardTypeConverter
 from profiles import views
-
-register_converter(GamemodeConverter, "gm")
-register_converter(LeaderboardTypeConverter, "lb_type")
 
 urlpatterns = [
     path(
