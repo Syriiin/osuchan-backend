@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 else:
                     users = leaderboard.members.all().values("id")
                 for user_id in tqdm([u["id"] for u in users]):
-                    update_membership(leaderboard, user_id)
+                    update_membership(leaderboard, user_id, skip_notifications=True)
 
         self.stdout.write(
             self.style.SUCCESS(

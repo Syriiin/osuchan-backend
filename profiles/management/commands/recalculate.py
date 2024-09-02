@@ -268,7 +268,11 @@ class Command(BaseCommand):
         with tqdm(desc="Memberships", total=memberships.count(), smoothing=0) as pbar:
             for page in paginator:
                 for membership in page:
-                    update_membership(membership.leaderboard, membership.user_id)
+                    update_membership(
+                        membership.leaderboard,
+                        membership.user_id,
+                        skip_notifications=True,
+                    )
                     pbar.update()
                 Membership.objects.bulk_update(page, ["pp"])
 

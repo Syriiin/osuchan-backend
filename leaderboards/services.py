@@ -43,7 +43,9 @@ def delete_membership(membership):
 
 
 @transaction.atomic
-def update_membership(leaderboard: Leaderboard, user_id: int):
+def update_membership(
+    leaderboard: Leaderboard, user_id: int, skip_notifications: bool = False
+):
     """
     Creates or updates a membership for a given user on a given leaderboard
     """
@@ -131,7 +133,7 @@ def update_membership(leaderboard: Leaderboard, user_id: int):
 
     membership.save()
 
-    if leaderboard.notification_discord_webhook_url != "":
+    if not skip_notifications and leaderboard.notification_discord_webhook_url != "":
         # Check for new top score
         if (
             len(membership_scores) > 0
