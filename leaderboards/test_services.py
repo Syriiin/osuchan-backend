@@ -48,7 +48,7 @@ class TestMembershipServices:
         assert membership.leaderboard.member_count == 2
         assert membership.user.username == "Syrin"
         assert membership.score_count == 4
-        assert membership.pp == 1215.5272384251844
+        assert membership.pp == 1215.5272384251846
 
     def test_update_membership(self, membership):
         fetch_scores(membership.user_id, [362949], Gamemode.STANDARD)
