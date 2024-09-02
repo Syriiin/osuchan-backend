@@ -93,9 +93,11 @@ class Leaderboard(models.Model):
         return max_pp if max_pp is not None else 0
 
     def get_top_scores(self, limit=5):
-        return self.scores.order_by(
-            "-membership_scores__performance_total", "date"
-        ).select_related("user_stats", "user_stats__user", "beatmap")[:limit]
+        return (
+            self.scores.non_restricted()
+            .order_by("-membership_scores__performance_total", "date")
+            .select_related("user_stats", "user_stats__user", "beatmap")[:limit]
+        )
 
     def get_top_membership(self):
         if self.access_type == LeaderboardAccessType.GLOBAL:
