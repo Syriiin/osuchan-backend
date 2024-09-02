@@ -15,7 +15,7 @@ from common.osu.utils import (
 
 def test_calculate_pp_total():
     pp_values = [1322, 1260, 1158, 1023, 900, 800, 727, 603, 541, 408]
-    assert calculate_pp_total(pp_values) == 7364.83140652393
+    assert calculate_pp_total(pp_values) == 7364.831406523928
 
 
 def test_get_accuracy():

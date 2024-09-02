@@ -7,7 +7,7 @@ license = "AGPL-3.0"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.12"
 celery = "^5.2.7"
 Django = "^4.2.3"
 djangorestframework = "^3.12.4"
@@ -29,7 +29,7 @@ coverage = "^7.5.1"
 pytest = "^8.2.0"
 pytest-django = "^4.5.2"
 freezegun = "^1.2.2"
-watchdog = {extras = ["watchmedo"], version = "^4.0.1"}
+watchdog = { extras = ["watchmedo"], version = "^4.0.1" }
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "osuchan.settings"
