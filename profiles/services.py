@@ -99,7 +99,9 @@ def refresh_user_from_api(
         else:
             # User either doesnt exist, is restricted, or name changed
             try:
-                osu_user = OsuUser.objects.select_for_update().get(username=username)
+                osu_user = OsuUser.objects.select_for_update().get(
+                    username__iexact=username
+                )
                 # Fetch from osu api with user id incase of name change
                 user_data = osu_api_v1.get_user_by_id(osu_user.id, gamemode)
 
