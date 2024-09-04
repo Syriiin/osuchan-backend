@@ -1,6 +1,7 @@
 # Services for running the application
 
 volumes:
+  db-data:
   queue-data:
   prometheus-data:
   grafana-data:
@@ -15,9 +16,9 @@ secrets:
 
 services:
   db:
-    image: postgres:13
+    image: postgres:16
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     env_file:
       - config/active/postgres.env
     shm_size: 128m
