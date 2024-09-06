@@ -455,7 +455,6 @@ def update_difficulty_calculations(
     """
     # Create calculations
     calculations = []
-    beatmap_ids = []
     for beatmap in beatmaps:
         calculations.append(
             DifficultyCalculation(
@@ -465,19 +464,12 @@ def update_difficulty_calculations(
                 calculator_version=difficulty_calculator.version(),
             )
         )
-        beatmap_ids.append(beatmap.id)
 
     DifficultyCalculation.objects.bulk_create(
         calculations,
         update_conflicts=True,
         update_fields=["calculator_version"],
         unique_fields=["beatmap_id", "mods", "calculator_engine"],
-    )
-    # TODO: remove when bulk_create(update_conflicts) returns pks in django 5.0
-    calculations = DifficultyCalculation.objects.filter(
-        beatmap_id__in=beatmap_ids,
-        mods=Mods.NONE,
-        calculator_engine=difficulty_calculator.engine(),
     )
 
     values = calculate_difficulty_values(calculations, difficulty_calculator)
@@ -521,16 +513,6 @@ def update_performance_calculations(
         update_fields=["calculator_version"],
         unique_fields=["beatmap_id", "mods", "calculator_engine"],
     )
-    # TODO: remove when bulk_create(update_conflicts) returns pks in django 5.0
-    unique_beatmap_query = Q(
-        pk__in=[]  # ensures no-op if somehow there are no unique beatmaps
-    )
-    for beatmap_id, mods in unique_beatmaps:
-        unique_beatmap_query |= Q(beatmap_id=beatmap_id, mods=mods)
-    difficulty_calculations = DifficultyCalculation.objects.filter(
-        unique_beatmap_query,
-        calculator_engine=difficulty_calculator.engine(),
-    )
 
     # Do difficulty calculations
     difficulty_values = calculate_difficulty_values(
@@ -546,7 +528,6 @@ def update_performance_calculations(
     )
 
     # Create or update performance calculations
-    score_ids = []
     performance_calculations = []
     for score in scores:
         difficulty_calculation = next(
@@ -563,7 +544,6 @@ def update_performance_calculations(
                 calculator_version=difficulty_calculator.version(),
             )
         )
-        score_ids.append(score.id)
 
     PerformanceCalculation.objects.bulk_create(
         performance_calculations,
@@ -571,11 +551,6 @@ def update_performance_calculations(
         update_fields=["calculator_version", "difficulty_calculation_id"],
         unique_fields=["score_id", "calculator_engine"],
     )
-    # TODO: remove when bulk_create(update_conflicts) returns pks in django 5.0
-    performance_calculations = PerformanceCalculation.objects.filter(
-        score_id__in=score_ids,
-        calculator_engine=difficulty_calculator.engine(),
-    ).select_related("score")
 
     # Do performance calculations
     performance_values = calculate_performance_values(
