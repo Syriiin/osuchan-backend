@@ -472,18 +472,23 @@ def update_difficulty_calculations(
         unique_fields=["beatmap_id", "mods", "calculator_engine"],
     )
 
-    values = calculate_difficulty_values(calculations, difficulty_calculator)
+    values = list(
+        itertools.chain.from_iterable(
+            calculate_difficulty_values(calculations, difficulty_calculator)
+        )
+    )
 
     DifficultyValue.objects.bulk_create(
-        itertools.chain.from_iterable(values),
+        values,
         update_conflicts=True,
         update_fields=["value"],
         unique_fields=["calculation_id", "name"],
     )
 
-    # TODO: what happens if the calculator is updated to remove a diff value?
-    #   do we need to delete all values not returned for a calculation?
-    #   with update_conflicts=True returning pks in django 5.0 we can just add a delete where not id in pks
+    # Delete outdated values (non-existent in current calculator)
+    DifficultyValue.objects.filter(
+        calculation_id__in=[c.id for c in calculations]
+    ).exclude(id__in=[v.id for v in values]).delete()
 
 
 @transaction.atomic
@@ -515,17 +520,24 @@ def update_performance_calculations(
     )
 
     # Do difficulty calculations
-    difficulty_values = calculate_difficulty_values(
-        difficulty_calculations, difficulty_calculator
+    difficulty_values = list(
+        itertools.chain.from_iterable(
+            calculate_difficulty_values(difficulty_calculations, difficulty_calculator)
+        )
     )
 
     # Create or update difficulty values
     DifficultyValue.objects.bulk_create(
-        itertools.chain.from_iterable(difficulty_values),
+        difficulty_values,
         update_conflicts=True,
         update_fields=["value"],
         unique_fields=["calculation_id", "name"],
     )
+
+    # Delete outdated values (non-existent in current calculator)
+    DifficultyValue.objects.filter(
+        calculation_id__in=[c.id for c in difficulty_calculations]
+    ).exclude(id__in=[v.id for v in difficulty_values]).delete()
 
     # Create or update performance calculations
     performance_calculations = []
@@ -553,21 +565,26 @@ def update_performance_calculations(
     )
 
     # Do performance calculations
-    performance_values = calculate_performance_values(
-        performance_calculations, difficulty_calculator
+    performance_values = list(
+        itertools.chain.from_iterable(
+            calculate_performance_values(
+                performance_calculations, difficulty_calculator
+            )
+        )
     )
 
     # Create or update performance values
     PerformanceValue.objects.bulk_create(
-        itertools.chain.from_iterable(performance_values),
+        performance_values,
         update_conflicts=True,
         update_fields=["value"],
         unique_fields=["calculation_id", "name"],
     )
 
-    # TODO: what happens if the calculator is updated to remove a perf value?
-    #   do we need to delete all values not returned for a calculation?
-    #   with update_conflicts=True returning pks in django 5.0 we can just add a delete where not id in pks
+    # Delete outdated values (non-existent in current calculator)
+    PerformanceValue.objects.filter(
+        calculation_id__in=[c.id for c in performance_calculations]
+    ).exclude(id__in=[v.id for v in performance_values]).delete()
 
 
 def calculate_difficulty_values(
