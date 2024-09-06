@@ -68,6 +68,16 @@ class TestUserServices:
 @pytest.mark.django_db
 class TestDifficultyCalculationServices:
     def test_update_difficulty_calculations(self, beatmap):
+        calculation = DifficultyCalculation.objects.create(
+            beatmap=beatmap,
+            mods=Mods.NONE,
+            calculator_engine="osu.Game.Rulesets.Osu",
+            calculator_version="2007.906.0",
+        )
+
+        calculation.difficulty_values.create(name="aim", value=0.05)
+        calculation.difficulty_values.create(name="dummy", value=9001)
+
         with get_default_difficulty_calculator_class(
             Gamemode.STANDARD
         )() as difficulty_calculator:
@@ -89,6 +99,26 @@ class TestDifficultyCalculationServices:
         assert difficulty_values[3].value == 6.710442985146793
 
     def test_update_performance_calculations(self, score):
+        difficulty_calculation = DifficultyCalculation.objects.create(
+            beatmap=score.beatmap,
+            mods=score.mods,
+            calculator_engine="osu.Game.Rulesets.Osu",
+            calculator_version="2007.906.0",
+        )
+
+        difficulty_calculation.difficulty_values.create(name="aim", value=0.05)
+        difficulty_calculation.difficulty_values.create(name="dummy", value=9001)
+
+        calculation = PerformanceCalculation.objects.create(
+            score=score,
+            difficulty_calculation=difficulty_calculation,
+            calculator_engine="osu.Game.Rulesets.Osu",
+            calculator_version="2007.906.0",
+        )
+
+        calculation.performance_values.create(name="aim", value=5.05)
+        calculation.performance_values.create(name="dummy", value=900001)
+
         with get_default_difficulty_calculator_class(
             Gamemode.STANDARD
         )() as difficulty_calculator:
