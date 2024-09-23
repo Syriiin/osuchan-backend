@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import FilteredRelation, Q, Subquery
 
 from common.osu import utils
+from common.osu.apiv1 import BeatmapData
 from common.osu.difficultycalculator import (
     get_default_difficulty_calculator_class,
     get_difficulty_calculator_class_for_engine,
@@ -194,45 +195,33 @@ class Beatmap(models.Model):
     )
 
     @classmethod
-    def from_data(cls, beatmap_data):
-        beatmap = cls(id=int(beatmap_data["beatmap_id"]))
+    def from_data(cls, beatmap_data: BeatmapData):
+        beatmap = cls(id=beatmap_data.beatmap_id)
 
-        # Update fields
-        beatmap.set_id = int(beatmap_data["beatmapset_id"])
-        beatmap.artist = beatmap_data["artist"]
-        beatmap.title = beatmap_data["title"]
-        beatmap.difficulty_name = beatmap_data["version"]
-        beatmap.gamemode = int(beatmap_data["mode"])
-        beatmap.status = int(beatmap_data["approved"])
-        beatmap.creator_name = beatmap_data["creator"]
-        beatmap.bpm = float(beatmap_data["bpm"])
-        beatmap.max_combo = (
-            int(beatmap_data["max_combo"])
-            if beatmap_data["max_combo"] != None
-            else None
-        )
-        beatmap.drain_time = int(beatmap_data["hit_length"])
-        beatmap.total_time = int(beatmap_data["total_length"])
-        beatmap.circle_size = float(beatmap_data["diff_size"])
-        beatmap.overall_difficulty = float(beatmap_data["diff_overall"])
-        beatmap.approach_rate = float(beatmap_data["diff_approach"])
-        beatmap.health_drain = float(beatmap_data["diff_drain"])
-        beatmap.submission_date = datetime.strptime(
-            beatmap_data["submit_date"], "%Y-%m-%d %H:%M:%S"
-        ).replace(tzinfo=timezone.utc)
-        beatmap.approval_date = (
-            datetime.strptime(
-                beatmap_data["approved_date"], "%Y-%m-%d %H:%M:%S"
-            ).replace(tzinfo=timezone.utc)
-            if beatmap_data["approved_date"] is not None
-            else None
-        )
-        beatmap.last_updated = datetime.strptime(
-            beatmap_data["last_update"], "%Y-%m-%d %H:%M:%S"
-        ).replace(tzinfo=timezone.utc)
+        beatmap.set_id = beatmap_data.set_id
+        beatmap.gamemode = beatmap_data.gamemode
+        beatmap.status = beatmap_data.status
 
-        # Update foreign key ids
-        beatmap.creator_id = int(beatmap_data["creator_id"])
+        beatmap.artist = beatmap_data.artist
+        beatmap.title = beatmap_data.title
+        beatmap.difficulty_name = beatmap_data.difficulty_name
+
+        beatmap.creator_name = beatmap_data.creator_name
+        beatmap.creator_id = beatmap_data.creator_id
+
+        beatmap.bpm = beatmap_data.bpm
+        beatmap.max_combo = beatmap_data.max_combo
+        beatmap.drain_time = beatmap_data.drain_time
+        beatmap.total_time = beatmap_data.total_time
+
+        beatmap.circle_size = beatmap_data.circle_size
+        beatmap.overall_difficulty = beatmap_data.overall_difficulty
+        beatmap.approach_rate = beatmap_data.approach_rate
+        beatmap.health_drain = beatmap_data.health_drain
+
+        beatmap.submission_date = beatmap_data.submission_date
+        beatmap.last_updated = beatmap_data.last_updated
+        beatmap.approval_date = beatmap_data.approval_date
 
         return beatmap
 

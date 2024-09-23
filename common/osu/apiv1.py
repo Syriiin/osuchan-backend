@@ -1,18 +1,82 @@
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Type
+from datetime import datetime, timezone
+from typing import NamedTuple, Type
 
 import requests
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from common.osu.enums import Gamemode
+from common.osu.enums import BeatmapStatus, Gamemode
+
+
+class BeatmapData(NamedTuple):
+    beatmap_id: int
+    set_id: int
+    gamemode: Gamemode
+    status: BeatmapStatus
+
+    artist: str
+    title: str
+    difficulty_name: str
+
+    creator_name: str
+    creator_id: int
+
+    bpm: float
+    max_combo: int | None
+    drain_time: int
+    total_time: int
+
+    circle_size: float
+    approach_rate: float
+    overall_difficulty: float
+    health_drain: float
+
+    submission_date: datetime
+    last_updated: datetime
+    approval_date: datetime | None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "BeatmapData":
+        return cls(
+            beatmap_id=int(data["beatmap_id"]),
+            set_id=int(data["beatmapset_id"]),
+            gamemode=Gamemode(int(data["mode"])),
+            status=BeatmapStatus(int(data["approved"])),
+            artist=data["artist"],
+            title=data["title"],
+            difficulty_name=data["version"],
+            creator_name=data["creator"],
+            creator_id=data["creator_id"],
+            bpm=float(data["bpm"]),
+            max_combo=int(data["max_combo"]) if data["max_combo"] != None else None,
+            drain_time=int(data["hit_length"]),
+            total_time=int(data["total_length"]),
+            circle_size=float(data["diff_size"]),
+            approach_rate=float(data["diff_approach"]),
+            overall_difficulty=float(data["diff_overall"]),
+            health_drain=float(data["diff_drain"]),
+            submission_date=datetime.strptime(
+                data["submit_date"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=timezone.utc),
+            last_updated=datetime.strptime(
+                data["last_update"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=timezone.utc),
+            approval_date=(
+                datetime.strptime(data["approved_date"], "%Y-%m-%d %H:%M:%S").replace(
+                    tzinfo=timezone.utc
+                )
+                if data["approved_date"] != None
+                else None
+            ),
+        )
 
 
 class AbstractOsuApiV1(ABC):
     @abstractmethod
-    def get_beatmap(self, beatmap_id: int) -> dict | None:
+    def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -39,7 +103,7 @@ class AbstractOsuApiV1(ABC):
 
 
 class LiveOsuApiV1(AbstractOsuApiV1):
-    def __get_legacy_endpoint(self, endpoint_name, **kwargs):
+    def __get_legacy_endpoint(self, endpoint_name, **kwargs) -> list[dict]:
         # Remove any None arguments passed in kwargs
         payload = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -54,9 +118,11 @@ class LiveOsuApiV1(AbstractOsuApiV1):
 
         return response.json()
 
-    def get_beatmap(self, beatmap_id: int) -> dict | None:
+    def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
         try:
-            return self.__get_legacy_endpoint("get_beatmaps", b=beatmap_id)[0]
+            return BeatmapData.from_dict(
+                self.__get_legacy_endpoint("get_beatmaps", b=beatmap_id)[0]
+            )
         except IndexError:
             return None
 
@@ -101,9 +167,11 @@ class StubOsuApiV1(AbstractOsuApiV1):
         ) as fp:
             return json.load(fp)
 
-    def get_beatmap(self, beatmap_id: int) -> dict | None:
+    def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
         try:
-            return self.__load_stub_data__("beatmaps.json")[str(beatmap_id)]
+            return BeatmapData.from_dict(
+                self.__load_stub_data__("beatmaps.json")[str(beatmap_id)]
+            )
         except KeyError:
             return None
 
