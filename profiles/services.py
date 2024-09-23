@@ -6,7 +6,6 @@ from django.db import transaction
 
 from common.error_reporter import ErrorReporter
 from common.osu import utils
-from common.osu.apiv1 import OsuApiV1, ScoreData
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
     DifficultyCalculatorException,
@@ -14,6 +13,7 @@ from common.osu.difficultycalculator import (
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
 from common.osu.difficultycalculator import get_difficulty_calculators_for_gamemode
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
+from common.osu.osuapi import OsuApi, ScoreData
 from leaderboards.models import Leaderboard, Membership
 from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import (
@@ -74,13 +74,13 @@ def refresh_user_from_api(
         # User was last updated less than 5 minutes ago, so just return it
         return user_stats, False
 
-    osu_api_v1 = OsuApiV1()
+    osu_api = OsuApi()
 
     # Fetch user data from osu api
     if user_id:
-        user_data = osu_api_v1.get_user_by_id(user_id, gamemode)
+        user_data = osu_api.get_user_by_id(user_id, gamemode)
     else:
-        user_data = osu_api_v1.get_user_by_name(username, gamemode)
+        user_data = osu_api.get_user_by_name(username, gamemode)
 
     # Check for response
     if user_data is None:
@@ -102,7 +102,7 @@ def refresh_user_from_api(
                     username__iexact=username
                 )
                 # Fetch from osu api with user id incase of name change
-                user_data = osu_api_v1.get_user_by_id(osu_user.id, gamemode)
+                user_data = osu_api.get_user_by_id(osu_user.id, gamemode)
 
                 if user_data is None:
                     # Restricted
@@ -177,12 +177,10 @@ def refresh_user_from_api(
 
     # Fetch user scores from osu api
     score_data_list = []
-    score_data_list.extend(
-        osu_api_v1.get_user_best_scores(user_stats.user_id, gamemode)
-    )
+    score_data_list.extend(osu_api.get_user_best_scores(user_stats.user_id, gamemode))
     score_data_list.extend(
         score
-        for score in osu_api_v1.get_user_recent_scores(user_stats.user_id, gamemode)
+        for score in osu_api.get_user_recent_scores(user_stats.user_id, gamemode)
         if score.rank != "F"
     )
 
@@ -209,10 +207,10 @@ def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
     """
     Fetches and adds a list of beatmaps from the osu api
     """
-    osu_api_v1 = OsuApiV1()
+    osu_api = OsuApi()
     beatmaps = []
     for beatmap_id in beatmap_ids:
-        beatmap_data = osu_api_v1.get_beatmap(beatmap_id)
+        beatmap_data = osu_api.get_beatmap(beatmap_id)
 
         if beatmap_data is None:
             continue
@@ -261,8 +259,8 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     full_score_data_list: list[ScoreData] = []
     for beatmap_id in beatmap_ids:
         # Fetch score data from osu api
-        osu_api_v1 = OsuApiV1()
-        score_data_list = osu_api_v1.get_user_scores_for_beatmap(
+        osu_api = OsuApi()
+        score_data_list = osu_api.get_user_scores_for_beatmap(
             beatmap_id, user_id, gamemode
         )
 

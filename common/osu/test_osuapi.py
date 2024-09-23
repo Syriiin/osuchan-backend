@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch
 import pytest
 from requests import HTTPError
 
-from common.osu.apiv1 import LiveOsuApiV1
 from common.osu.enums import Gamemode
+from common.osu.osuapi import LiveOsuApiV1
 
 
 class TestLiveOsuApiV1:
@@ -31,7 +31,7 @@ class TestLiveOsuApiV1:
         def json(self):
             with open(
                 os.path.join(
-                    os.path.dirname(__file__), "stubdata", "apiv1", "beatmaps.json"
+                    os.path.dirname(__file__), "stubdata", "osuapi", "beatmaps.json"
                 )
             ) as fp:
                 return [json.load(fp)["307618"]]
@@ -40,7 +40,7 @@ class TestLiveOsuApiV1:
         def json(self):
             with open(
                 os.path.join(
-                    os.path.dirname(__file__), "stubdata", "apiv1", "users.json"
+                    os.path.dirname(__file__), "stubdata", "osuapi", "users.json"
                 )
             ) as fp:
                 return [json.load(fp)["5701575"]["0"]]
@@ -49,7 +49,7 @@ class TestLiveOsuApiV1:
         def json(self):
             with open(
                 os.path.join(
-                    os.path.dirname(__file__), "stubdata", "apiv1", "scores.json"
+                    os.path.dirname(__file__), "stubdata", "osuapi", "scores.json"
                 )
             ) as fp:
                 return json.load(fp)["5701575"]["0"]["362949"]
@@ -58,7 +58,7 @@ class TestLiveOsuApiV1:
         def json(self):
             with open(
                 os.path.join(
-                    os.path.dirname(__file__), "stubdata", "apiv1", "user_best.json"
+                    os.path.dirname(__file__), "stubdata", "osuapi", "user_best.json"
                 )
             ) as fp:
                 return json.load(fp)["5701575"]["0"]
@@ -67,7 +67,7 @@ class TestLiveOsuApiV1:
         def json(self):
             with open(
                 os.path.join(
-                    os.path.dirname(__file__), "stubdata", "apiv1", "user_recent.json"
+                    os.path.dirname(__file__), "stubdata", "osuapi", "user_recent.json"
                 )
             ) as fp:
                 return json.load(fp)["5701575"]["0"]
@@ -80,7 +80,7 @@ class TestLiveOsuApiV1:
         def raise_for_status(self):
             raise HTTPError()
 
-    @patch("common.osu.apiv1.requests.get", return_value=BeatmapTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=BeatmapTestResponse())
     def test_get_beatmap(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
@@ -91,7 +91,7 @@ class TestLiveOsuApiV1:
             "testbaseurl/get_beatmaps", params={"b": 1, "k": "testkey"}
         )
 
-    @patch("common.osu.apiv1.requests.get", return_value=UserTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=UserTestResponse())
     def test_get_user_by_id(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
@@ -103,21 +103,21 @@ class TestLiveOsuApiV1:
             params={"u": 1, "type": "id", "m": 0, "k": "testkey"},
         )
 
-    @patch("common.osu.apiv1.requests.get", return_value=EmptyTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=EmptyTestResponse())
     def test_get_user_by_id_not_found(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
         user_data = osu_api_v1.get_user_by_id(1, Gamemode.STANDARD)
         assert user_data is None
 
-    @patch("common.osu.apiv1.requests.get", return_value=ErrorTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=ErrorTestResponse())
     def test_get_user_by_id_error(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
         with pytest.raises(HTTPError):
             osu_api_v1.get_user_by_id(1, Gamemode.STANDARD)
 
-    @patch("common.osu.apiv1.requests.get", return_value=UserTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=UserTestResponse())
     def test_get_user_by_name(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
@@ -129,7 +129,7 @@ class TestLiveOsuApiV1:
             params={"u": "testusername", "type": "string", "m": 0, "k": "testkey"},
         )
 
-    @patch("common.osu.apiv1.requests.get", return_value=ScoresTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=ScoresTestResponse())
     def test_get_user_scores_for_beatmap(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
@@ -140,7 +140,7 @@ class TestLiveOsuApiV1:
             params={"b": 1, "u": 2, "type": "id", "m": 0, "k": "testkey"},
         )
 
-    @patch("common.osu.apiv1.requests.get", return_value=UserBestTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=UserBestTestResponse())
     def test_get_user_best_scores(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
@@ -151,7 +151,7 @@ class TestLiveOsuApiV1:
             params={"u": 1, "type": "id", "m": 0, "limit": 100, "k": "testkey"},
         )
 
-    @patch("common.osu.apiv1.requests.get", return_value=UserRecentTestResponse())
+    @patch("common.osu.osuapi.requests.get", return_value=UserRecentTestResponse())
     def test_get_user_recent_scores(
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):

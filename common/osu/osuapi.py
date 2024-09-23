@@ -191,7 +191,7 @@ class ScoreData(NamedTuple):
         )
 
 
-class AbstractOsuApiV1(ABC):
+class AbstractOsuApi(ABC):
     @abstractmethod
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
         raise NotImplementedError()
@@ -221,7 +221,7 @@ class AbstractOsuApiV1(ABC):
         raise NotImplementedError()
 
 
-class LiveOsuApiV1(AbstractOsuApiV1):
+class LiveOsuApiV1(AbstractOsuApi):
     def __get_legacy_endpoint(self, endpoint_name, **kwargs) -> list[dict]:
         # Remove any None arguments passed in kwargs
         payload = {k: v for k, v in kwargs.items() if v is not None}
@@ -294,10 +294,10 @@ class LiveOsuApiV1(AbstractOsuApiV1):
         ]
 
 
-class StubOsuApiV1(AbstractOsuApiV1):
+class StubOsuApiV1(AbstractOsuApi):
     def __load_stub_data__(self, filename: str) -> dict:
         with open(
-            os.path.join(os.path.dirname(__file__), "stubdata", "apiv1", filename)
+            os.path.join(os.path.dirname(__file__), "stubdata", "osuapi", filename)
         ) as fp:
             return json.load(fp)
 
@@ -369,4 +369,4 @@ class StubOsuApiV1(AbstractOsuApiV1):
             return []
 
 
-OsuApiV1: Type[AbstractOsuApiV1] = import_string(settings.OSU_API_V1_CLASS)
+OsuApi: Type[AbstractOsuApi] = import_string(settings.OSU_API_CLASS)

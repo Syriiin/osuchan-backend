@@ -4,12 +4,12 @@ from django.db import models
 from django.db.models import FilteredRelation, Q, Subquery
 
 from common.osu import utils
-from common.osu.apiv1 import BeatmapData
 from common.osu.difficultycalculator import (
     get_default_difficulty_calculator_class,
     get_difficulty_calculator_class_for_engine,
 )
 from common.osu.enums import BeatmapStatus, Gamemode, Mods
+from common.osu.osuapi import BeatmapData
 from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 
 
