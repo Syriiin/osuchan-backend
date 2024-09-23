@@ -313,7 +313,7 @@ OSU_API_V1_KEY = env_settings.OSU_API_V1_KEY
 if env_settings.USE_STUB_OSU_API:
     OSU_API_CLASS = "common.osu.osuapi.StubOsuApiV1"
 else:
-    OSU_API_CLASS = "common.osu.osuapi.LiveOsuApiV1"
+    OSU_API_CLASS = "common.osu.osuapi.LiveOsuApiV2"
 
 
 # Beatmaps

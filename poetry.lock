@@ -723,6 +723,53 @@ files = [
 ]
 
 [[package]]
+name = "oauthlib"
+version = "3.2.2"
+description = "A generic, spec-compliant, thorough implementation of the OAuth request-signing logic"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "oauthlib-3.2.2-py3-none-any.whl", hash = "sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca"},
+    {file = "oauthlib-3.2.2.tar.gz", hash = "sha256:9859c40929662bec5d64f34d01c99e093149682a3f38915dc0655d5a633dd918"},
+]
+
+[package.extras]
+rsa = ["cryptography (>=3.0.0)"]
+signals = ["blinker (>=1.4.0)"]
+signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
+
+[[package]]
+name = "osrparse"
+version = "6.0.2"
+description = "Parser for osr files and lzma replay streams for osu!"
+optional = false
+python-versions = "*"
+files = [
+    {file = "osrparse-6.0.2-py3-none-any.whl", hash = "sha256:fb80796621d0c1c2f4ff53d6a0468cf5cec9b11c5e01d479f170bdfd00549044"},
+    {file = "osrparse-6.0.2.tar.gz", hash = "sha256:7415faee6d2eeabb29dbd85b3a15c4ac960a6b5acb7b757ff503f215e7ef7ebb"},
+]
+
+[[package]]
+name = "ossapi"
+version = "4.0.0"
+description = "Complete python wrapper for osu! api v2 and v1."
+optional = false
+python-versions = "*"
+files = [
+    {file = "ossapi-4.0.0-py3-none-any.whl", hash = "sha256:e7320cb1c62797c2aabba2436e527e9609630f48b916d171d32e67bb4a796c39"},
+    {file = "ossapi-4.0.0.tar.gz", hash = "sha256:88f0a27e771cf2af3a119360b152fd0dbde504a2f1b7a6e26f458d9011cfa858"},
+]
+
+[package.dependencies]
+osrparse = ">=6.0,<7.0"
+requests = "*"
+requests-oauthlib = "*"
+typing-utils = "*"
+
+[package.extras]
+async = ["aiohttp"]
+
+[[package]]
 name = "packaging"
 version = "24.1"
 description = "Core utilities for Python packages"
@@ -1203,6 +1250,24 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "requests-oauthlib"
+version = "2.0.0"
+description = "OAuthlib authentication support for Requests."
+optional = false
+python-versions = ">=3.4"
+files = [
+    {file = "requests-oauthlib-2.0.0.tar.gz", hash = "sha256:b3dffaebd884d8cd778494369603a9e7b58d29111bf6b41bdc2dcd87203af4e9"},
+    {file = "requests_oauthlib-2.0.0-py2.py3-none-any.whl", hash = "sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36"},
+]
+
+[package.dependencies]
+oauthlib = ">=3.0.0"
+requests = ">=2.0.0"
+
+[package.extras]
+rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1289,6 +1354,20 @@ files = [
     {file = "typing_extensions-4.12.2-py3-none-any.whl", hash = "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"},
     {file = "typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"},
 ]
+
+[[package]]
+name = "typing-utils"
+version = "0.1.0"
+description = "utils to inspect Python type annotations"
+optional = false
+python-versions = ">=3.6.1"
+files = [
+    {file = "typing_utils-0.1.0-py3-none-any.whl", hash = "sha256:6bd26f3d38a5dd526ca3a59f0a451ccb59bcee9dc829c872dd6c0aae4ec8bbef"},
+    {file = "typing_utils-0.1.0.tar.gz", hash = "sha256:8ff6b6705414b82575ad5ae0925ac414a9650fb8c5718289b1327dec61252f65"},
+]
+
+[package.extras]
+test = ["pytest"]
 
 [[package]]
 name = "tzdata"
@@ -1393,4 +1472,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "e0cb69abf8abd3b15bae53f777a966a6b2295b6e51dbca38b58f06a616204daa"
+content-hash = "d436ce73f4bb54f3bc86fcdc1a42e23ab821b797a95335fe9c85c695478a8921"
