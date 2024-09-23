@@ -97,7 +97,7 @@ class TestLiveOsuApiV1:
     ):
         user_data = osu_api_v1.get_user_by_id(1, Gamemode.STANDARD)
         assert user_data is not None
-        assert user_data["username"] == "Syrin"
+        assert user_data.username == "Syrin"
         get_mock.assert_called_once_with(
             "testbaseurl/get_user",
             params={"u": 1, "type": "id", "m": 0, "k": "testkey"},
@@ -123,7 +123,7 @@ class TestLiveOsuApiV1:
     ):
         user_data = osu_api_v1.get_user_by_name("testusername", Gamemode.STANDARD)
         assert user_data is not None
-        assert user_data["username"] == "Syrin"
+        assert user_data.username == "Syrin"
         get_mock.assert_called_once_with(
             "testbaseurl/get_user",
             params={"u": "testusername", "type": "string", "m": 0, "k": "testkey"},

@@ -74,17 +74,90 @@ class BeatmapData(NamedTuple):
         )
 
 
+class UserData(NamedTuple):
+    user_id: int
+    username: str
+    join_date: datetime
+    country: str
+    playcount: int
+    playtime: int
+    level: float
+    ranked_score: int
+    total_score: int
+
+    rank: int
+    country_rank: int
+    pp: float
+    accuracy: float
+
+    count_300: int
+    count_100: int
+    count_50: int
+
+    count_rank_ss: int
+    count_rank_ssh: int
+    count_rank_s: int
+    count_rank_sh: int
+    count_rank_a: int
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "UserData":
+        return cls(
+            user_id=int(data["user_id"]),
+            username=data["username"],
+            join_date=datetime.strptime(data["join_date"], "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=timezone.utc
+            ),
+            country=data["country"],
+            playcount=int(data["playcount"]) if data["playcount"] != None else 0,
+            ranked_score=(
+                int(data["ranked_score"]) if data["ranked_score"] != None else 0
+            ),
+            total_score=int(data["total_score"]) if data["total_score"] != None else 0,
+            rank=int(data["pp_rank"]) if data["pp_rank"] != None else 0,
+            country_rank=(
+                int(data["pp_country_rank"]) if data["pp_country_rank"] != None else 0
+            ),
+            level=float(data["level"]) if data["level"] != None else 0,
+            accuracy=float(data["accuracy"]) if data["accuracy"] != None else 0,
+            count_rank_ss=(
+                int(data["count_rank_ss"]) if data["count_rank_ss"] != None else 0
+            ),
+            count_rank_ssh=(
+                int(data["count_rank_ssh"]) if data["count_rank_ssh"] != None else 0
+            ),
+            count_rank_s=(
+                int(data["count_rank_s"]) if data["count_rank_s"] != None else 0
+            ),
+            count_rank_sh=(
+                int(data["count_rank_sh"]) if data["count_rank_sh"] != None else 0
+            ),
+            count_rank_a=(
+                int(data["count_rank_a"]) if data["count_rank_a"] != None else 0
+            ),
+            playtime=(
+                int(data["total_seconds_played"])
+                if data["total_seconds_played"] != None
+                else 0
+            ),
+            pp=float(data["pp_raw"]) if data["pp_raw"] != None else 0,
+            count_300=int(data["count300"]) if data["count300"] != None else 0,
+            count_100=int(data["count100"]) if data["count100"] != None else 0,
+            count_50=int(data["count50"]) if data["count50"] != None else 0,
+        )
+
+
 class AbstractOsuApiV1(ABC):
     @abstractmethod
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
         raise NotImplementedError()
 
     @abstractmethod
-    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> dict | None:
+    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> UserData | None:
         raise NotImplementedError()
 
     @abstractmethod
-    def get_user_by_name(self, username: str, gamemode: Gamemode) -> dict | None:
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> UserData | None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -126,19 +199,23 @@ class LiveOsuApiV1(AbstractOsuApiV1):
         except IndexError:
             return None
 
-    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> dict | None:
+    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> UserData | None:
         try:
-            return self.__get_legacy_endpoint(
-                "get_user", u=user_id, type="id", m=gamemode.value
-            )[0]
+            return UserData.from_dict(
+                self.__get_legacy_endpoint(
+                    "get_user", u=user_id, type="id", m=gamemode.value
+                )[0]
+            )
         except IndexError:
             return None
 
-    def get_user_by_name(self, username: str, gamemode: Gamemode) -> dict | None:
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> UserData | None:
         try:
-            return self.__get_legacy_endpoint(
-                "get_user", u=username, type="string", m=gamemode.value
-            )[0]
+            return UserData.from_dict(
+                self.__get_legacy_endpoint(
+                    "get_user", u=username, type="string", m=gamemode.value
+                )[0]
+            )
         except IndexError:
             return None
 
@@ -175,22 +252,22 @@ class StubOsuApiV1(AbstractOsuApiV1):
         except KeyError:
             return None
 
-    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> dict | None:
+    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> UserData | None:
         try:
-            return self.__load_stub_data__("users.json")[str(user_id)][
-                str(gamemode.value)
-            ]
+            return UserData.from_dict(
+                self.__load_stub_data__("users.json")[str(user_id)][str(gamemode.value)]
+            )
         except KeyError:
             return None
 
-    def get_user_by_name(self, username: str, gamemode: Gamemode):
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> UserData | None:
         users = self.__load_stub_data__("users.json")
 
         gamemode_str = str(gamemode.value)
 
         try:
             return next(
-                users[user][gamemode_str]
+                UserData.from_dict(users[user][gamemode_str])
                 for user in users
                 if users[user][gamemode_str]["username"].lower() == username.lower()
             )

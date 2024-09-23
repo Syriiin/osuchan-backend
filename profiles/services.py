@@ -83,7 +83,7 @@ def refresh_user_from_api(
         user_data = osu_api_v1.get_user_by_name(username, gamemode)
 
     # Check for response
-    if not user_data:
+    if user_data is None:
         if user_id:
             # User either doesnt exist, or is restricted and needs to be disabled
             try:
@@ -104,7 +104,7 @@ def refresh_user_from_api(
                 # Fetch from osu api with user id incase of name change
                 user_data = osu_api_v1.get_user_by_id(osu_user.id, gamemode)
 
-                if not user_data:
+                if user_data is None:
                     # Restricted
                     osu_user.disabled = True
                     osu_user.save()
@@ -115,7 +115,7 @@ def refresh_user_from_api(
 
     # try to fetch user stats by id in case of namechange
     if user_id is None and user_stats is None:
-        user_stats = fetch_user(user_id=user_data["user_id"], gamemode=gamemode)
+        user_stats = fetch_user(user_id=user_data.user_id, gamemode=gamemode)
 
     if user_stats is not None:
         osu_user = user_stats.user
@@ -125,9 +125,9 @@ def refresh_user_from_api(
 
         # Get or create OsuUser model
         try:
-            osu_user = OsuUser.objects.select_for_update().get(id=user_data["user_id"])
+            osu_user = OsuUser.objects.select_for_update().get(id=user_data.user_id)
         except OsuUser.DoesNotExist:
-            osu_user = OsuUser(id=user_data["user_id"])
+            osu_user = OsuUser(id=user_data.user_id)
 
             # Create memberships with global leaderboards
             global_leaderboards = Leaderboard.global_leaderboards.values("id")
@@ -145,75 +145,35 @@ def refresh_user_from_api(
             Membership.objects.bulk_create(global_memberships)
 
     # Update OsuUser fields
-    osu_user.username = user_data["username"]
-    osu_user.country = user_data["country"]
-    osu_user.join_date = datetime.strptime(
-        user_data["join_date"], "%Y-%m-%d %H:%M:%S"
-    ).replace(tzinfo=timezone.utc)
+    osu_user.username = user_data.username
+    osu_user.country = user_data.country
+    osu_user.join_date = user_data.join_date
     osu_user.disabled = False
 
     # Save OsuUser model
     osu_user.save()
 
     # Set OsuUser relation id on UserStats
-    user_stats.user_id = int(osu_user.id)
+    user_stats.user_id = osu_user.id
 
     # Update UserStats fields
-    user_stats.playcount = (
-        int(user_data["playcount"]) if user_data["playcount"] is not None else 0
-    )
-    user_stats.playtime = (
-        int(user_data["total_seconds_played"])
-        if user_data["total_seconds_played"] is not None
-        else 0
-    )
-    user_stats.level = (
-        float(user_data["level"]) if user_data["level"] is not None else 0
-    )
-    user_stats.ranked_score = (
-        int(user_data["ranked_score"]) if user_data["ranked_score"] is not None else 0
-    )
-    user_stats.total_score = (
-        int(user_data["total_score"]) if user_data["total_score"] is not None else 0
-    )
-    user_stats.rank = (
-        int(user_data["pp_rank"]) if user_data["pp_rank"] is not None else 0
-    )
-    user_stats.country_rank = (
-        int(user_data["pp_country_rank"])
-        if user_data["pp_country_rank"] is not None
-        else 0
-    )
-    user_stats.pp = float(user_data["pp_raw"]) if user_data["pp_raw"] is not None else 0
-    user_stats.accuracy = (
-        float(user_data["accuracy"]) if user_data["accuracy"] is not None else 0
-    )
-    user_stats.count_300 = (
-        int(user_data["count300"]) if user_data["count300"] is not None else 0
-    )
-    user_stats.count_100 = (
-        int(user_data["count100"]) if user_data["count100"] is not None else 0
-    )
-    user_stats.count_50 = (
-        int(user_data["count50"]) if user_data["count50"] is not None else 0
-    )
-    user_stats.count_rank_ss = (
-        int(user_data["count_rank_ss"]) if user_data["count_rank_ss"] is not None else 0
-    )
-    user_stats.count_rank_ssh = (
-        int(user_data["count_rank_ssh"])
-        if user_data["count_rank_ssh"] is not None
-        else 0
-    )
-    user_stats.count_rank_s = (
-        int(user_data["count_rank_s"]) if user_data["count_rank_s"] is not None else 0
-    )
-    user_stats.count_rank_sh = (
-        int(user_data["count_rank_sh"]) if user_data["count_rank_sh"] is not None else 0
-    )
-    user_stats.count_rank_a = (
-        int(user_data["count_rank_a"]) if user_data["count_rank_a"] is not None else 0
-    )
+    user_stats.playcount = user_data.playcount
+    user_stats.playtime = user_data.playtime
+    user_stats.level = user_data.level
+    user_stats.ranked_score = user_data.ranked_score
+    user_stats.total_score = user_data.total_score
+    user_stats.rank = user_data.rank
+    user_stats.country_rank = user_data.country_rank
+    user_stats.pp = user_data.pp
+    user_stats.accuracy = user_data.accuracy
+    user_stats.count_300 = user_data.count_300
+    user_stats.count_100 = user_data.count_100
+    user_stats.count_50 = user_data.count_50
+    user_stats.count_rank_ss = user_data.count_rank_ss
+    user_stats.count_rank_ssh = user_data.count_rank_ssh
+    user_stats.count_rank_s = user_data.count_rank_s
+    user_stats.count_rank_sh = user_data.count_rank_sh
+    user_stats.count_rank_a = user_data.count_rank_a
 
     # Fetch user scores from osu api
     score_data_list = []
