@@ -6,7 +6,7 @@ from django.db import transaction
 
 from common.error_reporter import ErrorReporter
 from common.osu import utils
-from common.osu.apiv1 import OsuApiV1
+from common.osu.apiv1 import OsuApiV1, ScoreData
 from common.osu.difficultycalculator import (
     AbstractDifficultyCalculator,
     DifficultyCalculatorException,
@@ -183,7 +183,7 @@ def refresh_user_from_api(
     score_data_list.extend(
         score
         for score in osu_api_v1.get_user_recent_scores(user_stats.user_id, gamemode)
-        if score["rank"] != "F"
+        if score.rank != "F"
     )
 
     user_stats.save()
@@ -258,17 +258,13 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
     except UserStats.DoesNotExist:
         return []
 
-    full_score_data_list = []
+    full_score_data_list: list[ScoreData] = []
     for beatmap_id in beatmap_ids:
         # Fetch score data from osu api
         osu_api_v1 = OsuApiV1()
         score_data_list = osu_api_v1.get_user_scores_for_beatmap(
             beatmap_id, user_id, gamemode
         )
-
-        # Add beatmap id to turn it into the common json format
-        for score_data in score_data_list:
-            score_data["beatmap_id"] = beatmap_id
 
         full_score_data_list += score_data_list
 
@@ -290,37 +286,31 @@ def fetch_scores(user_id, beatmap_ids, gamemode):
 
 
 # TODO: refactor this
-def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
+def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]):
     """
     Adds a list of scores to the passed user_stats from the passed score_data_list.
     (requires all dicts to have beatmap_id set along with usual score data)
     """
-    # Parse dates
-    for score_data in score_data_list:
-        score_data["date"] = datetime.strptime(
-            score_data["date"], "%Y-%m-%d %H:%M:%S"
-        ).replace(tzinfo=timezone.utc)
-
     # Remove potential duplicates from a top 100 play also being in the recent 50
     # Unique on date since we don't track score_id (not ideal but not much we can do)
     unique_score_data_list = [
         score
         for score in score_data_list
-        if score == next(s for s in score_data_list if s["date"] == score["date"])
+        if score == next(s for s in score_data_list if s.date == score.date)
     ]
 
     # Remove scores which already exist in db
-    score_dates = [s["date"] for s in unique_score_data_list]
+    score_dates = [score.date for score in unique_score_data_list]
     existing_score_dates = user_stats.scores.filter(date__in=score_dates).values_list(
         "date", flat=True
     )
-    new_score_data_list = []
+    new_score_data_list: list[ScoreData] = []
     for score_data in unique_score_data_list:
-        if score_data["date"] not in existing_score_dates:
+        if score_data.date not in existing_score_dates:
             new_score_data_list.append(score_data)
 
     # Fetch beatmaps from database in bulk
-    beatmap_ids = [int(s["beatmap_id"]) for s in new_score_data_list]
+    beatmap_ids = [score.beatmap_id for score in new_score_data_list]
     beatmaps = list(Beatmap.objects.filter(id__in=beatmap_ids))
 
     missing_beatmaps = set(beatmap_ids) - set(beatmap.id for beatmap in beatmaps)
@@ -335,24 +325,24 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
         score.mutation = ScoreMutation.NONE
 
         # Update Score fields
-        score.score = int(score_data["score"])
-        score.count_300 = int(score_data["count300"])
-        score.count_100 = int(score_data["count100"])
-        score.count_50 = int(score_data["count50"])
-        score.count_miss = int(score_data["countmiss"])
-        score.count_geki = int(score_data["countgeki"])
-        score.count_katu = int(score_data["countkatu"])
-        score.best_combo = int(score_data["maxcombo"])
-        score.perfect = bool(int(score_data["perfect"]))
-        score.mods = int(score_data["enabled_mods"])
-        score.rank = score_data["rank"]
-        score.date = score_data["date"]
+        score.score = score_data.score
+        score.count_300 = score_data.count_300
+        score.count_100 = score_data.count_100
+        score.count_50 = score_data.count_50
+        score.count_miss = score_data.count_miss
+        score.count_geki = score_data.count_geki
+        score.count_katu = score_data.count_katu
+        score.best_combo = score_data.best_combo
+        score.perfect = score_data.perfect
+        score.mods = score_data.mods
+        score.rank = score_data.rank
+        score.date = score_data.date
 
         if score.mods & Mods.UNRANKED != 0:
             continue
 
         # Update foreign keys
-        beatmap_id = int(score_data["beatmap_id"])
+        beatmap_id = score_data.beatmap_id
         try:
             score.beatmap = next(
                 beatmap for beatmap in beatmaps if beatmap.id == beatmap_id
@@ -364,7 +354,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
         score.user_stats = user_stats
 
         # Update convenience fields
-        score.gamemode = user_stats.gamemode
+        score.gamemode = gamemode
         score.accuracy = utils.get_accuracy(
             score.count_300,
             score.count_100,
@@ -372,7 +362,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[dict]):
             score.count_miss,
             score.count_katu,
             score.count_geki,
-            gamemode=user_stats.gamemode,
+            gamemode=gamemode,
         )
         score.bpm = utils.get_bpm(score.beatmap.bpm, score.mods)
         score.length = utils.get_length(score.beatmap.drain_time, score.mods)

@@ -147,6 +147,50 @@ class UserData(NamedTuple):
         )
 
 
+class ScoreData(NamedTuple):
+    beatmap_id: int
+    mods: int
+
+    score: int
+    best_combo: int
+    count_300: int
+    count_100: int
+    count_50: int
+    count_miss: int
+    count_katu: int
+    count_geki: int
+
+    perfect: bool
+    rank: str
+    date: datetime
+
+    @classmethod
+    def from_dict(
+        cls, data: dict, beatmap_id_override: int | None = None
+    ) -> "ScoreData":
+        return cls(
+            beatmap_id=(
+                beatmap_id_override
+                if beatmap_id_override is not None
+                else int(data["beatmap_id"])
+            ),
+            mods=int(data["enabled_mods"]),
+            score=int(data["score"]),
+            best_combo=int(data["maxcombo"]),
+            count_300=int(data["count300"]),
+            count_100=int(data["count100"]),
+            count_50=int(data["count50"]),
+            count_miss=int(data["countmiss"]),
+            count_katu=int(data["countkatu"]),
+            count_geki=int(data["countgeki"]),
+            perfect=bool(int(data["perfect"])),
+            rank=data["rank"],
+            date=datetime.strptime(data["date"], "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=timezone.utc
+            ),
+        )
+
+
 class AbstractOsuApiV1(ABC):
     @abstractmethod
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
@@ -163,15 +207,17 @@ class AbstractOsuApiV1(ABC):
     @abstractmethod
     def get_user_scores_for_beatmap(
         self, beatmap_id: int, user_id: int, gamemode: Gamemode
-    ) -> list[dict]:
+    ) -> list[ScoreData]:
         raise NotImplementedError()
 
     @abstractmethod
-    def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
+    def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
         raise NotImplementedError()
 
     @abstractmethod
-    def get_user_recent_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
+    def get_user_recent_scores(
+        self, user_id: int, gamemode: Gamemode
+    ) -> list[ScoreData]:
         raise NotImplementedError()
 
 
@@ -221,20 +267,31 @@ class LiveOsuApiV1(AbstractOsuApiV1):
 
     def get_user_scores_for_beatmap(
         self, beatmap_id: int, user_id: int, gamemode: Gamemode
-    ) -> list[dict]:
-        return self.__get_legacy_endpoint(
-            "get_scores", b=beatmap_id, u=user_id, type="id", m=gamemode.value
-        )
+    ) -> list[ScoreData]:
+        return [
+            ScoreData.from_dict(data, beatmap_id)
+            for data in self.__get_legacy_endpoint(
+                "get_scores", b=beatmap_id, u=user_id, type="id", m=gamemode.value
+            )
+        ]
 
-    def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
-        return self.__get_legacy_endpoint(
-            "get_user_best", u=user_id, type="id", m=gamemode.value, limit=100
-        )
+    def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
+        return [
+            ScoreData.from_dict(data)
+            for data in self.__get_legacy_endpoint(
+                "get_user_best", u=user_id, type="id", m=gamemode.value, limit=100
+            )
+        ]
 
-    def get_user_recent_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
-        return self.__get_legacy_endpoint(
-            "get_user_recent", u=user_id, type="id", m=gamemode.value, limit=50
-        )
+    def get_user_recent_scores(
+        self, user_id: int, gamemode: Gamemode
+    ) -> list[ScoreData]:
+        return [
+            ScoreData.from_dict(data)
+            for data in self.__get_legacy_endpoint(
+                "get_user_recent", u=user_id, type="id", m=gamemode.value, limit=50
+            )
+        ]
 
 
 class StubOsuApiV1(AbstractOsuApiV1):
@@ -276,26 +333,37 @@ class StubOsuApiV1(AbstractOsuApiV1):
 
     def get_user_scores_for_beatmap(
         self, beatmap_id: int, user_id: int, gamemode: Gamemode
-    ) -> list[dict]:
+    ) -> list[ScoreData]:
         try:
-            return self.__load_stub_data__("scores.json")[str(user_id)][
-                str(gamemode.value)
-            ][str(beatmap_id)]
-        except KeyError:
-            return []
-
-    def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
-        try:
-            return self.__load_stub_data__("user_best.json")[str(user_id)][
-                str(gamemode.value)
+            return [
+                ScoreData.from_dict(data, beatmap_id)
+                for data in self.__load_stub_data__("scores.json")[str(user_id)][
+                    str(gamemode.value)
+                ][str(beatmap_id)]
             ]
         except KeyError:
             return []
 
-    def get_user_recent_scores(self, user_id: int, gamemode: Gamemode) -> list[dict]:
+    def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
         try:
-            return self.__load_stub_data__("user_recent.json")[str(user_id)][
-                str(gamemode.value)
+            return [
+                ScoreData.from_dict(data)
+                for data in self.__load_stub_data__("user_best.json")[str(user_id)][
+                    str(gamemode.value)
+                ]
+            ]
+        except KeyError:
+            return []
+
+    def get_user_recent_scores(
+        self, user_id: int, gamemode: Gamemode
+    ) -> list[ScoreData]:
+        try:
+            return [
+                ScoreData.from_dict(data)
+                for data in self.__load_stub_data__("user_recent.json")[str(user_id)][
+                    str(gamemode.value)
+                ]
             ]
         except KeyError:
             return []

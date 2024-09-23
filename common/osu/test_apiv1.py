@@ -134,7 +134,7 @@ class TestLiveOsuApiV1:
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
         score_data = osu_api_v1.get_user_scores_for_beatmap(1, 2, Gamemode.STANDARD)[0]
-        assert score_data["score"] == "3502092"
+        assert score_data.score == 3502092
         get_mock.assert_called_once_with(
             "testbaseurl/get_scores",
             params={"b": 1, "u": 2, "type": "id", "m": 0, "k": "testkey"},
@@ -145,7 +145,7 @@ class TestLiveOsuApiV1:
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
         score_data = osu_api_v1.get_user_best_scores(1, Gamemode.STANDARD)[0]
-        assert score_data["score"] == "137805806"
+        assert score_data.score == 137805806
         get_mock.assert_called_once_with(
             "testbaseurl/get_user_best",
             params={"u": 1, "type": "id", "m": 0, "limit": 100, "k": "testkey"},
@@ -156,7 +156,7 @@ class TestLiveOsuApiV1:
         self, get_mock: Mock, osu_api_v1: LiveOsuApiV1, osu_api_test_settings: None
     ):
         score_data = osu_api_v1.get_user_recent_scores(1, Gamemode.STANDARD)[0]
-        assert score_data["score"] == "1881030"
+        assert score_data.score == 1881030
         get_mock.assert_called_once_with(
             "testbaseurl/get_user_recent",
             params={"u": 1, "type": "id", "m": 0, "limit": 50, "k": "testkey"},
