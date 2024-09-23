@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
-from typing import Iterable, NamedTuple, Optional, Type
+from typing import Iterable, NamedTuple, Type
 
 import httpx
 from django.conf import settings
@@ -33,13 +33,13 @@ DIFFICALCY_PERFORMANCEPLUS_VERSION = difficalcy_performanceplus_info[
 
 class Score(NamedTuple):
     beatmap_id: str
-    mods: Optional[int] = None
-    count_katu: Optional[int] = None  # mania: goods
-    count_300: Optional[int] = None  # mania: greats (ignored for others)
-    count_100: Optional[int] = None  # oks, catch: large droplets
-    count_50: Optional[int] = None  # mehs, catch: small droplets
-    count_miss: Optional[int] = None
-    combo: Optional[int] = None
+    mods: int | None = None
+    count_katu: int | None = None  # mania: goods
+    count_300: int | None = None  # mania: greats (ignored for others)
+    count_100: int | None = None  # oks, catch: large droplets
+    count_50: int | None = None  # mehs, catch: small droplets
+    count_miss: int | None = None
+    combo: int | None = None
 
 
 class Calculation(NamedTuple):

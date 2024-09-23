@@ -1,7 +1,7 @@
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Type, Union
+from typing import Type
 
 import requests
 from django.conf import settings
@@ -12,15 +12,15 @@ from common.osu.enums import Gamemode
 
 class AbstractOsuApiV1(ABC):
     @abstractmethod
-    def get_beatmap(self, beatmap_id: int) -> Union[dict, None]:
+    def get_beatmap(self, beatmap_id: int) -> dict | None:
         raise NotImplementedError()
 
     @abstractmethod
-    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> Union[dict, None]:
+    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> dict | None:
         raise NotImplementedError()
 
     @abstractmethod
-    def get_user_by_name(self, username: str, gamemode: Gamemode) -> Union[dict, None]:
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> dict | None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -54,13 +54,13 @@ class LiveOsuApiV1(AbstractOsuApiV1):
 
         return response.json()
 
-    def get_beatmap(self, beatmap_id: int) -> Union[dict, None]:
+    def get_beatmap(self, beatmap_id: int) -> dict | None:
         try:
             return self.__get_legacy_endpoint("get_beatmaps", b=beatmap_id)[0]
         except IndexError:
             return None
 
-    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> Union[dict, None]:
+    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> dict | None:
         try:
             return self.__get_legacy_endpoint(
                 "get_user", u=user_id, type="id", m=gamemode.value
@@ -68,7 +68,7 @@ class LiveOsuApiV1(AbstractOsuApiV1):
         except IndexError:
             return None
 
-    def get_user_by_name(self, username: str, gamemode: Gamemode) -> Union[dict, None]:
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> dict | None:
         try:
             return self.__get_legacy_endpoint(
                 "get_user", u=username, type="string", m=gamemode.value
@@ -101,13 +101,13 @@ class StubOsuApiV1(AbstractOsuApiV1):
         ) as fp:
             return json.load(fp)
 
-    def get_beatmap(self, beatmap_id: int) -> Union[dict, None]:
+    def get_beatmap(self, beatmap_id: int) -> dict | None:
         try:
             return self.__load_stub_data__("beatmaps.json")[str(beatmap_id)]
         except KeyError:
             return None
 
-    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> Union[dict, None]:
+    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> dict | None:
         try:
             return self.__load_stub_data__("users.json")[str(user_id)][
                 str(gamemode.value)

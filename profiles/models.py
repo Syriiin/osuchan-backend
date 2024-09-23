@@ -1,4 +1,3 @@
-import typing
 from datetime import datetime, timezone
 
 from django.db import models
@@ -237,9 +236,7 @@ class Beatmap(models.Model):
 
         return beatmap
 
-    def get_difficulty_calculation(
-        self, calculator_engine: typing.Optional[str] = None
-    ):
+    def get_difficulty_calculation(self, calculator_engine: str | None = None):
         if calculator_engine is not None:
             calculator_engine_name = calculator_engine
         else:
@@ -339,7 +336,7 @@ class ScoreQuerySet(models.QuerySet):
     def non_restricted(self):
         return self.filter(user_stats__user__disabled=False)
 
-    def filter_mutations(self, mutations: typing.Optional[list[ScoreMutation]] = None):
+    def filter_mutations(self, mutations: list[ScoreMutation] | None = None):
         if mutations is None:
             mutations = [ScoreMutation.NONE]
         return self.filter(mutation__in=mutations)
@@ -399,7 +396,7 @@ class ScoreQuerySet(models.QuerySet):
         self,
         gamemode: Gamemode,
         score_set: ScoreSet = ScoreSet.NORMAL,
-        calculator_engine: typing.Optional[str] = None,
+        calculator_engine: str | None = None,
         primary_performance_value: str = "total",
     ):
         """
@@ -596,9 +593,7 @@ class Score(models.Model):
 
         return score
 
-    def get_performance_calculation(
-        self, calculator_engine: typing.Optional[str] = None
-    ):
+    def get_performance_calculation(self, calculator_engine: str | None = None):
         if calculator_engine is not None:
             calculator_engine_name = calculator_engine
         else:

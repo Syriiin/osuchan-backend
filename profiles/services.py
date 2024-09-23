@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
 from django.db import transaction
-from django.db.models import Q
 
 from common.error_reporter import ErrorReporter
 from common.osu import utils
