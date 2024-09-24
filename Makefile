@@ -70,3 +70,6 @@ reset-dev:	## Resets config, data and containers to default states
 
 checkfixup:	## Checks for fixup! in commit messages
 	scripts/checkfixup
+
+generatestubdata:	## Generates stub data
+	$(COMPOSE_RUN_TOOLING) python manage.py generatestubdata

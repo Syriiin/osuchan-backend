@@ -43,6 +43,71 @@ class BeatmapData(NamedTuple):
     last_updated: datetime
     approval_date: datetime | None
 
+    def as_json(self):
+        return {
+            "beatmap_id": self.beatmap_id,
+            "set_id": self.set_id,
+            "gamemode": self.gamemode.value,
+            "status": self.status.value,
+            "artist": self.artist,
+            "title": self.title,
+            "difficulty_name": self.difficulty_name,
+            "creator_name": self.creator_name,
+            "creator_id": self.creator_id,
+            "bpm": self.bpm,
+            "max_combo": self.max_combo,
+            "drain_time": self.drain_time,
+            "total_time": self.total_time,
+            "circle_size": self.circle_size,
+            "approach_rate": self.approach_rate,
+            "overall_difficulty": self.overall_difficulty,
+            "health_drain": self.health_drain,
+            "submission_date": (
+                self.submission_date.isoformat()
+                if self.submission_date is not None
+                else None
+            ),
+            "last_updated": self.last_updated.isoformat(),
+            "approval_date": (
+                self.approval_date.isoformat()
+                if self.approval_date is not None
+                else None
+            ),
+        }
+
+    @classmethod
+    def from_json(cls, data: dict) -> "BeatmapData":
+        return cls(
+            beatmap_id=data["beatmap_id"],
+            set_id=data["set_id"],
+            gamemode=Gamemode(data["gamemode"]),
+            status=BeatmapStatus(data["status"]),
+            artist=data["artist"],
+            title=data["title"],
+            difficulty_name=data["difficulty_name"],
+            creator_name=data["creator_name"],
+            creator_id=data["creator_id"],
+            bpm=data["bpm"],
+            max_combo=data["max_combo"],
+            drain_time=data["drain_time"],
+            total_time=data["total_time"],
+            circle_size=data["circle_size"],
+            approach_rate=data["approach_rate"],
+            overall_difficulty=data["overall_difficulty"],
+            health_drain=data["health_drain"],
+            submission_date=(
+                datetime.fromisoformat(data["submission_date"])
+                if data["submission_date"] is not None
+                else None
+            ),
+            last_updated=datetime.fromisoformat(data["last_updated"]),
+            approval_date=(
+                datetime.fromisoformat(data["approval_date"])
+                if data["approval_date"] is not None
+                else None
+            ),
+        )
+
     @classmethod
     def from_apiv1(cls, data: dict) -> "BeatmapData":
         return cls(
@@ -104,6 +169,57 @@ class UserData(NamedTuple):
     count_rank_s: int
     count_rank_sh: int
     count_rank_a: int
+
+    def as_json(self):
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "join_date": self.join_date.isoformat(),
+            "country": self.country,
+            "playcount": self.playcount,
+            "playtime": self.playtime,
+            "level": self.level,
+            "ranked_score": self.ranked_score,
+            "total_score": self.total_score,
+            "rank": self.rank,
+            "country_rank": self.country_rank,
+            "pp": self.pp,
+            "accuracy": self.accuracy,
+            "count_300": self.count_300,
+            "count_100": self.count_100,
+            "count_50": self.count_50,
+            "count_rank_ss": self.count_rank_ss,
+            "count_rank_ssh": self.count_rank_ssh,
+            "count_rank_s": self.count_rank_s,
+            "count_rank_sh": self.count_rank_sh,
+            "count_rank_a": self.count_rank_a,
+        }
+
+    @classmethod
+    def from_json(cls, data: dict) -> "UserData":
+        return cls(
+            user_id=data["user_id"],
+            username=data["username"],
+            join_date=datetime.fromisoformat(data["join_date"]),
+            country=data["country"],
+            playcount=data["playcount"],
+            playtime=data["playtime"],
+            level=data["level"],
+            ranked_score=data["ranked_score"],
+            total_score=data["total_score"],
+            rank=data["rank"],
+            country_rank=data["country_rank"],
+            pp=data["pp"],
+            accuracy=data["accuracy"],
+            count_300=data["count_300"],
+            count_100=data["count_100"],
+            count_50=data["count_50"],
+            count_rank_ss=data["count_rank_ss"],
+            count_rank_ssh=data["count_rank_ssh"],
+            count_rank_s=data["count_rank_s"],
+            count_rank_sh=data["count_rank_sh"],
+            count_rank_a=data["count_rank_a"],
+        )
 
     @classmethod
     def from_apiv1(cls, data: dict) -> "UserData":
@@ -168,6 +284,41 @@ class ScoreData(NamedTuple):
     perfect: bool
     rank: str
     date: datetime
+
+    def as_json(self):
+        return {
+            "beatmap_id": self.beatmap_id,
+            "mods": self.mods,
+            "score": self.score,
+            "best_combo": self.best_combo,
+            "count_300": self.count_300,
+            "count_100": self.count_100,
+            "count_50": self.count_50,
+            "count_miss": self.count_miss,
+            "count_katu": self.count_katu,
+            "count_geki": self.count_geki,
+            "perfect": self.perfect,
+            "rank": self.rank,
+            "date": self.date.isoformat(),
+        }
+
+    @classmethod
+    def from_json(cls, data: dict) -> "ScoreData":
+        return cls(
+            beatmap_id=data["beatmap_id"],
+            mods=data["mods"],
+            score=data["score"],
+            best_combo=data["best_combo"],
+            count_300=data["count_300"],
+            count_100=data["count_100"],
+            count_50=data["count_50"],
+            count_miss=data["count_miss"],
+            count_katu=data["count_katu"],
+            count_geki=data["count_geki"],
+            perfect=data["perfect"],
+            rank=data["rank"],
+            date=datetime.fromisoformat(data["date"]),
+        )
 
     @classmethod
     def from_apiv1(
@@ -548,6 +699,83 @@ class LiveOsuApiV2(AbstractOsuApi):
             limit=50,
         )
         return [self.__score_data_from_ossapi(score) for score in scores]
+
+
+class StubOsuApiV2(AbstractOsuApi):
+    def __load_stub_data__(self, filename: str) -> dict:
+        with open(
+            os.path.join(os.path.dirname(__file__), "stubdata", "osuapi", filename)
+        ) as fp:
+            return json.load(fp)
+
+    def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
+        try:
+            return BeatmapData.from_json(
+                self.__load_stub_data__("beatmaps_v2.json")[str(beatmap_id)]
+            )
+        except KeyError:
+            return None
+
+    def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> UserData | None:
+        try:
+            return UserData.from_json(
+                self.__load_stub_data__("users_v2.json")[str(user_id)][
+                    str(gamemode.value)
+                ]
+            )
+        except KeyError:
+            return None
+
+    def get_user_by_name(self, username: str, gamemode: Gamemode) -> UserData | None:
+        users = self.__load_stub_data__("users_v2.json")
+
+        gamemode_str = str(gamemode.value)
+
+        try:
+            return next(
+                UserData.from_json(users[user][gamemode_str])
+                for user in users
+                if users[user][gamemode_str]["username"].lower() == username.lower()
+            )
+        except (KeyError, StopIteration):
+            return None
+
+    def get_user_scores_for_beatmap(
+        self, beatmap_id: int, user_id: int, gamemode: Gamemode
+    ) -> list[ScoreData]:
+        try:
+            return [
+                ScoreData.from_json(data)
+                for data in self.__load_stub_data__("scores_v2.json")[str(user_id)][
+                    str(gamemode.value)
+                ][str(beatmap_id)]
+            ]
+        except KeyError:
+            return []
+
+    def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
+        try:
+            return [
+                ScoreData.from_json(data)
+                for data in self.__load_stub_data__("user_best_v2.json")[str(user_id)][
+                    str(gamemode.value)
+                ]
+            ]
+        except KeyError:
+            return []
+
+    def get_user_recent_scores(
+        self, user_id: int, gamemode: Gamemode
+    ) -> list[ScoreData]:
+        try:
+            return [
+                ScoreData.from_json(data)
+                for data in self.__load_stub_data__("user_recent_v2.json")[
+                    str(user_id)
+                ][str(gamemode.value)]
+            ]
+        except KeyError:
+            return []
 
 
 OsuApi: Type[AbstractOsuApi] = import_string(settings.OSU_API_CLASS)
