@@ -626,7 +626,7 @@ class LiveOsuApiV2(AbstractOsuApi):
         return [self.__score_data_from_ossapi(score) for score in scores]
 
 
-class StubOsuApiV2(AbstractOsuApi):
+class StubOsuApi(AbstractOsuApi):
     def __load_stub_data__(self, filename: str) -> dict:
         with open(
             os.path.join(os.path.dirname(__file__), "stubdata", "osuapi", filename)
@@ -636,7 +636,7 @@ class StubOsuApiV2(AbstractOsuApi):
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
         try:
             return BeatmapData.from_json(
-                self.__load_stub_data__("beatmaps_v2.json")[str(beatmap_id)]
+                self.__load_stub_data__("beatmaps.json")[str(beatmap_id)]
             )
         except KeyError:
             return None
@@ -644,15 +644,13 @@ class StubOsuApiV2(AbstractOsuApi):
     def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> UserData | None:
         try:
             return UserData.from_json(
-                self.__load_stub_data__("users_v2.json")[str(user_id)][
-                    str(gamemode.value)
-                ]
+                self.__load_stub_data__("users.json")[str(user_id)][str(gamemode.value)]
             )
         except KeyError:
             return None
 
     def get_user_by_name(self, username: str, gamemode: Gamemode) -> UserData | None:
-        users = self.__load_stub_data__("users_v2.json")
+        users = self.__load_stub_data__("users.json")
 
         gamemode_str = str(gamemode.value)
 
@@ -671,7 +669,7 @@ class StubOsuApiV2(AbstractOsuApi):
         try:
             return [
                 ScoreData.from_json(data)
-                for data in self.__load_stub_data__("scores_v2.json")[str(user_id)][
+                for data in self.__load_stub_data__("scores.json")[str(user_id)][
                     str(gamemode.value)
                 ][str(beatmap_id)]
             ]
@@ -682,7 +680,7 @@ class StubOsuApiV2(AbstractOsuApi):
         try:
             return [
                 ScoreData.from_json(data)
-                for data in self.__load_stub_data__("user_best_v2.json")[str(user_id)][
+                for data in self.__load_stub_data__("user_best.json")[str(user_id)][
                     str(gamemode.value)
                 ]
             ]
@@ -695,9 +693,9 @@ class StubOsuApiV2(AbstractOsuApi):
         try:
             return [
                 ScoreData.from_json(data)
-                for data in self.__load_stub_data__("user_recent_v2.json")[
-                    str(user_id)
-                ][str(gamemode.value)]
+                for data in self.__load_stub_data__("user_recent.json")[str(user_id)][
+                    str(gamemode.value)
+                ]
             ]
         except KeyError:
             return []
