@@ -1,0 +1,182 @@
+{
+    "5701575": {
+        "0": {
+            "362949": [
+                {
+                    "beatmap_id": 362949,
+                    "mods": 72,
+                    "score": 3502092,
+                    "best_combo": 404,
+                    "count_300": 278,
+                    "count_100": 12,
+                    "count_50": 0,
+                    "count_miss": 0,
+                    "count_katu": 7,
+                    "count_geki": 51,
+                    "perfect": true,
+                    "rank": "SH",
+                    "date": "2017-06-17T11:10:36+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 1024,
+                    "score": 2475834,
+                    "best_combo": 342,
+                    "count_300": 283,
+                    "count_100": 6,
+                    "count_50": 0,
+                    "count_miss": 1,
+                    "count_katu": 4,
+                    "count_geki": 53,
+                    "perfect": false,
+                    "rank": "A",
+                    "date": "2020-04-03T08:50:47+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 66,
+                    "score": 1718512,
+                    "best_combo": 404,
+                    "count_300": 279,
+                    "count_100": 11,
+                    "count_50": 0,
+                    "count_miss": 0,
+                    "count_katu": 6,
+                    "count_geki": 52,
+                    "perfect": true,
+                    "rank": "S",
+                    "date": "2023-04-18T14:59:33+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 2,
+                    "score": 1602032,
+                    "best_combo": 404,
+                    "count_300": 289,
+                    "count_100": 1,
+                    "count_50": 0,
+                    "count_miss": 0,
+                    "count_katu": 1,
+                    "count_geki": 57,
+                    "perfect": true,
+                    "rank": "S",
+                    "date": "2017-12-21T13:57:17+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 74,
+                    "score": 1078214,
+                    "best_combo": 311,
+                    "count_300": 274,
+                    "count_100": 2,
+                    "count_50": 0,
+                    "count_miss": 14,
+                    "count_katu": 1,
+                    "count_geki": 52,
+                    "perfect": false,
+                    "rank": "A",
+                    "date": "2023-04-18T14:50:34+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 1088,
+                    "score": 1060393,
+                    "best_combo": 180,
+                    "count_300": 263,
+                    "count_100": 15,
+                    "count_50": 3,
+                    "count_miss": 9,
+                    "count_katu": 8,
+                    "count_geki": 43,
+                    "perfect": false,
+                    "rank": "A",
+                    "date": "2020-04-03T08:54:41+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 1032,
+                    "score": 870281,
+                    "best_combo": 119,
+                    "count_300": 282,
+                    "count_100": 4,
+                    "count_50": 0,
+                    "count_miss": 4,
+                    "count_katu": 3,
+                    "count_geki": 52,
+                    "perfect": false,
+                    "rank": "A",
+                    "date": "2019-01-30T13:07:44+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 1600,
+                    "score": 681752,
+                    "best_combo": 128,
+                    "count_300": 238,
+                    "count_100": 37,
+                    "count_50": 4,
+                    "count_miss": 11,
+                    "count_katu": 16,
+                    "count_geki": 34,
+                    "perfect": false,
+                    "rank": "B",
+                    "date": "2019-09-03T11:10:14+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 1089,
+                    "score": 334024,
+                    "best_combo": 103,
+                    "count_300": 264,
+                    "count_100": 8,
+                    "count_50": 6,
+                    "count_miss": 12,
+                    "count_katu": 4,
+                    "count_geki": 41,
+                    "perfect": false,
+                    "rank": "A",
+                    "date": "2018-03-28T15:26:07+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 1026,
+                    "score": 302882,
+                    "best_combo": 94,
+                    "count_300": 259,
+                    "count_100": 4,
+                    "count_50": 1,
+                    "count_miss": 26,
+                    "count_katu": 2,
+                    "count_geki": 44,
+                    "perfect": false,
+                    "rank": "B",
+                    "date": "2020-04-03T08:27:31+00:00"
+                },
+                {
+                    "beatmap_id": 362949,
+                    "mods": 1097,
+                    "score": 214157,
+                    "best_combo": 52,
+                    "count_300": 234,
+                    "count_100": 23,
+                    "count_50": 7,
+                    "count_miss": 26,
+                    "count_katu": 12,
+                    "count_geki": 29,
+                    "perfect": false,
+                    "rank": "B",
+                    "date": "2018-03-28T15:24:17+00:00"
+                }
+            ]
+        },
+        "1": {
+            "362949": []
+        },
+        "2": {
+            "362949": []
+        },
+        "3": {
+            "362949": []
+        }
+    }
+}

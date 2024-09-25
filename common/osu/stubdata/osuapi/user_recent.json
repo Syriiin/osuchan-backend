@@ -1,0 +1,54 @@
+{
+    "5701575": {
+        "0": [
+            {
+                "beatmap_id": 209276,
+                "mods": 8,
+                "score": 1881030,
+                "best_combo": 294,
+                "count_300": 337,
+                "count_100": 14,
+                "count_50": 0,
+                "count_miss": 10,
+                "count_katu": 7,
+                "count_geki": 57,
+                "perfect": false,
+                "rank": "F",
+                "date": "2023-05-31T12:02:04+00:00"
+            },
+            {
+                "beatmap_id": 1117451,
+                "mods": 8,
+                "score": 2572332,
+                "best_combo": 174,
+                "count_300": 731,
+                "count_100": 33,
+                "count_50": 2,
+                "count_miss": 32,
+                "count_katu": 22,
+                "count_geki": 167,
+                "perfect": false,
+                "rank": "A",
+                "date": "2023-05-31T11:51:16+00:00"
+            },
+            {
+                "beatmap_id": 638017,
+                "mods": 24,
+                "score": 9393700,
+                "best_combo": 707,
+                "count_300": 537,
+                "count_100": 58,
+                "count_50": 1,
+                "count_miss": 1,
+                "count_katu": 29,
+                "count_geki": 104,
+                "perfect": false,
+                "rank": "B",
+                "date": "2023-05-30T13:24:21+00:00"
+            }
+        ],
+        "1": [],
+        "2": [],
+        "3": []
+    }
+}

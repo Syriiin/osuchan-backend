@@ -39,7 +39,7 @@ class EnvSettings(BaseSettings):
     DISCORD_WEBHOOK_URL_ERROR_LOG: str
     USE_DUMMY_ERROR_REPORTER: bool
     USE_DUMMY_DISCORD_WEBHOOK_SENDER: bool
-    USE_STUB_OSU_API_V1: bool
+    USE_STUB_OSU_API: bool
     USE_STUB_BEATMAP_PROVIDER: bool
     USE_STUB_OSU_OAUTH: bool
 
@@ -310,10 +310,10 @@ OSU_API_V1_BASE_URL = "https://osu.ppy.sh/api/"
 OSU_API_V1_KEY = env_settings.OSU_API_V1_KEY
 
 
-if env_settings.USE_STUB_OSU_API_V1:
-    OSU_API_V1_CLASS = "common.osu.apiv1.StubOsuApiV1"
+if env_settings.USE_STUB_OSU_API:
+    OSU_API_CLASS = "common.osu.osuapi.StubOsuApi"
 else:
-    OSU_API_V1_CLASS = "common.osu.apiv1.LiveOsuApiV1"
+    OSU_API_CLASS = "common.osu.osuapi.LiveOsuApiV2"
 
 
 # Beatmaps

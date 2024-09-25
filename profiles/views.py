@@ -52,7 +52,7 @@ class UserStatsDetail(APIView):
             if user_stats is None:
                 raise NotFound("User not found.")
 
-            update_user.delay(user_stats.user_id)
+            update_user.delay(user_stats.user_id, gamemode)
 
             # Show not found for disabled (restricted) users
             if user_stats.user.disabled:

@@ -10,6 +10,7 @@ from leaderboards.serialisers import UserInviteSerialiser
 from osuauth.serialisers import UserSerialiser
 from profiles.enums import AllowedBeatmapStatus
 from profiles.models import ScoreFilter
+from profiles.services import fetch_user
 from profiles.tasks import update_user
 from users.models import ScoreFilterPreset
 from users.serialisers import ScoreFilterPresetSerialiser
@@ -31,7 +32,8 @@ class Me(APIView):
         user = request.user
         if user.osu_user is not None:
             # TODO: specify gamemode based on user preferences
-            update_user.delay(user.osu_user_id)
+            if fetch_user(user.osu_user_id) is not None:
+                update_user.delay(user.osu_user_id)
 
         serialiser = UserSerialiser(user)
         return Response(serialiser.data)
