@@ -578,51 +578,75 @@ class LiveOsuApiV2(AbstractOsuApi):
         )
 
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
-        beatmap = self.client.beatmap(beatmap_id)
+        try:
+            beatmap = self.client.beatmap(beatmap_id)
+        except ValueError:
+            return None
+
         return self.__beatmap_data_from_ossapi(beatmap)
 
     def get_user_by_id(self, user_id: int, gamemode: Gamemode) -> UserData | None:
-        user = self.client.user(
-            user_id, mode=self.__get_ossapi_gamemode(gamemode), key=UserLookupKey.ID
-        )
+        try:
+            user = self.client.user(
+                user_id, mode=self.__get_ossapi_gamemode(gamemode), key=UserLookupKey.ID
+            )
+        except ValueError:
+            return None
+
         return self.__user_data_from_ossapi(user)
 
     def get_user_by_name(self, username: str, gamemode: Gamemode) -> UserData | None:
-        user = self.client.user(
-            username,
-            mode=self.__get_ossapi_gamemode(gamemode),
-            key=UserLookupKey.USERNAME,
-        )
+        try:
+            user = self.client.user(
+                username,
+                mode=self.__get_ossapi_gamemode(gamemode),
+                key=UserLookupKey.USERNAME,
+            )
+        except ValueError:
+            return None
+
         return self.__user_data_from_ossapi(user)
 
     def get_user_scores_for_beatmap(
         self, beatmap_id: int, user_id: int, gamemode: Gamemode
     ) -> list[ScoreData]:
-        scores = self.client.beatmap_user_scores(
-            beatmap_id,
-            user_id,
-            mode=self.__get_ossapi_gamemode(gamemode),
-        )
+        try:
+            scores = self.client.beatmap_user_scores(
+                beatmap_id,
+                user_id,
+                mode=self.__get_ossapi_gamemode(gamemode),
+            )
+        except ValueError:
+            return []
+
         return [self.__score_data_from_ossapi(score, beatmap_id) for score in scores]
 
     def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
-        scores = self.client.user_scores(
-            user_id,
-            ScoreType.BEST,
-            mode=self.__get_ossapi_gamemode(gamemode),
-            limit=100,
-        )
+        try:
+            scores = self.client.user_scores(
+                user_id,
+                ScoreType.BEST,
+                mode=self.__get_ossapi_gamemode(gamemode),
+                limit=100,
+            )
+        except ValueError:
+            return []
+
         return [self.__score_data_from_ossapi(score) for score in scores]
 
     def get_user_recent_scores(
         self, user_id: int, gamemode: Gamemode
     ) -> list[ScoreData]:
-        scores = self.client.user_scores(
-            user_id,
-            ScoreType.RECENT,
-            mode=self.__get_ossapi_gamemode(gamemode),
-            limit=50,
-        )
+        try:
+            scores = self.client.user_scores(
+                user_id,
+                ScoreType.RECENT,
+                mode=self.__get_ossapi_gamemode(gamemode),
+                limit=50,
+            )
+        except ValueError:
+            return []
+
         return [self.__score_data_from_ossapi(score) for score in scores]
 
 
