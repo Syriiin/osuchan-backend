@@ -2,5 +2,25 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "poetry"
+      ],
+      "matchDepTypes": [
+        "dev-dependencies"
+      ],
+      "groupName": "poetry-dev-dependencies"
+    },
+    {
+      "matchManagers": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "/difficalcy/"
+      ],
+      "groupName": "difficalcy"
+    }
   ]
 }
