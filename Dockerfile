@@ -39,7 +39,7 @@ RUN ${POETRY_PATH}/bin/pip install poetry==${POETRY_VERSION}
 # Install dependencies
 WORKDIR ${APPDEPS_PATH}
 COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-dev
+RUN poetry install --only main
 
 # --------------------------------------------------------------------------------
 
