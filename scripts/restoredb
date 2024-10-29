@@ -8,6 +8,8 @@ fi
 
 docker compose up -d db
 
+sleep 5 # wait for db to boot
+
 docker compose exec -T db dropdb \
     --username=osuchan \
     osuchan
