@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bullseye as python-base
+FROM python:3.13-slim-bullseye as python-base
 
 # Version env vars
 ENV POETRY_VERSION="1.8.2"
