@@ -9,7 +9,7 @@
         "poetry"
       ],
       "matchDepTypes": [
-        "dev-dependencies"
+        "dev"
       ],
       "groupName": "poetry-dev-dependencies"
     },
