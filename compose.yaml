@@ -29,7 +29,7 @@ services:
       - config/active/postgres-exporter.env
 
   queue:
-    image: rabbitmq:3-management
+    image: rabbitmq:4-management
     env_file:
       - config/active/rabbitmq.env
     volumes:
