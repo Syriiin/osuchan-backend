@@ -25,8 +25,8 @@ class OsuUser(models.Model):
 
     # osu! data
     id = models.IntegerField(primary_key=True)
-    username = models.CharField(max_length=30)
-    country = models.CharField(max_length=2)
+    username = models.CharField()
+    country = models.CharField()
     join_date = models.DateTimeField()
 
     # Indicates restricted users
@@ -164,12 +164,12 @@ class Beatmap(models.Model):
     # osu! data
     id = models.IntegerField(primary_key=True)
     set_id = models.IntegerField()
-    artist = models.CharField(max_length=200)
-    title = models.CharField(max_length=200)
-    difficulty_name = models.CharField(max_length=200)
+    artist = models.CharField()
+    title = models.CharField()
+    difficulty_name = models.CharField()
     gamemode = models.IntegerField()
     status = models.IntegerField()
-    creator_name = models.CharField(max_length=30)
+    creator_name = models.CharField()
     bpm = models.FloatField()
     drain_time = models.IntegerField()
     total_time = models.IntegerField()
@@ -257,8 +257,8 @@ class DifficultyCalculation(models.Model):
     )
 
     mods = models.IntegerField()
-    calculator_engine = models.CharField(max_length=50)
-    calculator_version = models.CharField(max_length=50)
+    calculator_engine = models.CharField()
+    calculator_version = models.CharField()
 
     def get_total_difficulty(self):
         return self.difficulty_values.get(name="total").value
@@ -299,7 +299,7 @@ class DifficultyValue(models.Model):
         related_name="difficulty_values",
     )
 
-    name = models.CharField(max_length=20)
+    name = models.CharField()
     value = models.FloatField()
 
     def __str__(self):
@@ -460,7 +460,7 @@ class Score(models.Model):
     best_combo = models.IntegerField()
     perfect = models.BooleanField()
     mods = models.IntegerField()
-    rank = models.CharField(max_length=3)
+    rank = models.CharField()
     date = models.DateTimeField()
 
     # Relations
@@ -647,8 +647,8 @@ class PerformanceCalculation(models.Model):
         related_name="performance_calculations",
     )
 
-    calculator_engine = models.CharField(max_length=50)
-    calculator_version = models.CharField(max_length=50)
+    calculator_engine = models.CharField()
+    calculator_version = models.CharField()
 
     def get_total_performance(self):
         return self.performance_values.get(name="total").value
@@ -683,7 +683,7 @@ class PerformanceValue(models.Model):
         related_name="performance_values",
     )
 
-    name = models.CharField(max_length=20)
+    name = models.CharField()
     value = models.FloatField()
 
     def __str__(self):

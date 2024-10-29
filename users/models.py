@@ -6,7 +6,7 @@ from profiles.models import ScoreFilter
 
 class ScoreFilterPreset(models.Model):
     id = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=30)
+    name = models.CharField()
 
     # Relations
     user = models.ForeignKey(User, on_delete=models.CASCADE)
