@@ -39,9 +39,9 @@ class Leaderboard(models.Model):
     gamemode = models.IntegerField()
     score_set = models.IntegerField()
     access_type = models.IntegerField()
-    name = models.CharField(max_length=100)
+    name = models.CharField()
     description = models.TextField(blank=True)
-    icon_url = models.CharField(max_length=250, blank=True)
+    icon_url = models.CharField(blank=True)
     allow_past_scores = models.BooleanField(
         default=True
     )  # allow scores set before membership started
@@ -49,9 +49,9 @@ class Leaderboard(models.Model):
         null=True, blank=True
     )  # global leaderboards will have null member count
     archived = models.BooleanField(default=False)
-    notification_discord_webhook_url = models.CharField(max_length=250, blank=True)
-    calculator_engine = models.CharField(max_length=50)
-    primary_performance_value = models.CharField(max_length=20)
+    notification_discord_webhook_url = models.CharField(blank=True)
+    calculator_engine = models.CharField()
+    primary_performance_value = models.CharField()
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
