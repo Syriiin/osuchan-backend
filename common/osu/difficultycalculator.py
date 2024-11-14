@@ -7,6 +7,7 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 from common.osu.enums import Gamemode
+from common.osu.utils import get_json_mods
 
 # TODO: lazy load this instead of doing at import
 difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
@@ -51,19 +52,7 @@ class DifficultyCalculatorException(Exception):
     pass
 
 
-class CalculatorClosedException(DifficultyCalculatorException):
-    pass
-
-
-class InvalidBeatmapException(DifficultyCalculatorException):
-    pass
-
-
 class CalculationException(DifficultyCalculatorException):
-    pass
-
-
-class NotYetCalculatedException(DifficultyCalculatorException):
     pass
 
 
@@ -85,72 +74,8 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
         self.closed = True
         self._close()
 
-    def calculate_score(self, score: Score) -> Calculation:
-        self._reset()
-        self.set_beatmap(score.beatmap_id)
-
-        if score.mods is not None:
-            self.set_mods(score.mods)
-        if score.count_100 is not None or score.count_50 is not None:
-            self.set_accuracy(score.count_100 or 0, score.count_50 or 0)
-        if score.count_miss is not None:
-            self.set_misses(score.count_miss)
-        if score.combo is not None:
-            self.set_combo(score.combo)
-
-        self.calculate()
-        return Calculation(
-            difficulty_values={"total": self.difficulty_total},
-            performance_values={"total": self.performance_total},
-        )
-
-    def calculate_score_batch(self, scores: Iterable[Score]) -> list[Calculation]:
-        return [self.calculate_score(score) for score in scores]
-
     @abstractmethod
-    def _reset(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def set_beatmap(self, beatmap_id: str) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def set_accuracy(self, count_100: int, count_50: int) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def set_misses(self, count_miss: int) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def set_combo(self, combo: int) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def set_mods(self, mods: int) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _calculate(self) -> None:
-        raise NotImplementedError()
-
-    def calculate(self) -> None:
-        if self.closed:
-            raise CalculatorClosedException(
-                "calculate() cannot be called on a closed calculator"
-            )
-
-        self._calculate()
-
-    @property
-    @abstractmethod
-    def difficulty_total(self) -> float:
-        raise NotImplementedError()
-
-    @property
-    @abstractmethod
-    def performance_total(self) -> float:
+    def calculate_scores(self, scores: Iterable[Score]) -> list[Calculation]:
         raise NotImplementedError()
 
     @staticmethod
@@ -186,29 +111,7 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         raise NotImplementedError()
 
-    def calculate_score(self, score: Score) -> Calculation:
-        try:
-            response = self.client.get(
-                f"{self._get_url()}/api/calculation",
-                params=self._difficalcy_score_from_score(score),
-            )
-            response.raise_for_status()
-            data = response.json()
-        except httpx.HTTPStatusError as e:
-            raise CalculationException(
-                f"An error occured in calculating the beatmap {score.beatmap_id}: {e.request.url} [{e.response.status_code}] {e.response.text}"
-            ) from e
-        except httpx.HTTPError as e:
-            raise CalculationException(
-                f"An error occured in calculating the beatmap {score.beatmap_id}: {e.request.url} - {e}"
-            ) from e
-
-        return Calculation(
-            difficulty_values=data["difficulty"],
-            performance_values=data["performance"],
-        )
-
-    def calculate_score_batch(self, scores: Iterable[Score]) -> list[Calculation]:
+    def calculate_scores(self, scores: Iterable[Score]) -> list[Calculation]:
         try:
             response = self.client.post(
                 f"{self._get_url()}/api/batch/calculation",
@@ -233,35 +136,6 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
             for calculation_data in data
         ]
 
-    def _reset(self):
-        pass
-
-    def set_beatmap(self, beatmap_id: str) -> None:
-        raise NotImplementedError()
-
-    def set_accuracy(self, count_100: int, count_50: int) -> None:
-        raise NotImplementedError()
-
-    def set_misses(self, count_miss: int) -> None:
-        raise NotImplementedError()
-
-    def set_combo(self, combo: int) -> None:
-        raise NotImplementedError()
-
-    def set_mods(self, mods: int) -> None:
-        raise NotImplementedError()
-
-    def _calculate(self) -> None:
-        raise NotImplementedError()
-
-    @property
-    def difficulty_total(self) -> float:
-        raise NotImplementedError()
-
-    @property
-    def performance_total(self) -> float:
-        raise NotImplementedError()
-
 
 class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
     def _get_url(self) -> str:
@@ -272,7 +146,9 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": score.mods,
+                "Mods": (
+                    get_json_mods(score.mods, True) if score.mods is not None else None
+                ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
                 "Mehs": score.count_50,
@@ -303,7 +179,9 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": score.mods,
+                "Mods": (
+                    get_json_mods(score.mods, True) if score.mods is not None else None
+                ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
                 "Oks": score.count_100,
@@ -333,7 +211,9 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": score.mods,
+                "Mods": (
+                    get_json_mods(score.mods, True) if score.mods is not None else None
+                ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
                 "SmallDroplets": score.count_50,
@@ -364,7 +244,9 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": score.mods,
+                "Mods": (
+                    get_json_mods(score.mods, True) if score.mods is not None else None
+                ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
                 "Mehs": score.count_50,
@@ -399,7 +281,9 @@ class DifficalcyPerformancePlusDifficultyCalculator(
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": score.mods,
+                "Mods": (
+                    get_json_mods(score.mods, True) if score.mods is not None else None
+                ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
                 "Mehs": score.count_50,

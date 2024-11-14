@@ -37,7 +37,7 @@ class TestMembershipServices:
         )
         membership = leaderboard.memberships.first()
         assert membership.score_count == 4
-        assert membership.pp == 1272.1310232864919
+        assert membership.pp == 1222.7927208003177
 
     @pytest.fixture
     def membership(self, leaderboard, stub_user_stats):
@@ -48,10 +48,10 @@ class TestMembershipServices:
         assert membership.leaderboard.member_count == 2
         assert membership.user.username == "Syrin"
         assert membership.score_count == 4
-        assert membership.pp == 1258.3133416240448
+        assert membership.pp == 1207.624833678857
 
     def test_update_membership(self, membership):
         fetch_scores(membership.user_id, [362949], Gamemode.STANDARD)
         membership = update_membership(membership.leaderboard, membership.user_id)
         assert membership.score_count == 5
-        assert membership.pp == 1456.7089337496159
+        assert membership.pp == 1390.5702358531505

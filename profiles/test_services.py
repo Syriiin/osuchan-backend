@@ -146,15 +146,15 @@ class TestDifficultyCalculationServices:
         performance_values = performance_calculation.performance_values.all()
         assert len(performance_values) == 5
         assert performance_values[0].name == "aim"
-        assert performance_values[0].value == 493.8672766067866
+        assert performance_values[0].value == 495.13336284361014
         assert performance_values[1].name == "speed"
         assert performance_values[1].value == 70.12310156350622
         assert performance_values[2].name == "accuracy"
-        assert performance_values[2].value == 8.996803969835605
+        assert performance_values[2].value == 3.199536008089327
         assert performance_values[3].name == "flashlight"
         assert performance_values[3].value == 0
         assert performance_values[4].name == "total"
-        assert performance_values[4].value == 634.1856630273355
+        assert performance_values[4].value == 631.3916342933587
 
     @pytest.fixture
     def difficulty_calculation(self, beatmap):
@@ -202,12 +202,12 @@ class TestDifficultyCalculationServices:
         assert len(performance_values) == 1
         assert len(performance_values[0]) == 5
         assert performance_values[0][0].name == "aim"
-        assert performance_values[0][0].value == 493.8672766067866
+        assert performance_values[0][0].value == 495.13336284361014
         assert performance_values[0][1].name == "speed"
         assert performance_values[0][1].value == 70.12310156350622
         assert performance_values[0][2].name == "accuracy"
-        assert performance_values[0][2].value == 8.996803969835605
+        assert performance_values[0][2].value == 3.199536008089327
         assert performance_values[0][3].name == "flashlight"
         assert performance_values[0][3].value == 0
         assert performance_values[0][4].name == "total"
-        assert performance_values[0][4].value == 634.1856630273355
+        assert performance_values[0][4].value == 631.3916342933587
