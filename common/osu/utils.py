@@ -276,6 +276,12 @@ def get_mods_string(mods: int):
     for mod in mod_short_names:
         if mod & mods:
             mod_strings.append(mod_short_names[mod])
+
+    if Mods.NIGHTCORE & mods:
+        mod_strings.remove("DT")
+    if Mods.PERFECT & mods:
+        mod_strings.remove("SD")
+
     return ",".join(mod_strings)
 
 
@@ -283,6 +289,11 @@ def get_json_mods(mods: int, add_classic: bool) -> list[dict]:
     json_mods = [
         {"acronym": mod_short_names[mod]} for mod in mod_short_names if mod & mods != 0
     ]
+
+    if Mods.NIGHTCORE & mods:
+        json_mods = [mod for mod in json_mods if mod["acronym"] != "DT"]
+    if Mods.PERFECT & mods:
+        json_mods = [mod for mod in json_mods if mod["acronym"] != "SD"]
 
     if add_classic:
         json_mods.append({"acronym": "CL"})
