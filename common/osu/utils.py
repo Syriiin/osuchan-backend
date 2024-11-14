@@ -277,3 +277,14 @@ def get_mods_string(mods: int):
         if mod & mods:
             mod_strings.append(mod_short_names[mod])
     return ",".join(mod_strings)
+
+
+def get_json_mods(mods: int, add_classic: bool) -> list[dict]:
+    json_mods = [
+        {"acronym": mod_short_names[mod]} for mod in mod_short_names if mod & mods != 0
+    ]
+
+    if add_classic:
+        json_mods.append({"acronym": "CL"})
+
+    return json_mods
