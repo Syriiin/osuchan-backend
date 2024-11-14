@@ -546,7 +546,7 @@ def calculate_difficulty_values(
 
     results = []
     try:
-        results.extend(difficulty_calculator.calculate_score_batch(calc_scores))
+        results.extend(difficulty_calculator.calculate_scores(calc_scores))
     except DifficultyCalculatorException as e:
         error_reporter = ErrorReporter()
         error_reporter.report_error(e)
@@ -554,7 +554,7 @@ def calculate_difficulty_values(
         # Batch failed, so let's try one by one to get as many values as possible
         for calc_score in calc_scores:
             try:
-                results.append(difficulty_calculator.calculate_score(calc_score))
+                results.append(difficulty_calculator.calculate_scores([calc_score])[0])
             except DifficultyCalculatorException as e:
                 error_reporter.report_error(e)
                 results.append(None)
@@ -598,7 +598,7 @@ def calculate_performance_values(
 
     results = []
     try:
-        results.extend(difficulty_calculator.calculate_score_batch(calc_scores))
+        results.extend(difficulty_calculator.calculate_scores(calc_scores))
     except DifficultyCalculatorException as e:
         error_reporter = ErrorReporter()
         error_reporter.report_error(e)
@@ -606,7 +606,7 @@ def calculate_performance_values(
         # Batch failed, so let's try one by one to get as many values as possible
         for calc_score in calc_scores:
             try:
-                results.append(difficulty_calculator.calculate_score(calc_score))
+                results.append(difficulty_calculator.calculate_scores([calc_score])[0])
             except DifficultyCalculatorException as e:
                 error_reporter.report_error(e)
                 results.append(None)
