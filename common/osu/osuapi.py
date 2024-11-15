@@ -456,6 +456,7 @@ class LiveOsuApiV2(AbstractOsuApi):
             settings.OSU_CLIENT_ID,
             settings.OSU_CLIENT_SECRET,
             token_directory="/tmp",
+            api_version=0,
         )
 
     @staticmethod
