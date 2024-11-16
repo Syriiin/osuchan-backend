@@ -35,6 +35,7 @@ DIFFICALCY_PERFORMANCEPLUS_VERSION = difficalcy_performanceplus_info[
 class Score(NamedTuple):
     beatmap_id: str
     mods: int | None = None
+    is_classic: bool = True
     count_katu: int | None = None  # mania: goods
     count_300: int | None = None  # mania: greats (ignored for others)
     count_100: int | None = None  # oks, catch: large droplets
@@ -146,8 +147,8 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": (
-                    get_json_mods(score.mods, True) if score.mods is not None else None
+                "Mods": get_json_mods(
+                    score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
@@ -179,8 +180,8 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": (
-                    get_json_mods(score.mods, True) if score.mods is not None else None
+                "Mods": get_json_mods(
+                    score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
@@ -211,8 +212,8 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": (
-                    get_json_mods(score.mods, True) if score.mods is not None else None
+                "Mods": get_json_mods(
+                    score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
@@ -244,8 +245,8 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": (
-                    get_json_mods(score.mods, True) if score.mods is not None else None
+                "Mods": get_json_mods(
+                    score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,
@@ -281,8 +282,8 @@ class DifficalcyPerformancePlusDifficultyCalculator(
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": (
-                    get_json_mods(score.mods, True) if score.mods is not None else None
+                "Mods": get_json_mods(
+                    score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
                 "Misses": score.count_miss,

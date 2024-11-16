@@ -10,6 +10,7 @@ from django.utils.module_loading import import_string
 from ossapi import Beatmap, GameMode, Ossapi, Score, ScoreType, User, UserLookupKey
 
 from common.osu.enums import BeatmapStatus, Gamemode
+from common.osu.utils import get_bitwise_mods
 
 
 class MalformedResponseError(Exception):
@@ -271,6 +272,7 @@ class UserData(NamedTuple):
 class ScoreData(NamedTuple):
     beatmap_id: int
     mods: int
+    is_classic: bool
 
     score: int
     best_combo: int
@@ -289,6 +291,7 @@ class ScoreData(NamedTuple):
         return {
             "beatmap_id": self.beatmap_id,
             "mods": self.mods,
+            "is_classic": self.is_classic,
             "score": self.score,
             "best_combo": self.best_combo,
             "count_300": self.count_300,
@@ -307,6 +310,7 @@ class ScoreData(NamedTuple):
         return cls(
             beatmap_id=data["beatmap_id"],
             mods=data["mods"],
+            is_classic=data["is_classic"],
             score=data["score"],
             best_combo=data["best_combo"],
             count_300=data["count_300"],
@@ -331,6 +335,7 @@ class ScoreData(NamedTuple):
                 else int(data["beatmap_id"])
             ),
             mods=int(data["enabled_mods"]),
+            is_classic=data["score"] != "0",  # lazer uses new scoring
             score=int(data["score"]),
             best_combo=int(data["maxcombo"]),
             count_300=int(data["count300"]),
@@ -456,7 +461,6 @@ class LiveOsuApiV2(AbstractOsuApi):
             settings.OSU_CLIENT_ID,
             settings.OSU_CLIENT_SECRET,
             token_directory="/tmp",
-            api_version=0,
         )
 
     @staticmethod
@@ -528,7 +532,7 @@ class LiveOsuApiV2(AbstractOsuApi):
 
     @staticmethod
     def __score_data_from_ossapi(
-        score: Score, beatmap_id_override: int | None = None
+        score: Score, gamemode: Gamemode, beatmap_id_override: int | None = None
     ) -> ScoreData:
         if beatmap_id_override is None:
             if score.beatmap is None:
@@ -538,44 +542,90 @@ class LiveOsuApiV2(AbstractOsuApi):
         else:
             beatmap_id = beatmap_id_override
 
+        bitwise_mods, is_classic = get_bitwise_mods([mod.acronym for mod in score.mods])
+
+        if gamemode == Gamemode.STANDARD:
+            count_300 = (
+                score.statistics.great if score.statistics.great is not None else 0
+            )
+            count_100 = score.statistics.ok if score.statistics.ok is not None else 0
+            count_50 = score.statistics.meh if score.statistics.meh is not None else 0
+            count_miss = (
+                score.statistics.miss if score.statistics.miss is not None else 0
+            )
+            count_katu = 0
+            count_geki = 0
+        elif gamemode == Gamemode.TAIKO:
+            count_300 = (
+                score.statistics.great if score.statistics.great is not None else 0
+            )
+            count_100 = score.statistics.ok if score.statistics.ok is not None else 0
+            count_50 = 0
+            count_miss = (
+                score.statistics.miss if score.statistics.miss is not None else 0
+            )
+            count_katu = 0
+            count_geki = (
+                score.statistics.large_bonus
+                if score.statistics.large_bonus is not None
+                else 0
+            )
+        elif gamemode == Gamemode.CATCH:
+            count_300 = (
+                score.statistics.great if score.statistics.great is not None else 0
+            )
+            count_100 = (
+                score.statistics.large_tick_hit
+                if score.statistics.large_tick_hit is not None
+                else 0
+            )
+            count_50 = (
+                score.statistics.small_tick_hit
+                if score.statistics.small_tick_hit is not None
+                else 0
+            )
+            count_miss = (
+                score.statistics.miss if score.statistics.miss is not None else 0
+            )
+            count_katu = (
+                score.statistics.small_tick_miss
+                if score.statistics.small_tick_miss is not None
+                else 0
+            )
+            count_geki = 0
+        elif gamemode == Gamemode.MANIA:
+            count_300 = (
+                score.statistics.great if score.statistics.great is not None else 0
+            )
+            count_100 = score.statistics.ok if score.statistics.ok is not None else 0
+            count_50 = score.statistics.meh if score.statistics.meh is not None else 0
+            count_miss = (
+                score.statistics.miss if score.statistics.miss is not None else 0
+            )
+            count_katu = (
+                score.statistics.good if score.statistics.good is not None else 0
+            )
+            count_geki = (
+                score.statistics.perfect if score.statistics.perfect is not None else 0
+            )
+        else:
+            raise ValueError(f"{gamemode} is not a valid gamemode")
+
         return ScoreData(
             beatmap_id=beatmap_id,
-            mods=score.mods.value,
-            score=score.score,
+            mods=bitwise_mods,
+            is_classic=is_classic,
+            score=score.legacy_total_score,
             best_combo=score.max_combo,
-            count_300=(
-                score.statistics.count_300
-                if score.statistics.count_300 is not None
-                else 0
-            ),
-            count_100=(
-                score.statistics.count_100
-                if score.statistics.count_100 is not None
-                else 0
-            ),
-            count_50=(
-                score.statistics.count_50
-                if score.statistics.count_50 is not None
-                else 0
-            ),
-            count_miss=(
-                score.statistics.count_miss
-                if score.statistics.count_miss is not None
-                else 0
-            ),
-            count_katu=(
-                score.statistics.count_katu
-                if score.statistics.count_katu is not None
-                else 0
-            ),
-            count_geki=(
-                score.statistics.count_geki
-                if score.statistics.count_geki is not None
-                else 0
-            ),
-            perfect=score.perfect,
+            count_300=count_300,
+            count_100=count_100,
+            count_50=count_50,
+            count_miss=count_miss,
+            count_katu=count_katu,
+            count_geki=count_geki,
+            perfect=score.legacy_perfect,
             rank=score.rank.value,
-            date=score.created_at,
+            date=score.ended_at,  # pretty sure this is a typing bug. should be non-nullable
         )
 
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
@@ -620,7 +670,10 @@ class LiveOsuApiV2(AbstractOsuApi):
         except ValueError:
             return []
 
-        return [self.__score_data_from_ossapi(score, beatmap_id) for score in scores]
+        return [
+            self.__score_data_from_ossapi(score, gamemode, beatmap_id)
+            for score in scores
+        ]
 
     def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
         try:
@@ -633,7 +686,7 @@ class LiveOsuApiV2(AbstractOsuApi):
         except ValueError:
             return []
 
-        return [self.__score_data_from_ossapi(score) for score in scores]
+        return [self.__score_data_from_ossapi(score, gamemode) for score in scores]
 
     def get_user_recent_scores(
         self, user_id: int, gamemode: Gamemode
@@ -648,7 +701,7 @@ class LiveOsuApiV2(AbstractOsuApi):
         except ValueError:
             return []
 
-        return [self.__score_data_from_ossapi(score) for score in scores]
+        return [self.__score_data_from_ossapi(score, gamemode) for score in scores]
 
 
 class StubOsuApi(AbstractOsuApi):
