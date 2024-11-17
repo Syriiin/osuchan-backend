@@ -25,11 +25,11 @@ class TestDifficalcyDifficultyCalculator:
                         "total": 4.448219767994142,
                     },
                     performance_values={
-                        "aim": 44.560566997239285,
+                        "aim": 44.714749718084626,
                         "speed": 48.549792148960236,
-                        "accuracy": 40.396026503167406,
+                        "accuracy": 36.07670429437059,
                         "flashlight": 0,
-                        "total": 138.97827988389787,
+                        "total": 134.70509049106212,
                     },
                 )
             ]
