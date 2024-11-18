@@ -235,7 +235,7 @@ def get_gamemode_string_from_gamemode(gamemode: Gamemode):
         raise ValueError(f"{gamemode} is not a valid gamemode")
 
 
-mod_short_names = {
+mod_acronyms = {
     Mods.NONE: "NONE",
     Mods.NOFAIL: "NF",
     Mods.EASY: "EZ",
@@ -273,9 +273,9 @@ mod_short_names = {
 
 def get_mods_string(mods: int):
     mod_strings = []
-    for mod in mod_short_names:
+    for mod in mod_acronyms:
         if mod & mods:
-            mod_strings.append(mod_short_names[mod])
+            mod_strings.append(mod_acronyms[mod])
 
     if Mods.NIGHTCORE & mods:
         mod_strings.remove("DT")
@@ -287,7 +287,7 @@ def get_mods_string(mods: int):
 
 def get_json_mods(mods: int, add_classic: bool) -> list[dict]:
     json_mods = [
-        {"acronym": mod_short_names[mod]} for mod in mod_short_names if mod & mods != 0
+        {"acronym": mod_acronyms[mod]} for mod in mod_acronyms if mod & mods != 0
     ]
 
     if Mods.NIGHTCORE & mods:
@@ -299,3 +299,14 @@ def get_json_mods(mods: int, add_classic: bool) -> list[dict]:
         json_mods.append({"acronym": "CL"})
 
     return json_mods
+
+
+def get_bitwise_mods(acronyms: list[str]) -> tuple[int, bool]:
+    bitwise_mods = 0
+    for acronym in acronyms:
+        for mod, mod_acronym in mod_acronyms.items():
+            if acronym == mod_acronym:
+                bitwise_mods |= mod
+                break
+
+    return bitwise_mods, "CL" in acronyms

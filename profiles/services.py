@@ -328,6 +328,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
         score.best_combo = score_data.best_combo
         score.perfect = score_data.perfect
         score.mods = score_data.mods
+        score.is_classic = score_data.is_classic
         score.rank = score_data.rank
         score.date = score_data.date
 
@@ -586,6 +587,7 @@ def calculate_performance_values(
         DifficultyCalculatorScore(
             beatmap_id=str(performance_calculation.score.beatmap_id),
             mods=performance_calculation.score.mods,
+            is_classic=performance_calculation.score.is_classic,
             count_300=performance_calculation.score.count_300,
             count_katu=performance_calculation.score.count_katu,
             count_100=performance_calculation.score.count_100,

@@ -4,6 +4,7 @@
             {
                 "beatmap_id": 307618,
                 "mods": 104,
+                "is_classic": true,
                 "score": 137805806,
                 "best_combo": 2757,
                 "count_300": 1739,
@@ -19,6 +20,7 @@
             {
                 "beatmap_id": 264364,
                 "mods": 104,
+                "is_classic": true,
                 "score": 4543964,
                 "best_combo": 448,
                 "count_300": 346,
@@ -34,6 +36,7 @@
             {
                 "beatmap_id": 323769,
                 "mods": 104,
+                "is_classic": true,
                 "score": 10001459,
                 "best_combo": 645,
                 "count_300": 540,
@@ -53,6 +56,7 @@
             {
                 "beatmap_id": 1386221,
                 "mods": 0,
+                "is_classic": true,
                 "score": 883194,
                 "best_combo": 268,
                 "count_300": 212,
