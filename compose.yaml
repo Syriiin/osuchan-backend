@@ -104,7 +104,7 @@ services:
       - prometheus-data:/prometheus:rw
 
   grafana:
-    image: grafana/grafana:11.3.0
+    image: grafana/grafana:11.3.1
     ports:
       - 3001:3000
     env_file:
