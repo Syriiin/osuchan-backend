@@ -48,6 +48,22 @@
                 "perfect": true,
                 "rank": "XH",
                 "date": "2021-03-08T14:05:52+00:00"
+            },
+            {
+                "beatmap_id": 422328,
+                "mods": 0,
+                "is_classic": false,
+                "score": 0,
+                "best_combo": 127,
+                "count_300": 333,
+                "count_100": 13,
+                "count_50": 0,
+                "count_miss": 14,
+                "count_katu": 0,
+                "count_geki": 0,
+                "perfect": false,
+                "rank": "A",
+                "date": "2024-11-22T09:43:15+00:00"
             }
         ],
         "1": [],

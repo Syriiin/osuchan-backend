@@ -36,14 +36,14 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 12  # 6 scores (5 real, 1 nochoke mutation) * 2 calculators
+            == 14  # 7 scores (6 real, 1 nochoke mutation) * 2 calculators
         )
-        assert user_stats.score_style_accuracy == 98.23948233070676
-        assert user_stats.score_style_bpm == 211.857710839314
-        assert user_stats.score_style_cs == 4.3374150072441795
-        assert user_stats.score_style_ar == 9.914417601671216
-        assert user_stats.score_style_od == 9.115480081314509
-        assert user_stats.score_style_length == 163.6261778811056
+        assert user_stats.score_style_accuracy == 97.42292425653687
+        assert user_stats.score_style_bpm == 201.99989929562193
+        assert user_stats.score_style_cs == 4.2766715338147065
+        assert user_stats.score_style_ar == 9.749798660314049
+        assert user_stats.score_style_od == 8.914664666393149
+        assert user_stats.score_style_length == 154.3321236835792
 
     def test_fetch_scores(self):
         user_stats, _ = refresh_user_from_api(user_id=5701575)
@@ -55,14 +55,14 @@ class TestUserServices:
             PerformanceCalculation.objects.filter(
                 score__user_stats_id=user_stats.id
             ).count()
-            == 36  # 18 scores (16 real, 2 nochoke mutation) * 2 calculators
+            == 38  # 18 scores (17 real, 2 nochoke mutation) * 2 calculators
         )
-        assert user_stats.score_style_accuracy == 98.09793775692621
-        assert user_stats.score_style_bpm == 211.85490142989167
-        assert user_stats.score_style_cs == 4.262837957123972
-        assert user_stats.score_style_ar == 9.866657641491493
-        assert user_stats.score_style_od == 9.101007366108535
-        assert user_stats.score_style_length == 144.47806905456227
+        assert user_stats.score_style_accuracy == 97.45617285336796
+        assert user_stats.score_style_bpm == 203.85810981390424
+        assert user_stats.score_style_cs == 4.224451249870312
+        assert user_stats.score_style_ar == 9.740084852929643
+        assert user_stats.score_style_od == 8.940208492500652
+        assert user_stats.score_style_length == 139.73474300453674
 
 
 @pytest.mark.django_db

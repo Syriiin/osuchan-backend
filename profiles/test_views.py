@@ -62,7 +62,7 @@ class TestUserScoreList:
         response: Response = view(request, **kwargs)
 
         assert response.status_code == HTTPStatus.OK
-        assert len(response.data) == 4
+        assert len(response.data) == 5
 
     def test_post(self, arf: APIRequestFactory, view, stub_user_stats, user):
         kwargs = {"user_id": 5701575, "gamemode": Gamemode.STANDARD}
