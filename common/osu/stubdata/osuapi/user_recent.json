@@ -13,6 +13,11 @@
                 "count_miss": 10,
                 "count_katu": 7,
                 "count_geki": 57,
+                "statistics": {
+                    "great": 337,
+                    "ok": 14,
+                    "miss": 10
+                },
                 "perfect": false,
                 "rank": "F",
                 "date": "2023-05-31T12:02:04+00:00"
@@ -29,6 +34,12 @@
                 "count_miss": 32,
                 "count_katu": 22,
                 "count_geki": 167,
+                "statistics": {
+                    "great": 731,
+                    "ok": 33,
+                    "meh": 2,
+                    "miss": 32
+                },
                 "perfect": false,
                 "rank": "A",
                 "date": "2023-05-31T11:51:16+00:00"
@@ -45,6 +56,12 @@
                 "count_miss": 1,
                 "count_katu": 29,
                 "count_geki": 104,
+                "statistics": {
+                    "great": 537,
+                    "ok": 58,
+                    "meh": 1,
+                    "miss": 1
+                },
                 "perfect": false,
                 "rank": "B",
                 "date": "2023-05-30T13:24:21+00:00"

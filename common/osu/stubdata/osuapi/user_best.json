@@ -13,6 +13,10 @@
                 "count_miss": 0,
                 "count_katu": 7,
                 "count_geki": 360,
+                "statistics": {
+                    "great": 1739,
+                    "ok": 14
+                },
                 "perfect": false,
                 "rank": "SH",
                 "date": "2020-08-15T14:12:14+00:00"
@@ -29,6 +33,10 @@
                 "count_miss": 0,
                 "count_katu": 1,
                 "count_geki": 73,
+                "statistics": {
+                    "great": 346,
+                    "ok": 1
+                },
                 "perfect": true,
                 "rank": "SH",
                 "date": "2020-08-15T14:50:41+00:00"
@@ -45,6 +53,9 @@
                 "count_miss": 0,
                 "count_katu": 0,
                 "count_geki": 101,
+                "statistics": {
+                    "great": 540
+                },
                 "perfect": true,
                 "rank": "XH",
                 "date": "2021-03-08T14:05:52+00:00"
@@ -61,6 +72,11 @@
                 "count_miss": 14,
                 "count_katu": 0,
                 "count_geki": 0,
+                "statistics": {
+                    "great": 333,
+                    "ok": 13,
+                    "miss": 14
+                },
                 "perfect": false,
                 "rank": "A",
                 "date": "2024-11-22T09:43:15+00:00"
@@ -81,6 +97,14 @@
                 "count_miss": 4,
                 "count_katu": 36,
                 "count_geki": 458,
+                "statistics": {
+                    "perfect": 458,
+                    "great": 212,
+                    "good": 36,
+                    "ok": 9,
+                    "meh": 1,
+                    "miss": 4
+                },
                 "perfect": false,
                 "rank": "S",
                 "date": "2018-03-12T11:42:52+00:00"
