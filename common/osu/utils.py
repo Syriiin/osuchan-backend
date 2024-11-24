@@ -277,9 +277,9 @@ def get_mods_string(mods: int):
         if mod & mods:
             mod_strings.append(mod_acronyms[mod])
 
-    if Mods.NIGHTCORE & mods:
+    if Mods.NIGHTCORE & mods and "DT" in mod_strings:
         mod_strings.remove("DT")
-    if Mods.PERFECT & mods:
+    if Mods.PERFECT & mods and "SD" in mod_strings:
         mod_strings.remove("SD")
 
     return ",".join(mod_strings)
