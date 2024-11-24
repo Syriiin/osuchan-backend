@@ -290,7 +290,10 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
     (requires all dicts to have beatmap_id set along with usual score data)
     """
     # Remove potential duplicates from a top 100 play also being in the recent 50
-    unique_score_data_list = list(set(score_data_list))
+    unique_score_data_list = []
+    for score_data in score_data_list:
+        if score_data not in unique_score_data_list:
+            unique_score_data_list.append(score_data)
 
     # Remove scores which already exist in db
     score_dates = [score.date for score in unique_score_data_list]
@@ -325,6 +328,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
         score.count_miss = score_data.count_miss
         score.count_geki = score_data.count_geki
         score.count_katu = score_data.count_katu
+        score.statistics = score_data.statistics
         score.best_combo = score_data.best_combo
         score.perfect = score_data.perfect
         score.mods = score_data.mods

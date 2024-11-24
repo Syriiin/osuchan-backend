@@ -114,6 +114,12 @@ def score(user_stats: UserStats, beatmap: Beatmap):
         count_miss=0,
         count_geki=360,
         count_katu=7,
+        statistics={
+            "great": 1739,
+            "ok": 14,
+            "meh": 0,
+            "miss": 0,
+        },
         best_combo=2757,
         perfect=False,
         mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.SUDDEN_DEATH,

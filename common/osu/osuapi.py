@@ -282,6 +282,7 @@ class ScoreData(NamedTuple):
     count_miss: int
     count_katu: int
     count_geki: int
+    statistics: dict[str, int]
 
     perfect: bool
     rank: str
@@ -300,6 +301,7 @@ class ScoreData(NamedTuple):
             "count_miss": self.count_miss,
             "count_katu": self.count_katu,
             "count_geki": self.count_geki,
+            "statistics": self.statistics,
             "perfect": self.perfect,
             "rank": self.rank,
             "date": self.date.isoformat(),
@@ -319,6 +321,7 @@ class ScoreData(NamedTuple):
             count_miss=data["count_miss"],
             count_katu=data["count_katu"],
             count_geki=data["count_geki"],
+            statistics=data["statistics"],
             perfect=data["perfect"],
             rank=data["rank"],
             date=datetime.fromisoformat(data["date"]),
@@ -326,8 +329,51 @@ class ScoreData(NamedTuple):
 
     @classmethod
     def from_apiv1(
-        cls, data: dict, beatmap_id_override: int | None = None
+        cls, data: dict, gamemode: Gamemode, beatmap_id_override: int | None = None
     ) -> "ScoreData":
+        statistics = {}
+
+        if gamemode == Gamemode.STANDARD:
+            if data["count300"] != "0":
+                statistics["great"] = int(data["count300"])
+            if data["count100"] != "0":
+                statistics["ok"] = int(data["count100"])
+            if data["count50"] != "0":
+                statistics["meh"] = int(data["count50"])
+            if data["countmiss"] != "0":
+                statistics["miss"] = int(data["countmiss"])
+        elif gamemode == Gamemode.TAIKO:
+            if data["count300"] != "0":
+                statistics["great"] = int(data["count300"])
+            if data["count100"] != "0":
+                statistics["ok"] = int(data["count100"])
+            if data["countmiss"] != "0":
+                statistics["miss"] = int(data["countmiss"])
+        elif gamemode == Gamemode.CATCH:
+            if data["count300"] != "0":
+                statistics["great"] = int(data["count300"])
+            if data["countmiss"] != "0":
+                statistics["miss"] = int(data["countmiss"])
+            if data["count100"] != "0":
+                statistics["large_tick_hit"] = int(data["count100"])
+            if data["count50"] != "0":
+                statistics["small_tick_hit"] = int(data["count50"])
+            if data["countkatu"] != "0":
+                statistics["small_tick_miss"] = int(data["countkatu"])
+        elif gamemode == Gamemode.MANIA:
+            if data["countgeki"] != "0":
+                statistics["perfect"] = int(data["countgeki"])
+            if data["count300"] != "0":
+                statistics["great"] = int(data["count300"])
+            if data["countkatu"] != "0":
+                statistics["good"] = int(data["countkatu"])
+            if data["count100"] != "0":
+                statistics["ok"] = int(data["count100"])
+            if data["count50"] != "0":
+                statistics["meh"] = int(data["count50"])
+            if data["countmiss"] != "0":
+                statistics["miss"] = int(data["countmiss"])
+
         return cls(
             beatmap_id=(
                 beatmap_id_override
@@ -344,6 +390,7 @@ class ScoreData(NamedTuple):
             count_miss=int(data["countmiss"]),
             count_katu=int(data["countkatu"]),
             count_geki=int(data["countgeki"]),
+            statistics=statistics,
             perfect=bool(int(data["perfect"])),
             rank=data["rank"],
             date=datetime.strptime(data["date"], "%Y-%m-%d %H:%M:%S").replace(
@@ -430,7 +477,7 @@ class LiveOsuApiV1(AbstractOsuApi):
         self, beatmap_id: int, user_id: int, gamemode: Gamemode
     ) -> list[ScoreData]:
         return [
-            ScoreData.from_apiv1(data, beatmap_id)
+            ScoreData.from_apiv1(data, gamemode, beatmap_id)
             for data in self.__get_legacy_endpoint(
                 "get_scores", b=beatmap_id, u=user_id, type="id", m=gamemode.value
             )
@@ -438,7 +485,7 @@ class LiveOsuApiV1(AbstractOsuApi):
 
     def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
         return [
-            ScoreData.from_apiv1(data)
+            ScoreData.from_apiv1(data, gamemode)
             for data in self.__get_legacy_endpoint(
                 "get_user_best", u=user_id, type="id", m=gamemode.value, limit=100
             )
@@ -448,7 +495,7 @@ class LiveOsuApiV1(AbstractOsuApi):
         self, user_id: int, gamemode: Gamemode
     ) -> list[ScoreData]:
         return [
-            ScoreData.from_apiv1(data)
+            ScoreData.from_apiv1(data, gamemode)
             for data in self.__get_legacy_endpoint(
                 "get_user_recent", u=user_id, type="id", m=gamemode.value, limit=50
             )
@@ -611,6 +658,43 @@ class LiveOsuApiV2(AbstractOsuApi):
         else:
             raise ValueError(f"{gamemode} is not a valid gamemode")
 
+        statistics = {}
+
+        if score.statistics.miss is not None:
+            statistics["miss"] = score.statistics.miss
+        if score.statistics.meh is not None:
+            statistics["meh"] = score.statistics.meh
+        if score.statistics.ok is not None:
+            statistics["ok"] = score.statistics.ok
+        if score.statistics.good is not None:
+            statistics["good"] = score.statistics.good
+        if score.statistics.great is not None:
+            statistics["great"] = score.statistics.great
+        if score.statistics.perfect is not None:
+            statistics["perfect"] = score.statistics.perfect
+        if score.statistics.small_tick_miss is not None:
+            statistics["small_tick_miss"] = score.statistics.small_tick_miss
+        if score.statistics.small_tick_hit is not None:
+            statistics["small_tick_hit"] = score.statistics.small_tick_hit
+        if score.statistics.large_tick_miss is not None:
+            statistics["large_tick_miss"] = score.statistics.large_tick_miss
+        if score.statistics.large_tick_hit is not None:
+            statistics["large_tick_hit"] = score.statistics.large_tick_hit
+        if score.statistics.small_bonus is not None:
+            statistics["small_bonus"] = score.statistics.small_bonus
+        if score.statistics.large_bonus is not None:
+            statistics["large_bonus"] = score.statistics.large_bonus
+        if score.statistics.ignore_miss is not None:
+            statistics["ignore_miss"] = score.statistics.ignore_miss
+        if score.statistics.ignore_hit is not None:
+            statistics["ignore_hit"] = score.statistics.ignore_hit
+        if score.statistics.combo_break is not None:
+            statistics["combo_break"] = score.statistics.combo_break
+        if score.statistics.slider_tail_hit is not None:
+            statistics["slider_tail_hit"] = score.statistics.slider_tail_hit
+        if score.statistics.legacy_combo_increase is not None:
+            statistics["legacy_combo_increase"] = score.statistics.legacy_combo_increase
+
         return ScoreData(
             beatmap_id=beatmap_id,
             mods=bitwise_mods,
@@ -623,6 +707,7 @@ class LiveOsuApiV2(AbstractOsuApi):
             count_miss=count_miss,
             count_katu=count_katu,
             count_geki=count_geki,
+            statistics=statistics,
             perfect=score.legacy_perfect,
             rank=score.rank.value,
             date=score.ended_at,  # pretty sure this is a typing bug. should be non-nullable
