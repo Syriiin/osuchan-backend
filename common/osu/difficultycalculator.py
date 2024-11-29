@@ -36,11 +36,7 @@ class Score(NamedTuple):
     beatmap_id: str
     mods: int | None = None
     is_classic: bool = True
-    count_katu: int | None = None  # mania: goods
-    count_300: int | None = None  # mania: greats (ignored for others)
-    count_100: int | None = None  # oks, catch: large droplets
-    count_50: int | None = None  # mehs, catch: small droplets
-    count_miss: int | None = None
+    statistics: dict[str, int] = {}
     combo: int | None = None
 
 
@@ -151,9 +147,9 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
                     score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
-                "Misses": score.count_miss,
-                "Mehs": score.count_50,
-                "Oks": score.count_100,
+                "Misses": score.statistics.get("miss", 0),
+                "Mehs": score.statistics.get("meh", 0),
+                "Oks": score.statistics.get("ok", 0),
             }.items()
             if v is not None
         }
@@ -184,8 +180,8 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
                     score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
-                "Misses": score.count_miss,
-                "Oks": score.count_100,
+                "Misses": score.statistics.get("miss", 0),
+                "Oks": score.statistics.get("ok", 0),
             }.items()
             if v is not None
         }
@@ -216,9 +212,9 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
                     score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
-                "Misses": score.count_miss,
-                "SmallDroplets": score.count_50,
-                "LargeDroplets": score.count_100,
+                "Misses": score.statistics.get("miss", 0),
+                "SmallDroplets": score.statistics.get("small_tick_hit", 0),
+                "LargeDroplets": score.statistics.get("large_tick_hit", 0),
             }.items()
             if v is not None
         }
@@ -249,11 +245,11 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
                     score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
-                "Misses": score.count_miss,
-                "Mehs": score.count_50,
-                "Oks": score.count_100,
-                "Goods": score.count_katu,
-                "Greats": score.count_300,
+                "Misses": score.statistics.get("miss", 0),
+                "Mehs": score.statistics.get("meh", 0),
+                "Oks": score.statistics.get("ok", 0),
+                "Goods": score.statistics.get("good", 0),
+                "Greats": score.statistics.get("great", 0),
             }.items()
             if v is not None
         }
@@ -286,9 +282,9 @@ class DifficalcyPerformancePlusDifficultyCalculator(
                     score.mods if score.mods is not None else 0, score.is_classic
                 ),
                 "Combo": score.combo,
-                "Misses": score.count_miss,
-                "Mehs": score.count_50,
-                "Oks": score.count_100,
+                "Misses": score.statistics.get("miss", 0),
+                "Mehs": score.statistics.get("meh", 0),
+                "Oks": score.statistics.get("ok", 0),
             }.items()
             if v is not None
         }
