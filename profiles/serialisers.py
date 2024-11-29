@@ -142,6 +142,7 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "count_miss",
             "count_geki",
             "count_katu",
+            "statistics",
             "best_combo",
             "perfect",
             "mods",
