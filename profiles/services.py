@@ -587,11 +587,7 @@ def calculate_performance_values(
             beatmap_id=str(performance_calculation.score.beatmap_id),
             mods=performance_calculation.score.mods,
             is_classic=performance_calculation.score.is_classic,
-            count_300=performance_calculation.score.count_300,
-            count_katu=performance_calculation.score.count_katu,
-            count_100=performance_calculation.score.count_100,
-            count_50=performance_calculation.score.count_50,
-            count_miss=performance_calculation.score.count_miss,
+            statistics=performance_calculation.score.statistics,
             combo=performance_calculation.score.best_combo,
         )
         for performance_calculation in performance_calculations

@@ -559,6 +559,7 @@ class Score(models.Model):
         score.count_100 = self.count_100
         score.count_50 = self.count_50
         score.count_miss = 0
+        # TODO: update to handle lazer statistics
         score.statistics = {
             "great": score.count_300,
             "ok": score.count_100,

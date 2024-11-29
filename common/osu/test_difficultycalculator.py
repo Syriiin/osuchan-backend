@@ -45,17 +45,21 @@ class TestDifficalcyDifficultyCalculator:
             Score(
                 "307618",
                 mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
-                count_100=14,
-                count_50=1,
-                count_miss=1,
+                statistics={
+                    "ok": 14,
+                    "meh": 1,
+                    "miss": 1,
+                },
                 combo=2000,
             ),
             Score(
                 "307618",
                 mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
-                count_100=14,
-                count_50=1,
-                count_miss=1,
+                statistics={
+                    "ok": 14,
+                    "meh": 1,
+                    "miss": 1,
+                },
                 combo=2000,
             ),
             Score(
@@ -124,9 +128,11 @@ class TestDifficalcyOsuDifficultyCalculator:
         score = Score(
             "307618",
             mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
-            count_100=14,
-            count_50=1,
-            count_miss=1,
+            statistics={
+                "ok": 14,
+                "meh": 1,
+                "miss": 1,
+            },
             combo=2000,
         )
         assert calc.calculate_scores([score]) == [
@@ -160,8 +166,10 @@ class TestDifficalcyTaikoDifficultyCalculator:
         score = Score(
             "2",
             mods=int(Mods.DOUBLETIME + Mods.HARDROCK),
-            count_100=3,
-            count_miss=5,
+            statistics={
+                "ok": 3,
+                "miss": 5,
+            },
             combo=150,
         )
         assert calc.calculate_scores([score]) == [
@@ -193,9 +201,11 @@ class TestDifficalcyCatchDifficultyCalculator:
         score = Score(
             "3",
             mods=int(Mods.DOUBLETIME + Mods.HARDROCK),
-            count_100=18,
-            count_50=200,
-            count_miss=5,
+            statistics={
+                "large_tick_hit": 18,
+                "small_tick_hit": 200,
+                "miss": 5,
+            },
             combo=100,
         )
         assert calc.calculate_scores([score]) == [
@@ -222,11 +232,13 @@ class TestDifficalcyManiaDifficultyCalculator:
         score = Score(
             "4",
             mods=int(Mods.DOUBLETIME + Mods.EASY),
-            count_300=1,
-            count_katu=2,
-            count_100=3,
-            count_50=4,
-            count_miss=5,
+            statistics={
+                "great": 1,
+                "good": 2,
+                "ok": 3,
+                "meh": 4,
+                "miss": 5,
+            },
         )
         assert calc.calculate_scores([score]) == [
             Calculation(
@@ -259,9 +271,11 @@ class TestDifficalcyPerformancePlusDifficultyCalculator:
         score = Score(
             "307618",
             mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
-            count_100=14,
-            count_50=1,
-            count_miss=1,
+            statistics={
+                "ok": 14,
+                "meh": 1,
+                "miss": 1,
+            },
             combo=2000,
         )
         assert calc.calculate_scores([score]) == [
