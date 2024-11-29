@@ -353,13 +353,8 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
 
         # Update convenience fields
         score.gamemode = gamemode
-        score.accuracy = utils.get_accuracy(
-            score.count_300,
-            score.count_100,
-            score.count_50,
-            score.count_miss,
-            score.count_katu,
-            score.count_geki,
+        score.accuracy = utils.get_classic_accuracy(
+            score.statistics,
             gamemode=gamemode,
         )
         score.bpm = utils.get_bpm(score.beatmap.bpm, score.mods)

@@ -571,13 +571,8 @@ class Score(models.Model):
         score.perfect = True
 
         # Calculate new accuracy
-        score.accuracy = utils.get_accuracy(
-            score.count_300,
-            score.count_100,
-            score.count_50,
-            score.count_miss,
-            score.count_katu,
-            score.count_geki,
+        score.accuracy = utils.get_classic_accuracy(
+            score.statistics,
             gamemode=gamemode,
         )
         if score.accuracy == 1:

@@ -8,80 +8,54 @@ def calculate_pp_total(sorted_pps):
     return sum(pp * (0.95**i) for i, pp in enumerate(sorted_pps))
 
 
-def get_accuracy(
-    count_300,
-    count_100,
-    count_50,
-    count_miss,
-    count_katu=None,
-    count_geki=None,
+def get_classic_accuracy(
+    statistics: dict[str, int],
     gamemode=Gamemode.STANDARD,
 ):
-    # ---------------Acc calculations
-    # Accuracy = (Total points of hits / (Total number of hits * 300) * 100)
-    # Total points of hits = (Number of 50s * 50 + Number of 100s * 100 + Number of 300s * 300)
-    # Total number of hits = (Number of misses + Number of 50's + Number of 100's + Number of 300's)
+    if gamemode == Gamemode.STANDARD:
+        great = statistics.get("great", 0)
+        ok = statistics.get("ok", 0)
+        meh = statistics.get("meh", 0)
+        miss = statistics.get("miss", 0)
+
+        max_points = 300 * (great + ok + meh + miss)
+        points = (50 * meh) + (100 * ok) + (300 * great)
+
+    elif gamemode == Gamemode.TAIKO:
+        great = statistics.get("great", 0)
+        ok = statistics.get("ok", 0)
+        miss = statistics.get("miss", 0)
+
+        max_points = 300 * (great + ok + miss)
+        points = 300 * ((0.5 * ok) + great)
+
+    elif gamemode == Gamemode.CATCH:
+        great = statistics.get("great", 0)
+        large_tick_hit = statistics.get("large_tick_hit", 0)
+        small_tick_hit = statistics.get("small_tick_hit", 0)
+        small_tick_miss = statistics.get("small_tick_miss", 0)
+        miss = statistics.get("miss", 0)
+
+        max_points = great + large_tick_hit + small_tick_hit + miss + small_tick_miss
+        points = great + large_tick_hit + small_tick_hit
+
+    elif gamemode == Gamemode.MANIA:
+        perfect = statistics.get("perfect", 0)
+        great = statistics.get("great", 0)
+        good = statistics.get("good", 0)
+        ok = statistics.get("ok", 0)
+        meh = statistics.get("meh", 0)
+        miss = statistics.get("miss", 0)
+
+        max_points = 300 * (meh + ok + good + great + perfect + miss)
+        points = (
+            (meh * 50) + (ok * 100) + (good * 200) + (great * 300) + (perfect * 300)
+        )
+    else:
+        raise ValueError(f"{gamemode} is not a valid gamemode")
 
     try:
-        if gamemode == Gamemode.STANDARD:
-            # standard acc
-            no_300 = int(count_300)
-            no_100 = int(count_100)
-            no_50 = int(count_50)
-            no_miss = int(count_miss)
-
-            total_hits = no_300 + no_100 + no_50 + no_miss
-            points = (no_50 * 50) + (no_100 * 100) + (no_300 * 300)
-
-            accuracy = (points / (total_hits * 300)) * 100
-
-        elif gamemode == Gamemode.TAIKO:
-            # taiko acc
-            no_300 = int(count_300)
-            no_100 = int(count_100)
-            no_miss = int(count_miss)
-
-            total_hits = no_300 + no_100 + no_miss
-            points = ((no_100 * 0.5) + (no_300 * 1)) * 300
-
-            accuracy = (points / (total_hits * 300)) * 100
-
-        elif gamemode == Gamemode.CATCH:
-            # ctb acc
-            no_300 = int(count_300)
-            no_100 = int(count_100)
-            no_50 = int(count_50)
-            no_miss = int(count_miss)
-            no_drop_miss = int(count_katu)
-
-            total_hits = no_300 + no_100 + no_50 + no_miss + no_drop_miss
-            caught = no_300 + no_100 + no_50
-
-            accuracy = (caught / total_hits) * 100
-
-        elif gamemode == Gamemode.MANIA:
-            # mania acc
-            no_MAX = int(count_geki)
-            no_300 = int(count_300)
-            no_200 = int(count_katu)
-            no_100 = int(count_100)
-            no_50 = int(count_50)
-            no_miss = int(count_miss)
-
-            total_hits = no_50 + no_100 + no_200 + no_300 + no_MAX + no_miss
-            points = (
-                (no_50 * 50)
-                + (no_100 * 100)
-                + (no_200 * 200)
-                + (no_300 * 300)
-                + (no_MAX * 300)
-            )
-
-            accuracy = (points / (total_hits * 300)) * 100
-        else:
-            raise ValueError(f"{gamemode} is not a valid gamemode")
-
-        return accuracy
+        return 100 * (points / max_points)
     except ZeroDivisionError:
         return 0
 
