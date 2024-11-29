@@ -559,25 +559,18 @@ class Score(models.Model):
         score.count_100 = self.count_100
         score.count_50 = self.count_50
         score.count_miss = 0
-        score.statistics = (
-            {
-                "great": score.count_300,
-                "ok": score.count_100,
-                "meh": score.count_50,
-                "miss": score.count_miss,
-            },
-        )
+        score.statistics = {
+            "great": score.count_300,
+            "ok": score.count_100,
+            "meh": score.count_50,
+            "miss": score.count_miss,
+        }
         score.best_combo = self.beatmap.max_combo
         score.perfect = True
 
         # Calculate new accuracy
-        score.accuracy = utils.get_accuracy(
-            score.count_300,
-            score.count_100,
-            score.count_50,
-            score.count_miss,
-            score.count_katu,
-            score.count_geki,
+        score.accuracy = utils.get_classic_accuracy(
+            score.statistics,
             gamemode=gamemode,
         )
         if score.accuracy == 1:

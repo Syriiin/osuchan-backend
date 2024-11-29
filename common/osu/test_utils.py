@@ -1,9 +1,9 @@
 from common.osu.enums import Gamemode, Mods
 from common.osu.utils import (
     calculate_pp_total,
-    get_accuracy,
     get_ar,
     get_bpm,
+    get_classic_accuracy,
     get_cs,
     get_gamemode_from_gamemode_string,
     get_gamemode_string_from_gamemode,
@@ -20,44 +20,51 @@ def test_calculate_pp_total():
 
 def test_get_accuracy():
     assert (
-        get_accuracy(
-            count_300=1739,
-            count_100=14,
-            count_50=0,
-            count_miss=0,
+        get_classic_accuracy(
+            statistics={
+                "great": 1739,
+                "ok": 14,
+                "meh": 0,
+                "miss": 0,
+            },
             gamemode=Gamemode.STANDARD,
         )
         == 99.4675793877163
     )
     assert (
-        get_accuracy(
-            count_300=2950,
-            count_100=14,
-            count_50=0,
-            count_miss=0,
+        get_classic_accuracy(
+            statistics={
+                "great": 2950,
+                "ok": 14,
+                "miss": 0,
+            },
             gamemode=Gamemode.TAIKO,
         )
         == 99.7638326585695
     )
     assert (
-        get_accuracy(
-            count_300=4431,
-            count_100=109,
-            count_50=0,
-            count_miss=0,
-            count_katu=2,
+        get_classic_accuracy(
+            statistics={
+                "great": 4431,
+                "large_tick_hit": 109,
+                "small_tick_hit": 0,
+                "miss": 0,
+                "small_tick_miss": 2,
+            },
             gamemode=Gamemode.CATCH,
         )
         == 99.95596653456627
     )
     assert (
-        get_accuracy(
-            count_300=2724,
-            count_100=26,
-            count_50=17,
-            count_miss=37,
-            count_katu=171,
-            count_geki=7853,
+        get_classic_accuracy(
+            statistics={
+                "perfect": 7853,
+                "great": 2724,
+                "good": 171,
+                "ok": 26,
+                "meh": 17,
+                "miss": 37,
+            },
             gamemode=Gamemode.MANIA,
         )
         == 98.84096786110085
