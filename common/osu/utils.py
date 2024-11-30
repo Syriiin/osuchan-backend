@@ -283,4 +283,9 @@ def get_bitwise_mods(acronyms: list[str]) -> int:
                 bitwise_mods |= mod
                 break
 
+    if bitwise_mods & Mods.NIGHTCORE:
+        bitwise_mods |= Mods.DOUBLETIME
+    if bitwise_mods & Mods.PERFECT:
+        bitwise_mods |= Mods.SUDDEN_DEATH
+
     return bitwise_mods
