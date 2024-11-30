@@ -107,7 +107,7 @@
                 "mods": 0,
                 "mods_json": [],
                 "is_stable": false,
-                "score": 0,
+                "score": 548961,
                 "best_combo": 127,
                 "count_300": 333,
                 "count_100": 13,
@@ -116,9 +116,15 @@
                 "count_katu": 0,
                 "count_geki": 0,
                 "statistics": {
-                    "great": 333,
                     "ok": 13,
-                    "miss": 14
+                    "miss": 14,
+                    "great": 333,
+                    "ignore_hit": 149,
+                    "ignore_miss": 8,
+                    "large_bonus": 3,
+                    "small_bonus": 21,
+                    "large_tick_hit": 26,
+                    "slider_tail_hit": 149
                 },
                 "perfect": false,
                 "rank": "A",
