@@ -10,7 +10,7 @@ from django.utils.module_loading import import_string
 from ossapi import Beatmap, GameMode, Ossapi, Score, ScoreType, User, UserLookupKey
 
 from common.osu.enums import BeatmapStatus, Gamemode
-from common.osu.utils import get_bitwise_mods
+from common.osu.utils import get_bitwise_mods, get_json_mods
 
 
 class MalformedResponseError(Exception):
@@ -272,7 +272,8 @@ class UserData(NamedTuple):
 class ScoreData(NamedTuple):
     beatmap_id: int
     mods: int
-    is_classic: bool
+    mods_json: list[dict]
+    is_stable: bool
 
     score: int
     best_combo: int
@@ -292,7 +293,8 @@ class ScoreData(NamedTuple):
         return {
             "beatmap_id": self.beatmap_id,
             "mods": self.mods,
-            "is_classic": self.is_classic,
+            "mods_json": self.mods_json,
+            "is_stable": self.is_stable,
             "score": self.score,
             "best_combo": self.best_combo,
             "count_300": self.count_300,
@@ -312,7 +314,8 @@ class ScoreData(NamedTuple):
         return cls(
             beatmap_id=data["beatmap_id"],
             mods=data["mods"],
-            is_classic=data["is_classic"],
+            mods_json=data["mods_json"],
+            is_stable=data["is_stable"],
             score=data["score"],
             best_combo=data["best_combo"],
             count_300=data["count_300"],
@@ -374,6 +377,8 @@ class ScoreData(NamedTuple):
             if data["countmiss"] != "0":
                 statistics["miss"] = int(data["countmiss"])
 
+        is_stable = data["score"] != "0"  # lazer uses new scoring
+
         return cls(
             beatmap_id=(
                 beatmap_id_override
@@ -381,7 +386,8 @@ class ScoreData(NamedTuple):
                 else int(data["beatmap_id"])
             ),
             mods=int(data["enabled_mods"]),
-            is_classic=data["score"] != "0",  # lazer uses new scoring
+            mods_json=get_json_mods(int(data["enabled_mods"]), is_stable),
+            is_stable=is_stable,
             score=int(data["score"]),
             best_combo=int(data["maxcombo"]),
             count_300=int(data["count300"]),
@@ -589,7 +595,16 @@ class LiveOsuApiV2(AbstractOsuApi):
         else:
             beatmap_id = beatmap_id_override
 
-        bitwise_mods, is_classic = get_bitwise_mods([mod.acronym for mod in score.mods])
+        is_stable = score.legacy_score_id is not None
+
+        bitwise_mods = get_bitwise_mods([mod.acronym for mod in score.mods])
+
+        mods_json = []
+        for mod in score.mods:
+            mod_json = {"acronym": mod.acronym}
+            if mod.settings is not None:
+                mod_json["settings"] = mod.settings
+            mods_json.append(mod_json)
 
         if gamemode == Gamemode.STANDARD:
             count_300 = (
@@ -698,8 +713,9 @@ class LiveOsuApiV2(AbstractOsuApi):
         return ScoreData(
             beatmap_id=beatmap_id,
             mods=bitwise_mods,
-            is_classic=is_classic,
-            score=score.legacy_total_score if is_classic else score.total_score,
+            mods_json=mods_json,
+            is_stable=is_stable,
+            score=score.legacy_total_score if is_stable else score.total_score,
             best_combo=score.max_combo,
             count_300=count_300,
             count_100=count_100,

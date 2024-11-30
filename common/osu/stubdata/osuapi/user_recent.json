@@ -4,7 +4,15 @@
             {
                 "beatmap_id": 209276,
                 "mods": 8,
-                "is_classic": true,
+                "mods_json": [
+                    {
+                        "acronym": "HD"
+                    },
+                    {
+                        "acronym": "CL"
+                    }
+                ],
+                "is_stable": true,
                 "score": 1881030,
                 "best_combo": 294,
                 "count_300": 337,
@@ -25,7 +33,15 @@
             {
                 "beatmap_id": 1117451,
                 "mods": 8,
-                "is_classic": true,
+                "mods_json": [
+                    {
+                        "acronym": "HD"
+                    },
+                    {
+                        "acronym": "CL"
+                    }
+                ],
+                "is_stable": true,
                 "score": 2572332,
                 "best_combo": 174,
                 "count_300": 731,
@@ -47,7 +63,18 @@
             {
                 "beatmap_id": 638017,
                 "mods": 24,
-                "is_classic": true,
+                "mods_json": [
+                    {
+                        "acronym": "HD"
+                    },
+                    {
+                        "acronym": "HR"
+                    },
+                    {
+                        "acronym": "CL"
+                    }
+                ],
+                "is_stable": true,
                 "score": 9393700,
                 "best_combo": 707,
                 "count_300": 537,

@@ -2,11 +2,13 @@ from common.osu.enums import Gamemode, Mods
 from common.osu.utils import (
     calculate_pp_total,
     get_ar,
+    get_bitwise_mods,
     get_bpm,
     get_classic_accuracy,
     get_cs,
     get_gamemode_from_gamemode_string,
     get_gamemode_string_from_gamemode,
+    get_json_mods,
     get_length,
     get_mods_string,
     get_od,
@@ -138,4 +140,44 @@ def test_get_gamemode_string_from_gamemode():
 def test_get_mods_string():
     assert (
         get_mods_string(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH) == "HD,SD,DT"
+    )
+
+
+def test_get_json_mods():
+    assert get_json_mods(Mods.HIDDEN + Mods.SUDDEN_DEATH + Mods.DOUBLETIME, True) == [
+        {"acronym": "HD"},
+        {"acronym": "SD"},
+        {"acronym": "DT"},
+        {"acronym": "CL"},
+    ]
+
+    assert get_json_mods(
+        Mods.HARDROCK
+        + Mods.FLASHLIGHT
+        + Mods.SUDDEN_DEATH
+        + Mods.PERFECT
+        + Mods.DOUBLETIME
+        + Mods.NIGHTCORE,
+        False,
+    ) == [
+        {"acronym": "HR"},
+        {"acronym": "NC"},
+        {"acronym": "FL"},
+        {"acronym": "PF"},
+    ]
+
+
+def test_get_bitwise_mods():
+    assert (
+        get_bitwise_mods(["HD", "DT", "SD", "CL"])
+        == Mods.HIDDEN + Mods.SUDDEN_DEATH + Mods.DOUBLETIME
+    )
+    assert (
+        get_bitwise_mods(["HR", "FL", "PF", "NC"])
+        == Mods.HARDROCK
+        + Mods.FLASHLIGHT
+        + Mods.SUDDEN_DEATH
+        + Mods.PERFECT
+        + Mods.DOUBLETIME
+        + Mods.NIGHTCORE
     )
