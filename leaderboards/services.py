@@ -78,9 +78,10 @@ def update_membership(
             rank=leaderboard.member_count + 1,
         )
 
-    # Get leaderboard records before updating, so we can compare
-    pp_record = leaderboard.get_pp_record()
-    leaderboard_top_player = leaderboard.get_top_membership()
+    if not skip_notifications and leaderboard.notification_discord_webhook_url != "":
+        # Get leaderboard records before updating, so we can compare for notifications
+        pp_record = leaderboard.get_pp_record()
+        leaderboard_top_player = leaderboard.get_top_membership()
 
     scores = Score.objects.filter(
         user_stats__user_id=user_id, user_stats__gamemode=leaderboard.gamemode

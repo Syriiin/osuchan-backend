@@ -699,7 +699,7 @@ class LiveOsuApiV2(AbstractOsuApi):
             beatmap_id=beatmap_id,
             mods=bitwise_mods,
             is_classic=is_classic,
-            score=score.legacy_total_score,
+            score=score.legacy_total_score if is_classic else score.total_score,
             best_combo=score.max_combo,
             count_300=count_300,
             count_100=count_100,

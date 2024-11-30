@@ -49,7 +49,7 @@ def get_classic_accuracy(
 
         max_points = 300 * (meh + ok + good + great + perfect + miss)
         points = (
-            (meh * 50) + (ok * 100) + (good * 200) + (great * 300) + (perfect * 300)
+            (50 * meh) + (100 * ok) + (200 * good) + (300 * great) + (300 * perfect)
         )
     else:
         raise ValueError(f"{gamemode} is not a valid gamemode")
