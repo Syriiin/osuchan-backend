@@ -66,6 +66,22 @@ class TestDifficalcyDifficultyCalculator:
                 "307618",
                 mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
             ),
+            Score(
+                "422328",
+                is_stable=False,
+                statistics={
+                    "ok": 13,
+                    "miss": 14,
+                    "great": 333,
+                    "ignore_hit": 1,
+                    "ignore_miss": 8,
+                    "large_bonus": 3,
+                    "small_bonus": 21,
+                    "large_tick_hit": 26,
+                    "slider_tail_hit": 1,
+                },
+                combo=127,
+            ),
         ]
         assert calc.calculate_scores(scores) == [
             Calculation(
@@ -111,6 +127,21 @@ class TestDifficalcyDifficultyCalculator:
                     "accuracy": 212.8087296294707,
                     "flashlight": 0,
                     "total": 652.8833944223771,
+                },
+            ),
+            Calculation(
+                difficulty_values={
+                    "aim": 3.236358943413732,
+                    "speed": 2.0017805441553786,
+                    "flashlight": 0,
+                    "total": 5.822052220984374,
+                },
+                performance_values={
+                    "aim": 49.95697498296852,
+                    "speed": 7.243686906869381,
+                    "accuracy": 12.368997155942548,
+                    "flashlight": 0,
+                    "total": 74.7015197965815,
                 },
             ),
         ]

@@ -37,7 +37,7 @@ class TestMembershipServices:
         )
         membership = leaderboard.memberships.first()
         assert membership.score_count == 5
-        assert membership.pp == 1294.9049944518279
+        assert membership.pp == 1296.314845169917
 
     @pytest.fixture
     def membership(self, leaderboard, stub_user_stats):
