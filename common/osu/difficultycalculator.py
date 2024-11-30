@@ -150,6 +150,8 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
                 "Misses": score.statistics.get("miss", 0),
                 "Mehs": score.statistics.get("meh", 0),
                 "Oks": score.statistics.get("ok", 0),
+                "SliderTails": score.statistics.get("slider_tail_hit"),
+                "SliderTicks": score.statistics.get("large_tick_hit"),
             }.items()
             if v is not None
         }
