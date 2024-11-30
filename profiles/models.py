@@ -461,6 +461,7 @@ class Score(models.Model):
     best_combo = models.IntegerField()
     perfect = models.BooleanField()
     mods = models.IntegerField()
+    mods_json = models.JSONField()
     is_classic = models.BooleanField()
     rank = models.CharField()
     date = models.DateTimeField()
@@ -538,6 +539,7 @@ class Score(models.Model):
             count_geki=self.count_geki,
             count_katu=self.count_katu,
             mods=self.mods,
+            mods_json=self.mods_json.copy(),
             is_classic=self.is_classic,
             date=self.date,
             beatmap=self.beatmap,

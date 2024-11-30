@@ -146,6 +146,7 @@ class ScoreSerialiser(serializers.ModelSerializer):
             "best_combo",
             "perfect",
             "mods",
+            "mods_json",
             "rank",
             "date",
             # osuchan data

@@ -332,6 +332,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
         score.best_combo = score_data.best_combo
         score.perfect = score_data.perfect
         score.mods = score_data.mods
+        score.mods_json = score_data.mods_json
         score.is_classic = score_data.is_classic
         score.rank = score_data.rank
         score.date = score_data.date
