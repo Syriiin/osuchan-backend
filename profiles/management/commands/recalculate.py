@@ -62,16 +62,6 @@ class Command(BaseCommand):
             scores = Score.objects.filter(gamemode=gamemode)
             self.recalculate_scores(difficulty_calculator, scores, force)
 
-            # Recalculate user stats
-            all_user_stats = UserStats.objects.filter(gamemode=gamemode)
-            self.recalculate_user_stats(all_user_stats)
-
-            # Recalculate memberships
-            memberships = Membership.objects.select_related("leaderboard").filter(
-                leaderboard__gamemode=gamemode
-            )
-            self.recalculate_memberships(memberships)
-
     def recalculate_beatmaps(
         self,
         difficulty_calculator: AbstractDifficultyCalculator,
@@ -226,58 +216,5 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Successfully updated {scores.count()} scores' performance values"
-            )
-        )
-
-    def recalculate_user_stats(
-        self,
-        all_user_stats: QuerySet[UserStats],
-    ):
-        paginator = Paginator(all_user_stats.order_by("pk"), per_page=2000)
-
-        with tqdm(desc="User Stats", total=all_user_stats.count(), smoothing=0) as pbar:
-            for page in paginator:
-                for user_stats in page:
-                    user_stats.recalculate()
-                    pbar.update()
-                UserStats.objects.bulk_update(
-                    page,
-                    [
-                        "extra_pp",
-                        "score_style_accuracy",
-                        "score_style_bpm",
-                        "score_style_length",
-                        "score_style_cs",
-                        "score_style_ar",
-                        "score_style_od",
-                    ],
-                )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Successfully updated {all_user_stats.count()} user stats"
-            )
-        )
-
-    def recalculate_memberships(
-        self,
-        memberships: QuerySet[Membership],
-    ):
-        paginator = Paginator(memberships.order_by("pk"), per_page=2000)
-
-        with tqdm(desc="Memberships", total=memberships.count(), smoothing=0) as pbar:
-            for page in paginator:
-                for membership in page:
-                    update_membership(
-                        membership.leaderboard,
-                        membership.user_id,
-                        skip_notifications=True,
-                    )
-                    pbar.update()
-                Membership.objects.bulk_update(page, ["pp"])
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Successfully updated {memberships.count()} memberships"
             )
         )
