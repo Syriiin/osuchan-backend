@@ -5,6 +5,17 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 72,
+                    "mods_json": [
+                        {
+                            "acronym": "HD"
+                        },
+                        {
+                            "acronym": "DT"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 3502092,
                     "best_combo": 404,
@@ -25,6 +36,14 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 1024,
+                    "mods_json": [
+                        {
+                            "acronym": "FL"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 2475834,
                     "best_combo": 342,
@@ -46,6 +65,17 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 66,
+                    "mods_json": [
+                        {
+                            "acronym": "EZ"
+                        },
+                        {
+                            "acronym": "DT"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 1718512,
                     "best_combo": 404,
@@ -66,6 +96,14 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 2,
+                    "mods_json": [
+                        {
+                            "acronym": "EZ"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 1602032,
                     "best_combo": 404,
@@ -86,6 +124,20 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 74,
+                    "mods_json": [
+                        {
+                            "acronym": "EZ"
+                        },
+                        {
+                            "acronym": "HD"
+                        },
+                        {
+                            "acronym": "DT"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 1078214,
                     "best_combo": 311,
@@ -107,6 +159,17 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 1088,
+                    "mods_json": [
+                        {
+                            "acronym": "DT"
+                        },
+                        {
+                            "acronym": "FL"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 1060393,
                     "best_combo": 180,
@@ -129,6 +192,17 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 1032,
+                    "mods_json": [
+                        {
+                            "acronym": "HD"
+                        },
+                        {
+                            "acronym": "FL"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 870281,
                     "best_combo": 119,
@@ -150,6 +224,17 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 1600,
+                    "mods_json": [
+                        {
+                            "acronym": "NC"
+                        },
+                        {
+                            "acronym": "FL"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 681752,
                     "best_combo": 128,
@@ -172,6 +257,20 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 1089,
+                    "mods_json": [
+                        {
+                            "acronym": "NF"
+                        },
+                        {
+                            "acronym": "DT"
+                        },
+                        {
+                            "acronym": "FL"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 334024,
                     "best_combo": 103,
@@ -194,6 +293,17 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 1026,
+                    "mods_json": [
+                        {
+                            "acronym": "EZ"
+                        },
+                        {
+                            "acronym": "FL"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 302882,
                     "best_combo": 94,
@@ -216,6 +326,23 @@
                 {
                     "beatmap_id": 362949,
                     "mods": 1097,
+                    "mods_json": [
+                        {
+                            "acronym": "NF"
+                        },
+                        {
+                            "acronym": "HD"
+                        },
+                        {
+                            "acronym": "DT"
+                        },
+                        {
+                            "acronym": "FL"
+                        },
+                        {
+                            "acronym": "CL"
+                        }
+                    ],
                     "is_stable": true,
                     "score": 214157,
                     "best_combo": 52,
