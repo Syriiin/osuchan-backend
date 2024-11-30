@@ -462,7 +462,7 @@ class Score(models.Model):
     perfect = models.BooleanField()
     mods = models.IntegerField()
     mods_json = models.JSONField()
-    is_classic = models.BooleanField()
+    is_stable = models.BooleanField()
     rank = models.CharField()
     date = models.DateTimeField()
 
@@ -540,7 +540,7 @@ class Score(models.Model):
             count_katu=self.count_katu,
             mods=self.mods,
             mods_json=self.mods_json.copy(),
-            is_classic=self.is_classic,
+            is_stable=self.is_stable,
             date=self.date,
             beatmap=self.beatmap,
             user_stats=self.user_stats,

@@ -9,9 +9,7 @@ from profiles.services import fetch_scores
 
 
 class Command(BaseCommand):
-    help = (
-        "Calculates and populates score statistics for CL scores from legacy attributes"
-    )
+    help = "Deletes and refetches all lazer scores"
 
     def handle(self, *args, **options):
         self.refetch_lazer_scores(Gamemode.STANDARD)
@@ -27,10 +25,10 @@ class Command(BaseCommand):
             time.sleep(0.1)
 
             beatmap_ids = list(
-                stats.scores.filter(is_classic=False)
+                stats.scores.filter(is_stable=False)
                 .values_list("beatmap_id", flat=True)
                 .distinct()
             )
-            stats.scores.filter(beatmap_id__in=beatmap_ids, is_classic=False).delete()
+            stats.scores.filter(beatmap_id__in=beatmap_ids, is_stable=False).delete()
 
             fetch_scores(stats.user_id, beatmap_ids, gamemode)

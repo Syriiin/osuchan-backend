@@ -333,7 +333,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
         score.perfect = score_data.perfect
         score.mods = score_data.mods
         score.mods_json = score_data.mods_json
-        score.is_classic = score_data.is_classic
+        score.is_stable = score_data.is_stable
         score.rank = score_data.rank
         score.date = score_data.date
 
@@ -587,7 +587,7 @@ def calculate_performance_values(
         DifficultyCalculatorScore(
             beatmap_id=str(performance_calculation.score.beatmap_id),
             mods=performance_calculation.score.mods,
-            is_classic=performance_calculation.score.is_classic,
+            is_stable=performance_calculation.score.is_stable,
             statistics=performance_calculation.score.statistics,
             combo=performance_calculation.score.best_combo,
         )

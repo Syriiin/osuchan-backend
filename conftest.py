@@ -123,7 +123,7 @@ def score(user_stats: UserStats, beatmap: Beatmap):
         best_combo=2757,
         perfect=False,
         mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.SUDDEN_DEATH,
-        is_classic=True,
+        is_stable=True,
         rank="SH",
         date=datetime(2023, 1, 1, tzinfo=timezone.utc),
         beatmap=beatmap,

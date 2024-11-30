@@ -273,7 +273,7 @@ class ScoreData(NamedTuple):
     beatmap_id: int
     mods: int
     mods_json: list[dict]
-    is_classic: bool
+    is_stable: bool
 
     score: int
     best_combo: int
@@ -294,7 +294,7 @@ class ScoreData(NamedTuple):
             "beatmap_id": self.beatmap_id,
             "mods": self.mods,
             "mods_json": self.mods_json,
-            "is_classic": self.is_classic,
+            "is_stable": self.is_stable,
             "score": self.score,
             "best_combo": self.best_combo,
             "count_300": self.count_300,
@@ -315,7 +315,7 @@ class ScoreData(NamedTuple):
             beatmap_id=data["beatmap_id"],
             mods=data["mods"],
             mods_json=data["mods_json"],
-            is_classic=data["is_classic"],
+            is_stable=data["is_stable"],
             score=data["score"],
             best_combo=data["best_combo"],
             count_300=data["count_300"],
@@ -377,7 +377,7 @@ class ScoreData(NamedTuple):
             if data["countmiss"] != "0":
                 statistics["miss"] = int(data["countmiss"])
 
-        is_classic = data["score"] != "0"  # lazer uses new scoring
+        is_stable = data["score"] != "0"  # lazer uses new scoring
 
         return cls(
             beatmap_id=(
@@ -386,8 +386,8 @@ class ScoreData(NamedTuple):
                 else int(data["beatmap_id"])
             ),
             mods=int(data["enabled_mods"]),
-            mods_json=get_json_mods(int(data["enabled_mods"]), is_classic),
-            is_classic=is_classic,
+            mods_json=get_json_mods(int(data["enabled_mods"]), is_stable),
+            is_stable=is_stable,
             score=int(data["score"]),
             best_combo=int(data["maxcombo"]),
             count_300=int(data["count300"]),
@@ -595,7 +595,7 @@ class LiveOsuApiV2(AbstractOsuApi):
         else:
             beatmap_id = beatmap_id_override
 
-        bitwise_mods, is_classic = get_bitwise_mods([mod.acronym for mod in score.mods])
+        bitwise_mods, is_stable = get_bitwise_mods([mod.acronym for mod in score.mods])
 
         mods_json = []
         for mod in score.mods:
@@ -712,8 +712,8 @@ class LiveOsuApiV2(AbstractOsuApi):
             beatmap_id=beatmap_id,
             mods=bitwise_mods,
             mods_json=mods_json,
-            is_classic=is_classic,
-            score=score.legacy_total_score if is_classic else score.total_score,
+            is_stable=is_stable,
+            score=score.legacy_total_score if is_stable else score.total_score,
             best_combo=score.max_combo,
             count_300=count_300,
             count_100=count_100,

@@ -35,7 +35,7 @@ DIFFICALCY_PERFORMANCEPLUS_VERSION = difficalcy_performanceplus_info[
 class Score(NamedTuple):
     beatmap_id: str
     mods: int | None = None
-    is_classic: bool = True
+    is_stable: bool = True
     statistics: dict[str, int] = {}
     combo: int | None = None
 
@@ -144,7 +144,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
             for k, v in {
                 "BeatmapId": score.beatmap_id,
                 "Mods": get_json_mods(
-                    score.mods if score.mods is not None else 0, score.is_classic
+                    score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
@@ -177,7 +177,7 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             for k, v in {
                 "BeatmapId": score.beatmap_id,
                 "Mods": get_json_mods(
-                    score.mods if score.mods is not None else 0, score.is_classic
+                    score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
@@ -209,7 +209,7 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             for k, v in {
                 "BeatmapId": score.beatmap_id,
                 "Mods": get_json_mods(
-                    score.mods if score.mods is not None else 0, score.is_classic
+                    score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
@@ -242,7 +242,7 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             for k, v in {
                 "BeatmapId": score.beatmap_id,
                 "Mods": get_json_mods(
-                    score.mods if score.mods is not None else 0, score.is_classic
+                    score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
@@ -279,7 +279,7 @@ class DifficalcyPerformancePlusDifficultyCalculator(
             for k, v in {
                 "BeatmapId": score.beatmap_id,
                 "Mods": get_json_mods(
-                    score.mods if score.mods is not None else 0, score.is_classic
+                    score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
