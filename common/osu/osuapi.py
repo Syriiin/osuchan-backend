@@ -595,7 +595,9 @@ class LiveOsuApiV2(AbstractOsuApi):
         else:
             beatmap_id = beatmap_id_override
 
-        bitwise_mods, is_stable = get_bitwise_mods([mod.acronym for mod in score.mods])
+        is_stable = score.legacy_score_id is not None
+
+        bitwise_mods = get_bitwise_mods([mod.acronym for mod in score.mods])
 
         mods_json = []
         for mod in score.mods:

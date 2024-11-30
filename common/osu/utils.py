@@ -275,7 +275,7 @@ def get_json_mods(mods: int, add_classic: bool) -> list[dict]:
     return json_mods
 
 
-def get_bitwise_mods(acronyms: list[str]) -> tuple[int, bool]:
+def get_bitwise_mods(acronyms: list[str]) -> int:
     bitwise_mods = 0
     for acronym in acronyms:
         for mod, mod_acronym in mod_acronyms.items():
@@ -283,4 +283,4 @@ def get_bitwise_mods(acronyms: list[str]) -> tuple[int, bool]:
                 bitwise_mods |= mod
                 break
 
-    return bitwise_mods, "CL" in acronyms
+    return bitwise_mods
