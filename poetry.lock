@@ -759,20 +759,20 @@ files = [
 
 [[package]]
 name = "ossapi"
-version = "5.0.1"
+version = "5.0.4"
 description = "Complete python wrapper for osu! api v2 and v1."
 optional = false
 python-versions = "*"
 files = [
-    {file = "ossapi-5.0.1-py3-none-any.whl", hash = "sha256:d271a746497bae1fe11526760f43711e4e0265b5f24a6effdc33ed3df7dbb62d"},
-    {file = "ossapi-5.0.1.tar.gz", hash = "sha256:99fb43bf57a88a0d53b335635bb527b22acfee7c126ab7856bf4c206251092d2"},
+    {file = "ossapi-5.0.4-py3-none-any.whl", hash = "sha256:0d1e66867288a217eac4bdb8d1a1fac563ccb5f1f25bae94e20e2f0fcfcddeec"},
+    {file = "ossapi-5.0.4.tar.gz", hash = "sha256:c0d21e240ed3be4a7ab04fdb6c24664e7da8c06d2c8906c583808aec815ce58c"},
 ]
 
 [package.dependencies]
 osrparse = ">=6.0,<7.0"
 requests = "*"
-requests-oauthlib = "*"
-typing-utils = "*"
+requests_oauthlib = "*"
+typing_utils = "*"
 
 [package.extras]
 async = ["aiohttp"]
