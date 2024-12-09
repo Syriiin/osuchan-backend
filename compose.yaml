@@ -16,7 +16,7 @@ secrets:
 
 services:
   db:
-    image: postgres:16
+    image: postgres:17
     volumes:
       - db-data:/var/lib/postgresql/data
     env_file:
@@ -25,6 +25,7 @@ services:
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.16.0
+    command: --no-collector.stat_bgwriter # https://github.com/prometheus-community/postgres_exporter/pull/1072
     env_file:
       - config/active/postgres-exporter.env
 
