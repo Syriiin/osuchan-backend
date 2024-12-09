@@ -1,7 +1,7 @@
 FROM python:3.13-slim-bullseye as python-base
 
 # Version env vars
-ENV POETRY_VERSION="1.8.2"
+ENV POETRY_VERSION="1.8.5"
 
 # Build path env vars
 ENV POETRY_PATH="/opt/poetry"
