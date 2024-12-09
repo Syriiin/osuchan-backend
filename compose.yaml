@@ -16,7 +16,7 @@ secrets:
 
 services:
   db:
-    image: postgres:16
+    image: postgres:17
     volumes:
       - db-data:/var/lib/postgresql/data
     env_file:
