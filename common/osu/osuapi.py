@@ -726,7 +726,7 @@ class LiveOsuApiV2(AbstractOsuApi):
             statistics=statistics,
             perfect=score.legacy_perfect,
             rank=score.rank.value,
-            date=score.ended_at,  # pretty sure this is a typing bug. should be non-nullable
+            date=score.ended_at,
         )
 
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
