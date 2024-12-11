@@ -4,20 +4,12 @@
             {
                 "beatmap_id": 307618,
                 "mods": 104,
-                "mods_json": [
-                    {
-                        "acronym": "HD"
-                    },
-                    {
-                        "acronym": "SD"
-                    },
-                    {
-                        "acronym": "DT"
-                    },
-                    {
-                        "acronym": "CL"
-                    }
-                ],
+                "mods_json": {
+                    "HD": {},
+                    "SD": {},
+                    "DT": {},
+                    "CL": {}
+                },
                 "is_stable": true,
                 "score": 137805806,
                 "best_combo": 2757,
@@ -38,20 +30,12 @@
             {
                 "beatmap_id": 264364,
                 "mods": 104,
-                "mods_json": [
-                    {
-                        "acronym": "HD"
-                    },
-                    {
-                        "acronym": "SD"
-                    },
-                    {
-                        "acronym": "DT"
-                    },
-                    {
-                        "acronym": "CL"
-                    }
-                ],
+                "mods_json": {
+                    "HD": {},
+                    "SD": {},
+                    "DT": {},
+                    "CL": {}
+                },
                 "is_stable": true,
                 "score": 4543964,
                 "best_combo": 448,
@@ -72,20 +56,12 @@
             {
                 "beatmap_id": 323769,
                 "mods": 104,
-                "mods_json": [
-                    {
-                        "acronym": "HD"
-                    },
-                    {
-                        "acronym": "SD"
-                    },
-                    {
-                        "acronym": "DT"
-                    },
-                    {
-                        "acronym": "CL"
-                    }
-                ],
+                "mods_json": {
+                    "HD": {},
+                    "SD": {},
+                    "DT": {},
+                    "CL": {}
+                },
                 "is_stable": true,
                 "score": 10001459,
                 "best_combo": 645,
@@ -137,11 +113,9 @@
             {
                 "beatmap_id": 1386221,
                 "mods": 0,
-                "mods_json": [
-                    {
-                        "acronym": "CL"
-                    }
-                ],
+                "mods_json": {
+                    "CL": {}
+                },
                 "is_stable": true,
                 "score": 883194,
                 "best_combo": 268,

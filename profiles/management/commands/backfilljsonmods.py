@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.core.paginator import Paginator
 from tqdm import tqdm
 
-from common.osu.utils import get_json_mods
+from common.osu.utils import get_json_object_mods
 from profiles.models import Score
 
 
@@ -16,7 +16,7 @@ class Command(BaseCommand):
         with tqdm(total=scores.count(), smoothing=0) as pbar:
             for page in paginator:
                 for score in page:
-                    score.mods_json = get_json_mods(score.mods, score.is_stable)
+                    score.mods_json = get_json_object_mods(score.mods, score.is_stable)
                     pbar.update()
 
                 Score.objects.bulk_update(page, ["mods_json"])

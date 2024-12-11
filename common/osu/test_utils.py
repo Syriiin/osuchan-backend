@@ -8,7 +8,8 @@ from common.osu.utils import (
     get_cs,
     get_gamemode_from_gamemode_string,
     get_gamemode_string_from_gamemode,
-    get_json_mods,
+    get_json_array_mods,
+    get_json_object_mods,
     get_length,
     get_mods_string,
     get_od,
@@ -143,15 +144,17 @@ def test_get_mods_string():
     )
 
 
-def test_get_json_mods():
-    assert get_json_mods(Mods.HIDDEN + Mods.SUDDEN_DEATH + Mods.DOUBLETIME, True) == [
+def test_get_json_array_mods():
+    assert get_json_array_mods(
+        Mods.HIDDEN + Mods.SUDDEN_DEATH + Mods.DOUBLETIME, True
+    ) == [
         {"acronym": "HD"},
         {"acronym": "SD"},
         {"acronym": "DT"},
         {"acronym": "CL"},
     ]
 
-    assert get_json_mods(
+    assert get_json_array_mods(
         Mods.HARDROCK
         + Mods.FLASHLIGHT
         + Mods.SUDDEN_DEATH
@@ -165,6 +168,32 @@ def test_get_json_mods():
         {"acronym": "FL"},
         {"acronym": "PF"},
     ]
+
+
+def test_get_json_object_mods():
+    assert get_json_object_mods(
+        Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH, True
+    ) == {
+        "HD": {},
+        "SD": {},
+        "DT": {},
+        "CL": {},
+    }
+
+    assert get_json_object_mods(
+        Mods.HARDROCK
+        + Mods.FLASHLIGHT
+        + Mods.SUDDEN_DEATH
+        + Mods.PERFECT
+        + Mods.DOUBLETIME
+        + Mods.NIGHTCORE,
+        False,
+    ) == {
+        "HR": {},
+        "NC": {},
+        "FL": {},
+        "PF": {},
+    }
 
 
 def test_get_bitwise_mods():
