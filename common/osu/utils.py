@@ -275,6 +275,20 @@ def get_json_array_mods(mods: int, add_classic: bool) -> list[dict]:
     return json_mods
 
 
+def get_json_object_mods(mods: int, add_classic: bool) -> dict:
+    mods_dict = {mod_acronyms[mod]: {} for mod in mod_acronyms if mod & mods != 0}
+
+    if Mods.NIGHTCORE & mods:
+        mods_dict.pop("DT")
+    if Mods.PERFECT & mods:
+        mods_dict.pop("SD")
+
+    if add_classic:
+        mods_dict["CL"] = {}
+
+    return mods_dict
+
+
 def get_bitwise_mods(acronyms: list[str]) -> int:
     bitwise_mods = 0
     for acronym in acronyms:
