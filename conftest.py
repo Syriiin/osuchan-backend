@@ -123,12 +123,7 @@ def score(user_stats: UserStats, beatmap: Beatmap):
         best_combo=2757,
         perfect=False,
         mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.SUDDEN_DEATH,
-        mods_json=[
-            {"acronym": "DT"},
-            {"acronym": "HD"},
-            {"acronym": "SD"},
-            {"acronym": "CL"},
-        ],
+        mods_json={"DT": {}, "HD": {}, "SD": {}, "CL": {}},
         is_stable=True,
         rank="SH",
         date=datetime(2023, 1, 1, tzinfo=timezone.utc),

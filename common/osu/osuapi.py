@@ -10,7 +10,7 @@ from django.utils.module_loading import import_string
 from ossapi import Beatmap, GameMode, Ossapi, Score, ScoreType, User, UserLookupKey
 
 from common.osu.enums import BeatmapStatus, Gamemode
-from common.osu.utils import get_bitwise_mods, get_json_array_mods
+from common.osu.utils import get_bitwise_mods, get_json_object_mods
 
 
 class MalformedResponseError(Exception):
@@ -272,7 +272,7 @@ class UserData(NamedTuple):
 class ScoreData(NamedTuple):
     beatmap_id: int
     mods: int
-    mods_json: list[dict]
+    mods_json: dict
     is_stable: bool
 
     score: int
@@ -386,7 +386,7 @@ class ScoreData(NamedTuple):
                 else int(data["beatmap_id"])
             ),
             mods=int(data["enabled_mods"]),
-            mods_json=get_json_array_mods(int(data["enabled_mods"]), is_stable),
+            mods_json=get_json_object_mods(int(data["enabled_mods"]), is_stable),
             is_stable=is_stable,
             score=int(data["score"]),
             best_combo=int(data["maxcombo"]),
@@ -599,12 +599,9 @@ class LiveOsuApiV2(AbstractOsuApi):
 
         bitwise_mods = get_bitwise_mods([mod.acronym for mod in score.mods])
 
-        mods_json = []
+        mods_json = {}
         for mod in score.mods:
-            mod_json = {"acronym": mod.acronym}
-            if mod.settings is not None:
-                mod_json["settings"] = mod.settings
-            mods_json.append(mod_json)
+            mods_json[mod.acronym] = mod.settings if mod.settings is not None else {}
 
         if gamemode == Gamemode.STANDARD:
             count_300 = (
