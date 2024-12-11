@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 from common.osu.enums import Gamemode
-from common.osu.utils import get_json_mods
+from common.osu.utils import get_json_array_mods
 
 # TODO: lazy load this instead of doing at import
 difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
@@ -143,7 +143,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_mods(
+                "Mods": get_json_array_mods(
                     score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
@@ -178,7 +178,7 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_mods(
+                "Mods": get_json_array_mods(
                     score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
@@ -210,7 +210,7 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_mods(
+                "Mods": get_json_array_mods(
                     score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
@@ -243,7 +243,7 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_mods(
+                "Mods": get_json_array_mods(
                     score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
@@ -280,7 +280,7 @@ class DifficalcyPerformancePlusDifficultyCalculator(
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_mods(
+                "Mods": get_json_array_mods(
                     score.mods if score.mods is not None else 0, score.is_stable
                 ),
                 "Combo": score.combo,
