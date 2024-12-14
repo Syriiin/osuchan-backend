@@ -339,6 +339,8 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
 
         if score.mods & Mods.UNRANKED != 0:
             continue
+        if any(settings != {} for settings in score.mods_json.values()):
+            continue
 
         # Update foreign keys
         beatmap_id = score_data.beatmap_id
