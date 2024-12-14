@@ -81,7 +81,7 @@
             {
                 "beatmap_id": 422328,
                 "mods": 0,
-                "mods_json": [],
+                "mods_json": {},
                 "is_stable": false,
                 "score": 548961,
                 "best_combo": 127,
