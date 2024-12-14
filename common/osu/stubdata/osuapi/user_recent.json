@@ -78,6 +78,36 @@
                 "perfect": false,
                 "rank": "B",
                 "date": "2023-05-30T13:24:21+00:00"
+            },
+            {
+                "beatmap_id": 386728,
+                "mods": 64,
+                "mods_json": {
+                    "DT": {
+                        "speed_change": 1.01
+                    }
+                },
+                "is_stable": false,
+                "score": 527683,
+                "best_combo": 269,
+                "count_300": 1276,
+                "count_100": 69,
+                "count_50": 0,
+                "count_miss": 20,
+                "count_katu": 0,
+                "count_geki": 0,
+                "statistics": {
+                    "ok": 69,
+                    "miss": 20,
+                    "great": 1276,
+                    "ignore_hit": 332,
+                    "ignore_miss": 9,
+                    "large_tick_hit": 40,
+                    "slider_tail_hit": 327
+                },
+                "perfect": false,
+                "rank": "A",
+                "date": "2024-12-14T11:41:59+00:00"
             }
         ],
         "1": [],

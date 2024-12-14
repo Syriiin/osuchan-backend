@@ -196,5 +196,27 @@
         "submission_date": "2014-05-14T17:51:34+00:00",
         "last_updated": "2014-08-27T04:39:38+00:00",
         "approval_date": "2014-09-03T04:42:13+00:00"
+    },
+    "386728": {
+        "beatmap_id": 386728,
+        "set_id": 153776,
+        "gamemode": 0,
+        "status": 1,
+        "artist": "yuikonnu & ayaponzu*",
+        "title": "Super Nuko World",
+        "difficulty_name": "Guy's Extra",
+        "creator_name": "AllStar12",
+        "creator_id": 2241286,
+        "bpm": 190,
+        "max_combo": 1739,
+        "drain_time": 218,
+        "total_time": 219,
+        "circle_size": 4.0,
+        "approach_rate": 9.0,
+        "overall_difficulty": 8.0,
+        "health_drain": 7.0,
+        "submission_date": "2014-02-27T22:01:10+00:00",
+        "last_updated": "2014-12-27T03:13:21+00:00",
+        "approval_date": "2014-12-27T03:13:22+00:00"
     }
 }
