@@ -1,4 +1,4 @@
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import Gamemode, Mods, NewMods
 from common.osu.utils import (
     calculate_pp_total,
     get_ar,
@@ -13,6 +13,7 @@ from common.osu.utils import (
     get_length,
     get_mods_string,
     get_od,
+    mods_are_ranked,
 )
 
 
@@ -210,3 +211,50 @@ def test_get_bitwise_mods():
         + Mods.DOUBLETIME
         + Mods.NIGHTCORE
     )
+
+def test_mods_are_ranked():
+    assert mods_are_ranked({NewMods.CLASSIC: {}}, True) == True
+    assert mods_are_ranked({}, False) == True
+
+    assert mods_are_ranked({
+        NewMods.HIDDEN: {},
+        NewMods.DOUBLETIME: {},
+        NewMods.SUDDEN_DEATH: {},
+        NewMods.CLASSIC: {}
+    }, True) == True
+
+    assert mods_are_ranked({
+        NewMods.HIDDEN: {},
+        NewMods.DOUBLETIME: {},
+        NewMods.SUDDEN_DEATH: {},
+    }, False) == True
+
+    assert mods_are_ranked({
+        NewMods.HIDDEN: {},
+        NewMods.DOUBLETIME: {},
+        NewMods.SUDDEN_DEATH: {},
+        NewMods.RELAX: {},
+        NewMods.CLASSIC: {}
+    }, True) == False
+
+    assert mods_are_ranked({
+        NewMods.HIDDEN: {},
+        NewMods.DOUBLETIME: {},
+        NewMods.SUDDEN_DEATH: {},
+        NewMods.RELAX: {},
+    }, False) == False
+
+    assert mods_are_ranked({
+        NewMods.CLASSIC: {}
+    }, True) == True
+
+    assert mods_are_ranked({
+        NewMods.CLASSIC: {}
+    }, False) == False
+
+    assert mods_are_ranked({
+        NewMods.DOUBLETIME: {
+            "speed_change": 1.2
+        }
+    }, False) == False
+    

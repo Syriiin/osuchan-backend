@@ -1,6 +1,6 @@
 # osu! related utils
 
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import Gamemode, Mods, NewMods
 
 
 def calculate_pp_total(sorted_pps):
@@ -303,3 +303,25 @@ def get_bitwise_mods(acronyms: list[str]) -> int:
         bitwise_mods |= Mods.SUDDEN_DEATH
 
     return bitwise_mods
+
+
+unranked_mods = [
+    NewMods.RELAX,
+    NewMods.AUTO,
+    NewMods.AUTOPILOT,
+    NewMods.KEY_1,
+    NewMods.KEY_2,
+    NewMods.KEY_3,
+    NewMods.KEY_COOP,
+    NewMods.RANDOM,
+    NewMods.SCORE_V2
+]
+
+def mods_are_ranked(mods: dict, is_stable: bool) -> bool:
+    if any(mod in unranked_mods for mod in mods):
+        return False
+    if any(settings != {} for settings in mods.values()):
+        return False
+    if not is_stable and NewMods.CLASSIC in mods:
+        return False
+    return True
