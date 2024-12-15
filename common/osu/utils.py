@@ -253,6 +253,10 @@ def get_mods_string(mods: int):
     return ",".join(mod_strings)
 
 
+def get_mods_string_from_json_mods(mods: dict):
+    return ",".join(mod for mod in NewMods if mod in mods)
+
+
 def get_json_array_mods(mods: int, add_classic: bool) -> list[dict]:
     json_mods = [
         {"acronym": mod_acronyms[mod]} for mod in mod_acronyms if mod & mods != 0

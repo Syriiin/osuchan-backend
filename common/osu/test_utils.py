@@ -12,6 +12,7 @@ from common.osu.utils import (
     get_json_object_mods,
     get_length,
     get_mods_string,
+    get_mods_string_from_json_mods,
     get_od,
     mods_are_ranked,
 )
@@ -146,6 +147,28 @@ def test_get_gamemode_string_from_gamemode():
 def test_get_mods_string():
     assert (
         get_mods_string(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH) == "HD,SD,DT"
+    )
+
+
+def test_get_mods_string_from_json_mods():
+    assert get_mods_string_from_json_mods({}) == ""
+    assert get_mods_string_from_json_mods({NewMods.CLASSIC: {}}) == "CL"
+    assert (
+        get_mods_string_from_json_mods(
+            {NewMods.HIDDEN: {}, NewMods.DOUBLETIME: {}, NewMods.SUDDEN_DEATH: {}}
+        )
+        == "HD,SD,DT"
+    )
+    assert (
+        get_mods_string_from_json_mods(
+            {
+                NewMods.HARDROCK: {},
+                NewMods.NIGHTCORE: {},
+                NewMods.FLASHLIGHT: {},
+                NewMods.PERFECT: {},
+            }
+        )
+        == "HR,NC,FL,PF"
     )
 
 
