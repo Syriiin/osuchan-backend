@@ -339,7 +339,13 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
 
         if score.mods & Mods.UNRANKED != 0:
             continue
+
+        # Mod settings are currently unranked
         if any(settings != {} for settings in score.mods_json.values()):
+            continue
+
+        # Lazer scores with CL are currently unranked
+        if not score.is_stable and "CL" in score.mods_json:
             continue
 
         # Update foreign keys
