@@ -337,15 +337,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
         score.rank = score_data.rank
         score.date = score_data.date
 
-        if score.mods & Mods.UNRANKED != 0:
-            continue
-
-        # Mod settings are currently unranked
-        if any(settings != {} for settings in score.mods_json.values()):
-            continue
-
-        # Lazer scores with CL are currently unranked
-        if not score.is_stable and "CL" in score.mods_json:
+        if not utils.mods_are_ranked(score.mods_json, score.is_stable):
             continue
 
         # Update foreign keys
@@ -366,14 +358,14 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
             score.statistics,
             gamemode=gamemode,
         )
-        score.bpm = utils.get_bpm(score.beatmap.bpm, score.mods)
-        score.length = utils.get_length(score.beatmap.drain_time, score.mods)
+        score.bpm = utils.get_bpm(score.beatmap.bpm, score.mods_json)
+        score.length = utils.get_length(score.beatmap.drain_time, score.mods_json)
         score.circle_size = utils.get_cs(
-            score.beatmap.circle_size, score.mods, score.gamemode
+            score.beatmap.circle_size, score.mods_json, Gamemode(score.gamemode)
         )
-        score.approach_rate = utils.get_ar(score.beatmap.approach_rate, score.mods)
+        score.approach_rate = utils.get_ar(score.beatmap.approach_rate, score.mods_json)
         score.overall_difficulty = utils.get_od(
-            score.beatmap.overall_difficulty, score.mods
+            score.beatmap.overall_difficulty, score.mods_json
         )
 
         # Process score
