@@ -540,7 +540,7 @@ def calculate_difficulty_values(
     calc_scores = [
         DifficultyCalculatorScore(
             beatmap_id=str(difficulty_calculation.beatmap_id),
-            mods=difficulty_calculation.mods,
+            mods=utils.get_json_object_mods(difficulty_calculation.mods, False),
         )
         for difficulty_calculation in difficulty_calculations
     ]
@@ -586,8 +586,10 @@ def calculate_performance_values(
     calc_scores = [
         DifficultyCalculatorScore(
             beatmap_id=str(performance_calculation.score.beatmap_id),
-            mods=performance_calculation.score.mods,
-            is_stable=performance_calculation.score.is_stable,
+            mods=utils.get_json_object_mods(
+                performance_calculation.score.mods,
+                performance_calculation.score.is_stable,
+            ),
             statistics=performance_calculation.score.statistics,
             combo=performance_calculation.score.best_combo,
         )

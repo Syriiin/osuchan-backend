@@ -10,13 +10,15 @@ from common.osu.difficultycalculator import (
     DifficalcyTaikoDifficultyCalculator,
     Score,
 )
-from common.osu.enums import Mods
+from common.osu.enums import NewMods
 
 
 class TestDifficalcyDifficultyCalculator:
     def test_context_manager(self):
         with DifficalcyOsuDifficultyCalculator() as calc:
-            assert calc.calculate_scores([Score("307618")]) == [
+            assert calc.calculate_scores(
+                [Score("307618", mods={NewMods.CLASSIC: {}})]
+            ) == [
                 Calculation(
                     difficulty_values={
                         "aim": 2.095341891859337,
@@ -44,7 +46,7 @@ class TestDifficalcyDifficultyCalculator:
         scores = [
             Score(
                 "307618",
-                mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
+                mods={NewMods.DOUBLETIME: {}, NewMods.HIDDEN: {}, NewMods.CLASSIC: {}},
                 statistics={
                     "ok": 14,
                     "meh": 1,
@@ -54,7 +56,12 @@ class TestDifficalcyDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
+                mods={
+                    NewMods.DOUBLETIME: {},
+                    NewMods.HIDDEN: {},
+                    NewMods.HARDROCK: {},
+                    NewMods.CLASSIC: {},
+                },
                 statistics={
                     "ok": 14,
                     "meh": 1,
@@ -64,11 +71,15 @@ class TestDifficalcyDifficultyCalculator:
             ),
             Score(
                 "307618",
-                mods=int(Mods.DOUBLETIME + Mods.HIDDEN + Mods.HARDROCK),
+                mods={
+                    NewMods.DOUBLETIME: {},
+                    NewMods.HIDDEN: {},
+                    NewMods.HARDROCK: {},
+                    NewMods.CLASSIC: {},
+                },
             ),
             Score(
                 "422328",
-                is_stable=False,
                 statistics={
                     "ok": 13,
                     "miss": 14,
@@ -158,7 +169,7 @@ class TestDifficalcyOsuDifficultyCalculator:
         calc = DifficalcyOsuDifficultyCalculator()
         score = Score(
             "307618",
-            mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
+            mods={NewMods.DOUBLETIME: {}, NewMods.HIDDEN: {}, NewMods.CLASSIC: {}},
             statistics={
                 "ok": 14,
                 "meh": 1,
@@ -196,7 +207,7 @@ class TestDifficalcyTaikoDifficultyCalculator:
         calc = DifficalcyTaikoDifficultyCalculator()
         score = Score(
             "2",
-            mods=int(Mods.DOUBLETIME + Mods.HARDROCK),
+            mods={NewMods.DOUBLETIME: {}, NewMods.HARDROCK: {}, NewMods.CLASSIC: {}},
             statistics={
                 "ok": 3,
                 "miss": 5,
@@ -231,7 +242,7 @@ class TestDifficalcyCatchDifficultyCalculator:
         calc = DifficalcyCatchDifficultyCalculator()
         score = Score(
             "3",
-            mods=int(Mods.DOUBLETIME + Mods.HARDROCK),
+            mods={NewMods.DOUBLETIME: {}, NewMods.HARDROCK: {}, NewMods.CLASSIC: {}},
             statistics={
                 "large_tick_hit": 18,
                 "small_tick_hit": 200,
@@ -262,7 +273,7 @@ class TestDifficalcyManiaDifficultyCalculator:
         calc = DifficalcyManiaDifficultyCalculator()
         score = Score(
             "4",
-            mods=int(Mods.DOUBLETIME + Mods.EASY),
+            mods={NewMods.DOUBLETIME: {}, NewMods.EASY: {}, NewMods.CLASSIC: {}},
             statistics={
                 "great": 1,
                 "good": 2,
@@ -301,7 +312,7 @@ class TestDifficalcyPerformancePlusDifficultyCalculator:
         calc = DifficalcyPerformancePlusDifficultyCalculator()
         score = Score(
             "307618",
-            mods=int(Mods.DOUBLETIME + Mods.HIDDEN),
+            mods={NewMods.DOUBLETIME: {}, NewMods.HIDDEN: {}, NewMods.CLASSIC: {}},
             statistics={
                 "ok": 14,
                 "meh": 1,

@@ -34,8 +34,7 @@ DIFFICALCY_PERFORMANCEPLUS_VERSION = difficalcy_performanceplus_info[
 
 class Score(NamedTuple):
     beatmap_id: str
-    mods: int | None = None
-    is_stable: bool = True
+    mods: dict[str, dict] = {}
     statistics: dict[str, int] = {}
     combo: int | None = None
 
@@ -108,6 +107,12 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         raise NotImplementedError()
 
+    @staticmethod
+    def _get_difficalcy_mods(mods: dict[str, dict]) -> list[dict]:
+        return [
+            {"acronym": mod, "settings": settings} for mod, settings in mods.items()
+        ]
+
     def calculate_scores(self, scores: Iterable[Score]) -> list[Calculation]:
         try:
             response = self.client.post(
@@ -143,9 +148,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_array_mods(
-                    score.mods if score.mods is not None else 0, score.is_stable
-                ),
+                "Mods": self._get_difficalcy_mods(score.mods),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
                 "Mehs": score.statistics.get("meh", 0),
@@ -178,9 +181,7 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_array_mods(
-                    score.mods if score.mods is not None else 0, score.is_stable
-                ),
+                "Mods": self._get_difficalcy_mods(score.mods),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
                 "Oks": score.statistics.get("ok", 0),
@@ -210,9 +211,7 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_array_mods(
-                    score.mods if score.mods is not None else 0, score.is_stable
-                ),
+                "Mods": self._get_difficalcy_mods(score.mods),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
                 "SmallDroplets": score.statistics.get("small_tick_hit", 0),
@@ -243,9 +242,7 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_array_mods(
-                    score.mods if score.mods is not None else 0, score.is_stable
-                ),
+                "Mods": self._get_difficalcy_mods(score.mods),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
                 "Mehs": score.statistics.get("meh", 0),
@@ -280,9 +277,7 @@ class DifficalcyPerformancePlusDifficultyCalculator(
             k: v
             for k, v in {
                 "BeatmapId": score.beatmap_id,
-                "Mods": get_json_array_mods(
-                    score.mods if score.mods is not None else 0, score.is_stable
-                ),
+                "Mods": self._get_difficalcy_mods(score.mods),
                 "Combo": score.combo,
                 "Misses": score.statistics.get("miss", 0),
                 "Mehs": score.statistics.get("meh", 0),
