@@ -1,6 +1,6 @@
 # osu! related enums
 
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 
 # Mods
 # https://github.com/ppy/osu-api/wiki#mods
@@ -63,6 +63,41 @@ class Mods(IntEnum):
     UNRANKED = (
         RELAX | AUTO | AUTOPILOT | KEY_1 | KEY_2 | KEY_3 | KEY_COOP | RANDOM | SCORE_V2
     )
+
+
+class NewMods(StrEnum):
+    NOFAIL = "NF"
+    EASY = "EZ"
+    TOUCH_DEVICE = "TD"
+    HIDDEN = "HD"
+    HARDROCK = "HR"
+    SUDDEN_DEATH = "SD"
+    DOUBLETIME = "DT"
+    RELAX = "RX"
+    HALFTIME = "HT"
+    NIGHTCORE = "NC"
+    FLASHLIGHT = "FL"
+    AUTO = "AUTO"
+    SPUN_OUT = "SO"
+    AUTOPILOT = "AP"
+    PERFECT = "PF"
+    KEY_4 = "4K"
+    KEY_5 = "5K"
+    KEY_6 = "6K"
+    KEY_7 = "7K"
+    KEY_8 = "8K"
+    FADE_IN = "FI"
+    RANDOM = "RN"
+    CINEMA = "CN"
+    TARGET_PRACTICE = "TP"
+    KEY_9 = "9K"
+    KEY_COOP = "COOP"
+    KEY_1 = "1K"
+    KEY_2 = "2K"
+    KEY_3 = "3K"
+    SCORE_V2 = "V2"
+    MIRROR = "MI"
+    CLASSIC = "CL"
 
 
 # Gamemodes

@@ -1,6 +1,6 @@
 # osu! related utils
 
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import Gamemode, Mods, NewMods
 
 
 def calculate_pp_total(sorted_pps):
@@ -60,71 +60,67 @@ def get_classic_accuracy(
         return 0
 
 
-def get_bpm(bpm, mods):
+def get_bpm(bpm: float, mods: dict):
     bpm = float(bpm)
-    mods = int(mods)
-    if mods & Mods.DOUBLETIME:
+    if NewMods.DOUBLETIME in mods:
         return bpm * 1.5
-    elif mods & Mods.HALFTIME:
+    elif NewMods.HALFTIME in mods:
         return bpm * (3 / 4)
     else:
         return bpm
 
 
-def get_length(length, mods):
+def get_length(length: float, mods: dict):
     length = float(length)
-    mods = int(mods)
-    if mods & Mods.DOUBLETIME:
+    if NewMods.DOUBLETIME in mods:
         return length / 1.5
-    elif mods & Mods.HALFTIME:
+    elif NewMods.HALFTIME in mods:
         return length / (3 / 4)
     else:
         return length
 
 
-def get_cs(cs, mods, gamemode):
+def get_cs(cs: float, mods: dict, gamemode: Gamemode):
     cs = float(cs)
-    mods = int(mods)
 
     if gamemode == Gamemode.MANIA:
-        if mods & Mods.KEY_MOD:
-            if mods & Mods.KEY_1:
-                return 1
-            if mods & Mods.KEY_2:
-                return 2
-            if mods & Mods.KEY_3:
-                return 3
-            if mods & Mods.KEY_4:
-                return 4
-            if mods & Mods.KEY_5:
-                return 5
-            if mods & Mods.KEY_6:
-                return 6
-            if mods & Mods.KEY_7:
-                return 7
-            if mods & Mods.KEY_8:
-                return 8
-            if mods & Mods.KEY_9:
-                return 9
+        if NewMods.KEY_1 in mods:
+            return 1
+        if NewMods.KEY_2 in mods:
+            return 2
+        if NewMods.KEY_3 in mods:
+            return 3
+        if NewMods.KEY_4 in mods:
+            return 4
+        if NewMods.KEY_5 in mods:
+            return 5
+        if NewMods.KEY_6 in mods:
+            return 6
+        if NewMods.KEY_7 in mods:
+            return 7
+        if NewMods.KEY_8 in mods:
+            return 8
+        if NewMods.KEY_9 in mods:
+            return 9
         return cs
 
-    if mods & Mods.HARDROCK:
+    if NewMods.HARDROCK in mods:
         cs *= 1.3
-    if mods & Mods.EASY:
+    if NewMods.EASY in mods:
         cs *= 0.5
 
     return cs
 
 
-def get_ar(ar, mods):
-    def ar_to_ms(ar):  # convert ar to ms
+def get_ar(ar: float, mods: dict):
+    def ar_to_ms(ar: float):  # convert ar to ms
         if ar <= 5:
             ms = -120 * ar + 1800
         else:
             ms = -150 * ar + 1950
         return ms
 
-    def ms_to_ar(ms):  # convert ms to ar
+    def ms_to_ar(ms: float):  # convert ms to ar
         if ms >= 1200:
             ar = (ms - 1800) / -120
         else:
@@ -132,50 +128,48 @@ def get_ar(ar, mods):
         return ar
 
     ar = float(ar)
-    mods = int(mods)
 
-    if mods & Mods.HARDROCK:
+    if NewMods.HARDROCK in mods:
         ar *= 1.4
-    if mods & Mods.EASY:
+    if NewMods.EASY in mods:
         ar *= 0.5
 
     if ar > 10:
         ar = 10
 
-    if mods & Mods.DOUBLETIME:
+    if NewMods.DOUBLETIME in mods:
         ms = ar_to_ms(ar) / 1.5
         ar = ms_to_ar(ms)
-    if mods & Mods.HALFTIME:
+    if NewMods.HALFTIME in mods:
         ms = ar_to_ms(ar) / (3 / 4)
         ar = ms_to_ar(ms)
 
     return ar
 
 
-def get_od(od, mods):
-    def od_to_ms(od):  # convert od to ms
+def get_od(od: float, mods: dict):
+    def od_to_ms(od: float):  # convert od to ms
         ms = -6 * od + 79.5
         return ms
 
-    def ms_to_od(ms):  # convert ms to od
+    def ms_to_od(ms: float):  # convert ms to od
         od = (ms - 79.5) / -6
         return od
 
     od = float(od)
-    mods = int(mods)
 
-    if mods & Mods.HARDROCK:
+    if NewMods.HARDROCK in mods:
         od *= 1.4
-    elif mods & Mods.EASY:
+    elif NewMods.EASY in mods:
         od *= 0.5
 
     if od > 10:
         od = 10
 
-    if mods & Mods.DOUBLETIME:
+    if NewMods.DOUBLETIME in mods:
         ms = od_to_ms(od) / 1.5
         od = ms_to_od(ms)
-    if mods & Mods.HALFTIME:
+    if NewMods.HALFTIME in mods:
         ms = od_to_ms(od) / (3 / 4)
         od = ms_to_od(ms)
 
@@ -259,6 +253,10 @@ def get_mods_string(mods: int):
     return ",".join(mod_strings)
 
 
+def get_mods_string_from_json_mods(mods: dict):
+    return ",".join(mod for mod in NewMods if mod in mods)
+
+
 def get_json_array_mods(mods: int, add_classic: bool) -> list[dict]:
     json_mods = [
         {"acronym": mod_acronyms[mod]} for mod in mod_acronyms if mod & mods != 0
@@ -303,3 +301,26 @@ def get_bitwise_mods(acronyms: list[str]) -> int:
         bitwise_mods |= Mods.SUDDEN_DEATH
 
     return bitwise_mods
+
+
+unranked_mods = [
+    NewMods.RELAX,
+    NewMods.AUTO,
+    NewMods.AUTOPILOT,
+    NewMods.KEY_1,
+    NewMods.KEY_2,
+    NewMods.KEY_3,
+    NewMods.KEY_COOP,
+    NewMods.RANDOM,
+    NewMods.SCORE_V2,
+]
+
+
+def mods_are_ranked(mods: dict, is_stable: bool) -> bool:
+    if any(mod in unranked_mods for mod in mods):
+        return False
+    if any(settings != {} for settings in mods.values()):
+        return False
+    if not is_stable and NewMods.CLASSIC in mods:
+        return False
+    return True

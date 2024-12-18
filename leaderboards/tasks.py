@@ -6,7 +6,10 @@ from django.db import transaction
 
 from common.discord_webhook_sender import DiscordWebhookSender
 from common.osu.enums import Gamemode, Mods
-from common.osu.utils import get_gamemode_string_from_gamemode, get_mods_string
+from common.osu.utils import (
+    get_gamemode_string_from_gamemode,
+    get_mods_string_from_json_mods,
+)
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.services import update_membership
@@ -47,7 +50,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
 
     beatmap_details = f"[{score.beatmap}](https://osu.ppy.sh/beatmapsets/{score.beatmap.set_id}#{get_gamemode_string_from_gamemode(score.beatmap.gamemode)}/{score.beatmap.id})"
     if score.mods != Mods.NONE:
-        beatmap_details += f" +{get_mods_string(score.mods)}"
+        beatmap_details += f" +{get_mods_string_from_json_mods(score.mods_json)}"
 
     performance_calculation = score.get_performance_calculation()
     difficulty_total = (

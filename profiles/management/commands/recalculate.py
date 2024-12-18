@@ -11,9 +11,7 @@ from common.osu.difficultycalculator import (
     get_difficulty_calculators_for_gamemode,
 )
 from common.osu.enums import Gamemode
-from leaderboards.models import Membership
-from leaderboards.services import update_membership
-from profiles.models import Beatmap, Score, UserStats
+from profiles.models import Beatmap, Score
 from profiles.services import (
     update_difficulty_calculations,
     update_performance_calculations,

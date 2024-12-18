@@ -153,7 +153,7 @@ class ScoreAdmin(admin.ModelAdmin):
     def mods_display(self, obj: Score):
         if obj.mods == Mods.NONE:
             return None
-        return utils.get_mods_string(obj.mods)
+        return utils.get_mods_string_from_json_mods(obj.mods_json)
 
     @admin.display(description="Accuracy")
     def accuracy_display(self, obj: Score):
