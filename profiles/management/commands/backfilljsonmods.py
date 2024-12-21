@@ -1,22 +1,20 @@
 from django.core.management.base import BaseCommand
-from django.core.paginator import Paginator
 from tqdm import tqdm
 
-from common.osu.utils import get_json_object_mods
-from profiles.models import Score
+from common.osu.utils import get_json_mods
+from profiles.models import ScoreFilter
 
 
 class Command(BaseCommand):
-    help = "Generates json mods for stable scores from legacy attributes"
+    help = "Generates json mods for all ScoreFilters"
 
     def handle(self, *args, **options):
-        scores = Score.objects.filter(is_stable=True).order_by("id")
-        paginator = Paginator(scores, per_page=2000)
-
-        with tqdm(total=scores.count(), smoothing=0) as pbar:
-            for page in paginator:
-                for score in page:
-                    score.mods_json = get_json_object_mods(score.mods, score.is_stable)
-                    pbar.update()
-
-                Score.objects.bulk_update(page, ["mods_json"])
+        score_filters = ScoreFilter.objects.all()
+        for score_filter in tqdm(score_filters):
+            score_filter.required_mods_json = get_json_mods(
+                score_filter.required_mods, False
+            )
+            score_filter.disqualified_mods_json = get_json_mods(
+                score_filter.disqualified_mods, False
+            )
+            score_filter.save()
