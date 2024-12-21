@@ -257,22 +257,6 @@ def get_mods_string_from_json_mods(mods: dict):
     return ",".join(mod for mod in NewMods if mod in mods)
 
 
-def get_json_array_mods(mods: int, add_classic: bool) -> list[dict]:
-    json_mods = [
-        {"acronym": mod_acronyms[mod]} for mod in mod_acronyms if mod & mods != 0
-    ]
-
-    if Mods.NIGHTCORE & mods:
-        json_mods = [mod for mod in json_mods if mod["acronym"] != "DT"]
-    if Mods.PERFECT & mods:
-        json_mods = [mod for mod in json_mods if mod["acronym"] != "SD"]
-
-    if add_classic:
-        json_mods.append({"acronym": "CL"})
-
-    return json_mods
-
-
 def get_json_object_mods(mods: int, add_classic: bool) -> dict:
     mods_dict = {mod_acronyms[mod]: {} for mod in mod_acronyms if mod & mods != 0}
 

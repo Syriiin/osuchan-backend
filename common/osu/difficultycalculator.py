@@ -7,7 +7,6 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 from common.osu.enums import Gamemode
-from common.osu.utils import get_json_array_mods
 
 # TODO: lazy load this instead of doing at import
 difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
