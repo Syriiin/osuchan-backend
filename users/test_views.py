@@ -86,9 +86,9 @@ class TestMeScoreFilterPresetList:
         assert response.status_code == HTTPStatus.OK
         assert response.data["name"] == "test sudden death filter"
         assert response.data["score_filter"]["required_mods"] == Mods.SUDDEN_DEATH
-        assert response.data["score_filter"]["required_mods_json"] == {
-            NewMods.SUDDEN_DEATH: {}
-        }
+        assert response.data["score_filter"]["required_mods_json"] == [
+            NewMods.SUDDEN_DEATH
+        ]
 
 
 @pytest.mark.django_db
@@ -127,7 +127,7 @@ class TestMeScoreFilterPresetDetail:
         assert response.status_code == HTTPStatus.OK
         assert response.data["name"] == "new name"
         assert response.data["score_filter"]["required_mods"] == Mods.NONE
-        assert response.data["score_filter"]["required_mods_json"] == {}
+        assert response.data["score_filter"]["required_mods_json"] == []
         assert response.data["score_filter"]["highest_ar"] == 8
 
     def test_delete(self, arf, view, user, score_filter_preset):

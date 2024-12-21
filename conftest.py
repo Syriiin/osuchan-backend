@@ -144,7 +144,7 @@ def score(user_stats: UserStats, beatmap: Beatmap):
 @pytest.fixture
 def score_filter():
     return ScoreFilter.objects.create(
-        required_mods=Mods.HIDDEN, required_mods_json={NewMods.HIDDEN: {}}
+        required_mods=Mods.HIDDEN, required_mods_json=[NewMods.HIDDEN]
     )
 
 

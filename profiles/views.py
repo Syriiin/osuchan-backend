@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.osu.enums import Gamemode, Mods
-from common.osu.utils import get_json_mods
+from common.osu.utils import get_json_mods, get_mod_acronyms
 from common.utils import parse_float_or_none, parse_int_or_none
 from leaderboards.models import Membership
 from leaderboards.serialisers import UserMembershipSerialiser
@@ -121,21 +121,13 @@ class UserScoreList(APIView):
             highest_cs=parse_float_or_none(request.query_params.get("highest_cs")),
             required_mods=required_mods,
             required_mods_json=(
-                get_json_mods(
-                    required_mods,
-                    add_classic=False,
-                )
-                if required_mods is not None
-                else {}
+                get_mod_acronyms(required_mods) if required_mods is not None else []
             ),
             disqualified_mods=disqualified_mods,
             disqualified_mods_json=(
-                get_json_mods(
-                    disqualified_mods,
-                    add_classic=False,
-                )
+                get_mod_acronyms(disqualified_mods)
                 if disqualified_mods is not None
-                else {}
+                else []
             ),
             lowest_accuracy=parse_float_or_none(
                 request.query_params.get("lowest_accuracy")
