@@ -257,7 +257,7 @@ def get_mods_string_from_json_mods(mods: dict):
     return ",".join(mod for mod in NewMods if mod in mods)
 
 
-def get_json_object_mods(mods: int, add_classic: bool) -> dict:
+def get_json_mods(mods: int, add_classic: bool) -> dict:
     mods_dict = {mod_acronyms[mod]: {} for mod in mod_acronyms if mod & mods != 0}
 
     if Mods.NIGHTCORE & mods:

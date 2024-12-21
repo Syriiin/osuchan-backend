@@ -10,7 +10,7 @@ from django.utils.module_loading import import_string
 from ossapi import Beatmap, GameMode, Ossapi, Score, ScoreType, User, UserLookupKey
 
 from common.osu.enums import BeatmapStatus, Gamemode
-from common.osu.utils import get_bitwise_mods, get_json_object_mods
+from common.osu.utils import get_bitwise_mods, get_json_mods
 
 
 class MalformedResponseError(Exception):
@@ -386,7 +386,7 @@ class ScoreData(NamedTuple):
                 else int(data["beatmap_id"])
             ),
             mods=int(data["enabled_mods"]),
-            mods_json=get_json_object_mods(int(data["enabled_mods"]), is_stable),
+            mods_json=get_json_mods(int(data["enabled_mods"]), is_stable),
             is_stable=is_stable,
             score=int(data["score"]),
             best_combo=int(data["maxcombo"]),
