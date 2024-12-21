@@ -260,9 +260,9 @@ def get_mods_string_from_json_mods(mods: dict):
 def get_json_mods(mods: int, add_classic: bool) -> dict:
     mods_dict = {mod_acronyms[mod]: {} for mod in mod_acronyms if mod & mods != 0}
 
-    if Mods.NIGHTCORE & mods:
+    if Mods.NIGHTCORE & mods and "DT" in mods_dict:
         mods_dict.pop("DT")
-    if Mods.PERFECT & mods:
+    if Mods.PERFECT & mods and "SD" in mods_dict:
         mods_dict.pop("SD")
 
     if add_classic:
