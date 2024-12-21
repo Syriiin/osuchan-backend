@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.osu.enums import Mods
-from common.osu.utils import get_json_mods
+from common.osu.utils import get_json_mods, get_mod_acronyms
 from leaderboards.models import Invite
 from leaderboards.serialisers import UserInviteSerialiser
 from osuauth.serialisers import UserSerialiser
@@ -92,14 +92,12 @@ class MeScoreFilterPresetList(APIView):
                 lowest_cs=score_filter_data.get("lowest_cs"),
                 highest_cs=score_filter_data.get("highest_cs"),
                 required_mods=score_filter_data.get("required_mods", Mods.NONE),
-                required_mods_json=get_json_mods(
-                    score_filter_data.get("required_mods", Mods.NONE),
-                    add_classic=False,
+                required_mods_json=get_mod_acronyms(
+                    score_filter_data.get("required_mods", Mods.NONE)
                 ),
                 disqualified_mods=score_filter_data.get("disqualified_mods", Mods.NONE),
-                disqualified_mods_json=get_json_mods(
-                    score_filter_data.get("disqualified_mods", Mods.NONE),
-                    add_classic=False,
+                disqualified_mods_json=get_mod_acronyms(
+                    score_filter_data.get("disqualified_mods", Mods.NONE)
                 ),
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
                 highest_accuracy=score_filter_data.get("highest_accuracy"),
@@ -162,14 +160,14 @@ class MeScoreFilterPresetDetail(APIView):
         score_filter.lowest_cs = score_filter_data.get("lowest_cs")
         score_filter.highest_cs = score_filter_data.get("highest_cs")
         score_filter.required_mods = score_filter_data.get("required_mods", Mods.NONE)
-        score_filter.required_mods_json = get_json_mods(
-            score_filter_data.get("required_mods", Mods.NONE), add_classic=False
+        score_filter.required_mods_json = get_mod_acronyms(
+            score_filter_data.get("required_mods", Mods.NONE)
         )
         score_filter.disqualified_mods = score_filter_data.get(
             "disqualified_mods", Mods.NONE
         )
-        score_filter.disqualified_mods_json = get_json_mods(
-            score_filter_data.get("disqualified_mods", Mods.NONE), add_classic=False
+        score_filter.disqualified_mods_json = get_mod_acronyms(
+            score_filter_data.get("disqualified_mods", Mods.NONE)
         )
         score_filter.lowest_accuracy = score_filter_data.get("lowest_accuracy")
         score_filter.highest_accuracy = score_filter_data.get("highest_accuracy")

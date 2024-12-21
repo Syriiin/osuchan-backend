@@ -271,6 +271,11 @@ def get_json_mods(mods: int, add_classic: bool) -> dict:
     return mods_dict
 
 
+def get_mod_acronyms(mods: int) -> list[str]:
+    json_mods = get_json_mods(mods, add_classic=False)
+    return list(json_mods.keys())
+
+
 def get_bitwise_mods(acronyms: list[str]) -> int:
     bitwise_mods = 0
     for acronym in acronyms:

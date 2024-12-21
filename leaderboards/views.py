@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from rest_framework import permissions, status
@@ -10,7 +9,7 @@ from rest_framework.views import APIView
 
 from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import Gamemode, Mods
-from common.osu.utils import get_json_mods
+from common.osu.utils import get_mod_acronyms
 from common.utils import parse_int_or_none
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Invite, Leaderboard, Membership
@@ -155,14 +154,12 @@ class LeaderboardList(APIView):
                 lowest_cs=score_filter_data.get("lowest_cs"),
                 highest_cs=score_filter_data.get("highest_cs"),
                 required_mods=score_filter_data.get("required_mods", Mods.NONE),
-                required_mods_json=get_json_mods(
-                    score_filter_data.get("required_mods", Mods.NONE),
-                    add_classic=False,
+                required_mods_json=get_mod_acronyms(
+                    score_filter_data.get("required_mods", Mods.NONE)
                 ),
                 disqualified_mods=score_filter_data.get("disqualified_mods", Mods.NONE),
-                disqualified_mods_json=get_json_mods(
-                    score_filter_data.get("disqualified_mods", Mods.NONE),
-                    add_classic=False,
+                disqualified_mods_json=get_mod_acronyms(
+                    score_filter_data.get("disqualified_mods", Mods.NONE)
                 ),
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
                 highest_accuracy=score_filter_data.get("highest_accuracy"),
