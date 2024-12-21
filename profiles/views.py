@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.osu.enums import Gamemode, Mods
+from common.osu.utils import get_json_mods
 from common.utils import parse_float_or_none, parse_int_or_none
 from leaderboards.models import Membership
 from leaderboards.serialisers import UserMembershipSerialiser
@@ -96,6 +97,12 @@ class UserScoreList(APIView):
         """
         Return Scores based on a user_id, gamemode, score_set, and various filters
         """
+        required_mods = parse_int_or_none(
+            request.query_params.get("required_mods", Mods.NONE)
+        )
+        disqualified_mods = parse_int_or_none(
+            request.query_params.get("disqualified_mods", Mods.NONE)
+        )
         score_filter = ScoreFilter(
             allowed_beatmap_status=parse_int_or_none(
                 request.query_params.get(
@@ -112,11 +119,23 @@ class UserScoreList(APIView):
             highest_od=parse_float_or_none(request.query_params.get("highest_od")),
             lowest_cs=parse_float_or_none(request.query_params.get("lowest_cs")),
             highest_cs=parse_float_or_none(request.query_params.get("highest_cs")),
-            required_mods=parse_int_or_none(
-                request.query_params.get("required_mods", Mods.NONE)
+            required_mods=required_mods,
+            required_mods_json=(
+                get_json_mods(
+                    required_mods,
+                    add_classic=False,
+                )
+                if required_mods is not None
+                else {}
             ),
-            disqualified_mods=parse_int_or_none(
-                request.query_params.get("disqualified_mods", Mods.NONE)
+            disqualified_mods=disqualified_mods,
+            disqualified_mods_json=(
+                get_json_mods(
+                    disqualified_mods,
+                    add_classic=False,
+                )
+                if disqualified_mods is not None
+                else {}
             ),
             lowest_accuracy=parse_float_or_none(
                 request.query_params.get("lowest_accuracy")
