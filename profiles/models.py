@@ -330,10 +330,13 @@ class ScoreQuerySet(models.QuerySet):
 
     def apply_score_filter(self, score_filter):
         # Mods
-        scores = self.filter(
-            mods__allbits=score_filter.required_mods,
-            mods__nobits=score_filter.disqualified_mods,
-        )
+        scores = self.all()
+        if score_filter.required_mods_json != []:
+            scores = self.filter(mods_json__has_keys=score_filter.required_mods_json)
+        if score_filter.disqualified_mods_json != []:
+            scores = scores.exclude(
+                mods_json__has_any_keys=score_filter.disqualified_mods_json
+            )
 
         # Beatmap Status
         if score_filter.allowed_beatmap_status == AllowedBeatmapStatus.LOVED_ONLY:
