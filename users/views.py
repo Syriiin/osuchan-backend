@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.osu.enums import Mods
-from common.osu.utils import get_json_mods, get_mod_acronyms
+from common.osu.utils import get_bitwise_mods, get_mod_acronyms
 from leaderboards.models import Invite
 from leaderboards.serialisers import UserInviteSerialiser
 from osuauth.serialisers import UserSerialiser
@@ -74,6 +74,20 @@ class MeScoreFilterPresetList(APIView):
         if score_filter_data is None:
             raise ParseError("Missing score_filter parameter.")
 
+        if "required_mods_json" in score_filter_data:
+            required_mods_json = score_filter_data["required_mods_json"]
+            required_mods = get_bitwise_mods(required_mods_json)
+        else:
+            required_mods = score_filter_data.get("required_mods", Mods.NONE)
+            required_mods_json = get_mod_acronyms(required_mods)
+
+        if "disqualified_mods_json" in score_filter_data:
+            disqualified_mods_json = score_filter_data["disqualified_mods_json"]
+            disqualified_mods = get_bitwise_mods(disqualified_mods_json)
+        else:
+            disqualified_mods = score_filter_data.get("disqualified_mods", Mods.NONE)
+            disqualified_mods_json = get_mod_acronyms(disqualified_mods)
+
         score_filter_preset = ScoreFilterPreset.objects.create(
             name=name,
             user=request.user,
@@ -91,14 +105,10 @@ class MeScoreFilterPresetList(APIView):
                 highest_od=score_filter_data.get("highest_od"),
                 lowest_cs=score_filter_data.get("lowest_cs"),
                 highest_cs=score_filter_data.get("highest_cs"),
-                required_mods=score_filter_data.get("required_mods", Mods.NONE),
-                required_mods_json=get_mod_acronyms(
-                    score_filter_data.get("required_mods", Mods.NONE)
-                ),
-                disqualified_mods=score_filter_data.get("disqualified_mods", Mods.NONE),
-                disqualified_mods_json=get_mod_acronyms(
-                    score_filter_data.get("disqualified_mods", Mods.NONE)
-                ),
+                required_mods=required_mods,
+                required_mods_json=required_mods_json,
+                disqualified_mods=disqualified_mods,
+                disqualified_mods_json=disqualified_mods_json,
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
                 highest_accuracy=score_filter_data.get("highest_accuracy"),
                 lowest_length=score_filter_data.get("lowest_length"),
@@ -145,6 +155,20 @@ class MeScoreFilterPresetDetail(APIView):
         )
         preset.name = name
 
+        if "required_mods_json" in score_filter_data:
+            required_mods_json = score_filter_data["required_mods_json"]
+            required_mods = get_bitwise_mods(required_mods_json)
+        else:
+            required_mods = score_filter_data.get("required_mods", Mods.NONE)
+            required_mods_json = get_mod_acronyms(required_mods)
+
+        if "disqualified_mods_json" in score_filter_data:
+            disqualified_mods_json = score_filter_data["disqualified_mods_json"]
+            disqualified_mods = get_bitwise_mods(disqualified_mods_json)
+        else:
+            disqualified_mods = score_filter_data.get("disqualified_mods", Mods.NONE)
+            disqualified_mods_json = get_mod_acronyms(disqualified_mods)
+
         score_filter = preset.score_filter
         score_filter.allowed_beatmap_status = score_filter_data.get(
             "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY
@@ -159,16 +183,10 @@ class MeScoreFilterPresetDetail(APIView):
         score_filter.highest_od = score_filter_data.get("highest_od")
         score_filter.lowest_cs = score_filter_data.get("lowest_cs")
         score_filter.highest_cs = score_filter_data.get("highest_cs")
-        score_filter.required_mods = score_filter_data.get("required_mods", Mods.NONE)
-        score_filter.required_mods_json = get_mod_acronyms(
-            score_filter_data.get("required_mods", Mods.NONE)
-        )
-        score_filter.disqualified_mods = score_filter_data.get(
-            "disqualified_mods", Mods.NONE
-        )
-        score_filter.disqualified_mods_json = get_mod_acronyms(
-            score_filter_data.get("disqualified_mods", Mods.NONE)
-        )
+        score_filter.required_mods = required_mods
+        score_filter.required_mods_json = required_mods_json
+        score_filter.disqualified_mods = disqualified_mods
+        score_filter.disqualified_mods_json = disqualified_mods_json
         score_filter.lowest_accuracy = score_filter_data.get("lowest_accuracy")
         score_filter.highest_accuracy = score_filter_data.get("highest_accuracy")
         score_filter.lowest_length = score_filter_data.get("lowest_length")
