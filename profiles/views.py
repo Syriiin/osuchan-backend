@@ -97,8 +97,8 @@ class UserScoreList(APIView):
         """
         Return Scores based on a user_id, gamemode, score_set, and various filters
         """
-        if "required_mods_json" in request.query_params:
-            required_mods_json = request.query_params["required_mods_json"]
+        if "required_mods_json[]" in request.query_params:
+            required_mods_json = request.query_params.getlist("required_mods_json[]")
             required_mods = get_bitwise_mods(required_mods_json)
         else:
             required_mods = parse_int_or_none(
@@ -108,8 +108,10 @@ class UserScoreList(APIView):
                 get_mod_acronyms(required_mods) if required_mods is not None else []
             )
 
-        if "disqualified_mods_json" in request.query_params:
-            disqualified_mods_json = request.query_params["disqualified_mods_json"]
+        if "disqualified_mods_json[]" in request.query_params:
+            disqualified_mods_json = request.query_params.getlist(
+                "disqualified_mods_json[]"
+            )
             disqualified_mods = get_bitwise_mods(disqualified_mods_json)
         else:
             disqualified_mods = parse_int_or_none(
