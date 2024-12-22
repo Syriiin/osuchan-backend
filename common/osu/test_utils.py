@@ -10,6 +10,7 @@ from common.osu.utils import (
     get_gamemode_string_from_gamemode,
     get_json_mods,
     get_length,
+    get_mod_acronyms,
     get_mods_string,
     get_mods_string_from_json_mods,
     get_od,
@@ -147,6 +148,9 @@ def test_get_mods_string():
     assert (
         get_mods_string(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH) == "HD,SD,DT"
     )
+    assert (
+        get_mods_string(Mods.SUDDEN_DEATH + Mods.DOUBLETIME + Mods.HIDDEN) == "HD,SD,DT"
+    )
 
 
 def test_get_mods_string_from_json_mods():
@@ -155,6 +159,12 @@ def test_get_mods_string_from_json_mods():
     assert (
         get_mods_string_from_json_mods(
             {NewMods.HIDDEN: {}, NewMods.DOUBLETIME: {}, NewMods.SUDDEN_DEATH: {}}
+        )
+        == "HD,SD,DT"
+    )
+    assert (
+        get_mods_string_from_json_mods(
+            {NewMods.SUDDEN_DEATH: {}, NewMods.DOUBLETIME: {}, NewMods.HIDDEN: {}}
         )
         == "HD,SD,DT"
     )
@@ -171,7 +181,7 @@ def test_get_mods_string_from_json_mods():
     )
 
 
-def test_get_json_object_mods():
+def test_get_json_mods():
     assert get_json_mods(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH, True) == {
         "HD": {},
         "SD": {},
@@ -193,6 +203,23 @@ def test_get_json_object_mods():
         "FL": {},
         "PF": {},
     }
+
+
+def test_get_mod_acronyms():
+    assert get_mod_acronyms(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH) == [
+        "HD",
+        "SD",
+        "DT",
+    ]
+    assert get_mod_acronyms(Mods.SUDDEN_DEATH + Mods.DOUBLETIME + Mods.HIDDEN) == [
+        "HD",
+        "SD",
+        "DT",
+    ]
+
+    assert get_mod_acronyms(
+        Mods.HARDROCK + Mods.NIGHTCORE + Mods.FLASHLIGHT + Mods.PERFECT
+    ) == ["HR", "NC", "FL", "PF"]
 
 
 def test_get_bitwise_mods():
