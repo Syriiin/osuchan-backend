@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import Gamemode, Mods
-from common.osu.utils import get_mod_acronyms
+from common.osu.utils import get_bitwise_mods, get_mod_acronyms
 from common.utils import parse_int_or_none
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Invite, Leaderboard, Membership
@@ -129,6 +129,20 @@ class LeaderboardList(APIView):
                 "primary_performance_value", "total"
             )
 
+        if "required_mods_json" in score_filter_data:
+            required_mods_json = score_filter_data["required_mods_json"]
+            required_mods = get_bitwise_mods(required_mods_json)
+        else:
+            required_mods = score_filter_data.get("required_mods", Mods.NONE)
+            required_mods_json = get_mod_acronyms(required_mods)
+
+        if "disqualified_mods_json" in score_filter_data:
+            disqualified_mods_json = score_filter_data["disqualified_mods_json"]
+            disqualified_mods = get_bitwise_mods(disqualified_mods_json)
+        else:
+            disqualified_mods = score_filter_data.get("disqualified_mods", Mods.NONE)
+            disqualified_mods_json = get_mod_acronyms(disqualified_mods)
+
         leaderboard = Leaderboard(
             gamemode=gamemode,
             score_set=score_set,
@@ -153,14 +167,10 @@ class LeaderboardList(APIView):
                 highest_od=score_filter_data.get("highest_od"),
                 lowest_cs=score_filter_data.get("lowest_cs"),
                 highest_cs=score_filter_data.get("highest_cs"),
-                required_mods=score_filter_data.get("required_mods", Mods.NONE),
-                required_mods_json=get_mod_acronyms(
-                    score_filter_data.get("required_mods", Mods.NONE)
-                ),
-                disqualified_mods=score_filter_data.get("disqualified_mods", Mods.NONE),
-                disqualified_mods_json=get_mod_acronyms(
-                    score_filter_data.get("disqualified_mods", Mods.NONE)
-                ),
+                required_mods=required_mods,
+                required_mods_json=required_mods_json,
+                disqualified_mods=disqualified_mods,
+                disqualified_mods_json=disqualified_mods_json,
                 lowest_accuracy=score_filter_data.get("lowest_accuracy"),
                 highest_accuracy=score_filter_data.get("highest_accuracy"),
                 lowest_length=score_filter_data.get("lowest_length"),
