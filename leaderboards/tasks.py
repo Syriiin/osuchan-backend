@@ -49,7 +49,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
 
     beatmap_details = f"[{score.beatmap}](https://osu.ppy.sh/beatmapsets/{score.beatmap.set_id}#{get_gamemode_string_from_gamemode(score.beatmap.gamemode)}/{score.beatmap.id})"
-    if score.mods != Mods.NONE:
+    if len(score.mods_json) != 0:
         beatmap_details += f" +{get_mods_string_from_json_mods(score.mods_json)}"
 
     performance_calculation = score.get_performance_calculation()

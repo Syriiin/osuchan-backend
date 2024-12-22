@@ -6,7 +6,7 @@ from common.osu.difficultycalculator import (
     get_default_difficulty_calculator_class,
     get_difficulty_calculator_class_for_engine,
 )
-from common.osu.enums import BeatmapStatus, Gamemode, Mods
+from common.osu.enums import BeatmapStatus, Gamemode, Mods, NewMods
 from common.osu.osuapi import BeatmapData
 from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 
@@ -576,12 +576,18 @@ class Score(models.Model):
             gamemode=gamemode,
         )
         if score.accuracy == 1:
-            if score.mods & Mods.HIDDEN or score.mods & Mods.FLASHLIGHT:
+            if (
+                NewMods.HIDDEN in score.mods_json
+                or NewMods.FLASHLIGHT in score.mods_json
+            ):
                 score.rank = "XH"
             else:
                 score.rank = "X"
         else:
-            if score.mods & Mods.HIDDEN or score.mods & Mods.FLASHLIGHT:
+            if (
+                NewMods.HIDDEN in score.mods_json
+                or NewMods.FLASHLIGHT in score.mods_json
+            ):
                 score.rank = "SH"
             else:
                 score.rank = "S"

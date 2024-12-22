@@ -151,7 +151,7 @@ class ScoreAdmin(admin.ModelAdmin):
 
     @admin.display(description="Mods")
     def mods_display(self, obj: Score):
-        if obj.mods == Mods.NONE:
+        if len(obj.mods_json) == 0:
             return None
         return utils.get_mods_string_from_json_mods(obj.mods_json)
 

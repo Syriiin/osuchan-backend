@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.osu.enums import Gamemode, Mods
-from common.osu.utils import get_json_mods, get_mod_acronyms
+from common.osu.utils import get_mod_acronyms
 from common.utils import parse_float_or_none, parse_int_or_none
 from leaderboards.models import Membership
 from leaderboards.serialisers import UserMembershipSerialiser
