@@ -24,8 +24,8 @@ django-redis = "^5.4.0"
 ossapi = "^5.0.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
-isort = "^5.9.3"
+black = "^25.0.0"
+isort = "^6.0.0"
 coverage = "^7.5.1"
 pytest = "^8.2.0"
 pytest-django = "^4.5.2"
