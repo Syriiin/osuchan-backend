@@ -24,7 +24,7 @@ services:
     shm_size: 128m
 
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.16.0
+    image: prometheuscommunity/postgres-exporter:v0.17.0
     command: --no-collector.stat_bgwriter # https://github.com/prometheus-community/postgres_exporter/pull/1072
     env_file:
       - config/active/postgres-exporter.env
