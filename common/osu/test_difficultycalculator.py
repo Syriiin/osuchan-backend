@@ -21,17 +21,17 @@ class TestDifficalcyDifficultyCalculator:
             ) == [
                 Calculation(
                     difficulty_values={
-                        "aim": 2.095341891859337,
-                        "speed": 2.1495826614072095,
+                        "aim": 2.118735459664974,
+                        "speed": 2.1684114250452144,
                         "flashlight": 0,
-                        "total": 4.448219767994142,
+                        "total": 4.492310309756154,
                     },
                     performance_values={
-                        "aim": 44.714749718084626,
-                        "speed": 48.549792148960236,
+                        "aim": 46.26971335416548,
+                        "speed": 49.870242023878504,
                         "accuracy": 36.07670429437059,
                         "flashlight": 0,
-                        "total": 134.70509049106212,
+                        "total": 137.7209357109564,
                     },
                 )
             ]
@@ -97,62 +97,62 @@ class TestDifficalcyDifficultyCalculator:
         assert calc.calculate_scores(scores) == [
             Calculation(
                 difficulty_values={
-                    "aim": 2.9046060098541724,
-                    "speed": 3.0467078113308332,
+                    "aim": 2.931964039669495,
+                    "speed": 3.0719986654662823,
                     "flashlight": 0,
-                    "total": 6.239289759183808,
+                    "total": 6.294293342707777,
                 },
                 performance_values={
-                    "aim": 119.59317403057803,
-                    "speed": 134.24920069361875,
+                    "aim": 122.84647751158279,
+                    "speed": 137.46274757505594,
                     "accuracy": 84.96884392557897,
                     "flashlight": 0,
-                    "total": 353.20816658310764,
+                    "total": 360.0168757722653,
                 },
             ),
             Calculation(
                 difficulty_values={
-                    "aim": 3.151744227705843,
-                    "speed": 3.059545698906488,
+                    "aim": 3.1710525152307567,
+                    "speed": 3.0845312684219364,
                     "flashlight": 0,
-                    "total": 6.509181160929765,
+                    "total": 6.55537654432227,
                 },
                 performance_values={
-                    "aim": 185.9035493619653,
-                    "speed": 172.35293950129184,
+                    "aim": 188.94497690504716,
+                    "speed": 176.4711288544247,
                     "accuracy": 166.32370945374015,
                     "flashlight": 0,
-                    "total": 545.9871409279718,
+                    "total": 553.4538750505777,
                 },
             ),
             Calculation(
                 difficulty_values={
-                    "aim": 3.151744227705843,
-                    "speed": 3.059545698906488,
+                    "aim": 3.1710525152307567,
+                    "speed": 3.0845312684219364,
                     "flashlight": 0,
-                    "total": 6.509181160929765,
+                    "total": 6.55537654432227,
                 },
                 performance_values={
-                    "aim": 210.34114835701476,
-                    "speed": 204.19435600873052,
+                    "aim": 214.2988937175237,
+                    "speed": 209.3293065089824,
                     "accuracy": 212.8087296294707,
                     "flashlight": 0,
-                    "total": 652.8833944223771,
+                    "total": 662.3394875629771,
                 },
             ),
             Calculation(
                 difficulty_values={
-                    "aim": 3.236358943413732,
-                    "speed": 2.0017805441553786,
+                    "aim": 3.2556879022731793,
+                    "speed": 2.0082542040175957,
                     "flashlight": 0,
-                    "total": 5.822052220984374,
+                    "total": 5.854140027184703,
                 },
                 performance_values={
-                    "aim": 49.95697498296852,
-                    "speed": 7.243686906869381,
+                    "aim": 49.7362338663849,
+                    "speed": 7.181140914853874,
                     "accuracy": 12.368997155942548,
                     "flashlight": 0,
-                    "total": 74.7015197965815,
+                    "total": 74.39650328828102,
                 },
             ),
         ]
@@ -163,7 +163,7 @@ class TestDifficalcyOsuDifficultyCalculator:
         assert DifficalcyOsuDifficultyCalculator.engine() == "osu.Game.Rulesets.Osu"
 
     def test_version(self):
-        assert DifficalcyOsuDifficultyCalculator.version() == "2024.1104.0.0"
+        assert DifficalcyOsuDifficultyCalculator.version() == "2025.310.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyOsuDifficultyCalculator()
@@ -180,17 +180,17 @@ class TestDifficalcyOsuDifficultyCalculator:
         assert calc.calculate_scores([score]) == [
             Calculation(
                 difficulty_values={
-                    "aim": 2.9046060098541724,
-                    "speed": 3.0467078113308332,
+                    "aim": 2.931964039669495,
+                    "speed": 3.0719986654662823,
                     "flashlight": 0,
-                    "total": 6.239289759183808,
+                    "total": 6.294293342707777,
                 },
                 performance_values={
-                    "aim": 119.59317403057803,
-                    "speed": 134.24920069361875,
+                    "aim": 122.84647751158279,
+                    "speed": 137.46274757505594,
                     "accuracy": 84.96884392557897,
                     "flashlight": 0,
-                    "total": 353.20816658310764,
+                    "total": 360.0168757722653,
                 },
             )
         ]
@@ -201,7 +201,7 @@ class TestDifficalcyTaikoDifficultyCalculator:
         assert DifficalcyTaikoDifficultyCalculator.engine() == "osu.Game.Rulesets.Taiko"
 
     def test_version(self):
-        assert DifficalcyTaikoDifficultyCalculator.version() == "2024.1104.0.0"
+        assert DifficalcyTaikoDifficultyCalculator.version() == "2025.310.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyTaikoDifficultyCalculator()
@@ -217,15 +217,15 @@ class TestDifficalcyTaikoDifficultyCalculator:
         assert calc.calculate_scores([score]) == [
             Calculation(
                 difficulty_values={
-                    "stamina": 2.30946001517734,
-                    "rhythm": 0.06858773903139824,
-                    "colour": 1.0836833699674413,
-                    "total": 4.0789820318081444,
+                    "stamina": 2.861677137388462,
+                    "rhythm": 0.041069998580020146,
+                    "colour": 0.6552532719640201,
+                    "total": 4.616848744998109,
                 },
                 performance_values={
-                    "difficulty": 73.59571092766963,
-                    "accuracy": 151.44363419166947,
-                    "total": 240.21864447545653,
+                    "difficulty": 89.17971591503598,
+                    "accuracy": 159.13604655564944,
+                    "total": 264.5185204474163,
                 },
             )
         ]
@@ -236,7 +236,7 @@ class TestDifficalcyCatchDifficultyCalculator:
         assert DifficalcyCatchDifficultyCalculator.engine() == "osu.Game.Rulesets.Catch"
 
     def test_version(self):
-        assert DifficalcyCatchDifficultyCalculator.version() == "2024.1104.0.0"
+        assert DifficalcyCatchDifficultyCalculator.version() == "2025.310.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyCatchDifficultyCalculator()
@@ -252,12 +252,8 @@ class TestDifficalcyCatchDifficultyCalculator:
         )
         assert calc.calculate_scores([score]) == [
             Calculation(
-                difficulty_values={
-                    "total": 5.739025024925008,
-                },
-                performance_values={
-                    "total": 241.19384779497875,
-                },
+                difficulty_values={"total": 5.560488609256414},
+                performance_values={"total": 226.4106426420045},
             )
         ]
 
@@ -267,7 +263,7 @@ class TestDifficalcyManiaDifficultyCalculator:
         assert DifficalcyManiaDifficultyCalculator.engine() == "osu.Game.Rulesets.Mania"
 
     def test_version(self):
-        assert DifficalcyManiaDifficultyCalculator.version() == "2024.1104.0.0"
+        assert DifficalcyManiaDifficultyCalculator.version() == "2025.310.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyManiaDifficultyCalculator()
