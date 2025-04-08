@@ -10,7 +10,7 @@ from profiles.models import DifficultyCalculation, PerformanceCalculation
 
 
 class Command(BaseCommand):
-    help = "Displays current db calculation breakdown (new models)"
+    help = "Displays errors in current calculations)"
 
     def handle(self, *args, **options):
         for name, difficulty_calculator_class in difficulty_calculators_classes.items():
@@ -56,7 +56,9 @@ class Command(BaseCommand):
 
         for beatmap in errored_beatmap_set:
             self.stdout.write(
-                self.style.ERROR(f"\t{BeatmapStatus(beatmap.status).name} {beatmap}")
+                self.style.ERROR(
+                    f"\t<{BeatmapStatus(beatmap.status).name}> {beatmap.id}: {beatmap}"
+                )
             )
 
     def output_errored_performance_calculations(
@@ -88,5 +90,7 @@ class Command(BaseCommand):
 
         for beatmap in errored_beatmap_set:
             self.stdout.write(
-                self.style.ERROR(f"\t{BeatmapStatus(beatmap.status).name} {beatmap}")
+                self.style.ERROR(
+                    f"\t<{BeatmapStatus(beatmap.status).name}> {beatmap.id}: {beatmap}"
+                )
             )
