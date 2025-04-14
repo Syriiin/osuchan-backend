@@ -116,7 +116,7 @@ services:
       - grafana_admin_password
 
   difficalcy-osu:
-    image: ghcr.io/syriiin/difficalcy-osu:v0.13.0
+    image: ghcr.io/syriiin/difficalcy-osu:v0.14.0
     env_file:
       - config/active/difficalcy.env
     volumes:
@@ -125,7 +125,7 @@ services:
       - difficalcy-cache
 
   difficalcy-taiko:
-    image: ghcr.io/syriiin/difficalcy-taiko:v0.13.0
+    image: ghcr.io/syriiin/difficalcy-taiko:v0.14.0
     env_file:
       - config/active/difficalcy.env
     volumes:
@@ -134,7 +134,7 @@ services:
       - difficalcy-cache
 
   difficalcy-catch:
-    image: ghcr.io/syriiin/difficalcy-catch:v0.13.0
+    image: ghcr.io/syriiin/difficalcy-catch:v0.14.0
     env_file:
       - config/active/difficalcy.env
     volumes:
@@ -143,7 +143,7 @@ services:
       - difficalcy-cache
 
   difficalcy-mania:
-    image: ghcr.io/syriiin/difficalcy-mania:v0.13.0
+    image: ghcr.io/syriiin/difficalcy-mania:v0.14.0
     env_file:
       - config/active/difficalcy.env
     volumes:
