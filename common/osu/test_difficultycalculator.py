@@ -163,7 +163,7 @@ class TestDifficalcyOsuDifficultyCalculator:
         assert DifficalcyOsuDifficultyCalculator.engine() == "osu.Game.Rulesets.Osu"
 
     def test_version(self):
-        assert DifficalcyOsuDifficultyCalculator.version() == "2025.310.0.0"
+        assert DifficalcyOsuDifficultyCalculator.version() == "2025.403.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyOsuDifficultyCalculator()
@@ -201,7 +201,7 @@ class TestDifficalcyTaikoDifficultyCalculator:
         assert DifficalcyTaikoDifficultyCalculator.engine() == "osu.Game.Rulesets.Taiko"
 
     def test_version(self):
-        assert DifficalcyTaikoDifficultyCalculator.version() == "2025.310.0.0"
+        assert DifficalcyTaikoDifficultyCalculator.version() == "2025.403.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyTaikoDifficultyCalculator()
@@ -236,7 +236,7 @@ class TestDifficalcyCatchDifficultyCalculator:
         assert DifficalcyCatchDifficultyCalculator.engine() == "osu.Game.Rulesets.Catch"
 
     def test_version(self):
-        assert DifficalcyCatchDifficultyCalculator.version() == "2025.310.0.0"
+        assert DifficalcyCatchDifficultyCalculator.version() == "2025.403.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyCatchDifficultyCalculator()
@@ -263,7 +263,7 @@ class TestDifficalcyManiaDifficultyCalculator:
         assert DifficalcyManiaDifficultyCalculator.engine() == "osu.Game.Rulesets.Mania"
 
     def test_version(self):
-        assert DifficalcyManiaDifficultyCalculator.version() == "2025.310.0.0"
+        assert DifficalcyManiaDifficultyCalculator.version() == "2025.403.0.0"
 
     def test_calculate_scores(self):
         calc = DifficalcyManiaDifficultyCalculator()
