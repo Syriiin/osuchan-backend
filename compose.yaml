@@ -37,7 +37,7 @@ services:
       - queue-data:/var/lib/rabbitmq:rw
 
   cache:
-    image: redis:7
+    image: redis:8
     volumes:
       - cache-data:/data
 
@@ -161,7 +161,7 @@ services:
       - difficalcy-cache
 
   difficalcy-cache:
-    image: redis:7
+    image: redis:8
     command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
       - ./config/active/difficalcy-redis.conf:/usr/local/etc/redis/redis.conf
