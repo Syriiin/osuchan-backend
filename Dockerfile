@@ -1,4 +1,4 @@
-FROM python:3.13-slim-bullseye as python-base
+FROM python:3.13-slim-bookworm AS python-base
 
 # Version env vars
 ENV POETRY_VERSION="1.8.5"
@@ -30,7 +30,7 @@ RUN apt-get install -y tini
 
 # --------------------------------------------------------------------------------
 
-FROM python-base as builder
+FROM python-base AS builder
 
 # Install poetry
 RUN python -m venv ${POETRY_PATH}
@@ -43,7 +43,7 @@ RUN poetry install --only main
 
 # --------------------------------------------------------------------------------
 
-FROM python-base as tooling
+FROM python-base AS tooling
 
 # Install additional tooling packages
 RUN apt-get install -y postgresql-client
@@ -67,7 +67,7 @@ USER appuser
 
 # --------------------------------------------------------------------------------
 
-FROM tooling as development-runner
+FROM tooling AS development-runner
 
 # Run development server
 EXPOSE 8000
@@ -76,7 +76,7 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 # --------------------------------------------------------------------------------
 
-FROM python-base as production-runner
+FROM python-base AS production-runner
 
 # Create user to run app
 RUN adduser -u 10001 --disabled-password --gecos "" appuser
