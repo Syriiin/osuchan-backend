@@ -100,6 +100,12 @@ def beatmap():
         submission_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
         approval_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
         last_updated=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        hitobject_counts={
+            "circles": 1739,
+            "sliders": 360,
+            "spinners": 1,
+            "slider_ticks": 152,
+        },
         creator_id=1,
     )
 

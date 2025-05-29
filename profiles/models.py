@@ -181,6 +181,7 @@ class Beatmap(models.Model):
     submission_date = models.DateTimeField()
     approval_date = models.DateTimeField()
     last_updated = models.DateTimeField()
+    hitobject_counts = models.JSONField()
 
     # Relations
     # db_constraint=False because the creator might be restricted or otherwise not in the database
@@ -220,6 +221,9 @@ class Beatmap(models.Model):
         beatmap.submission_date = beatmap_data.submission_date
         beatmap.last_updated = beatmap_data.last_updated
         beatmap.approval_date = beatmap_data.approval_date
+
+        # TODO: implement hitobject counts fetching from difficalcy
+        beatmap.hitobject_counts = {}
 
         return beatmap
 
