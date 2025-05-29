@@ -43,6 +43,24 @@ class Calculation(NamedTuple):
     performance_values: dict[str, float]
 
 
+class BeatmapDetails(NamedTuple):
+    hitobject_counts: dict[str, int]
+    difficulty_settings: dict[str, float]
+
+    artist: str
+    title: str
+    difficulty_name: str
+    author: str
+
+    max_combo: int
+    length: float
+    mininum_bpm: int
+    maximum_bpm: int
+    common_bpm: int
+    base_velocity: float
+    tick_rate: float
+
+
 class DifficultyCalculatorException(Exception):
     pass
 
@@ -71,6 +89,10 @@ class AbstractDifficultyCalculator(AbstractContextManager, ABC):
 
     @abstractmethod
     def calculate_scores(self, scores: Iterable[Score]) -> list[Calculation]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_beatmap_details(self, beatmap_id: str) -> BeatmapDetails:
         raise NotImplementedError()
 
     @staticmethod
@@ -106,6 +128,10 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         raise NotImplementedError()
 
+    @abstractmethod
+    def _beatmapdetails_from_data(self, data: dict) -> BeatmapDetails:
+        raise NotImplementedError()
+
     @staticmethod
     def _get_difficalcy_mods(mods: dict[str, dict]) -> list[dict]:
         return [
@@ -137,6 +163,25 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
             for calculation_data in data
         ]
 
+    def get_beatmap_details(self, beatmap_id: str) -> BeatmapDetails:
+        try:
+            response = self.client.get(
+                f"{self._get_url()}/api/beatmapdetails",
+                params={"beatmapId": beatmap_id},
+            )
+            response.raise_for_status()
+            data = response.json()
+        except httpx.HTTPStatusError as e:
+            raise CalculationException(
+                f"An error occured in getting the beatmap details for {beatmap_id}: [{e.response.status_code}] {e.response.text}"
+            ) from e
+        except httpx.HTTPError as e:
+            raise CalculationException(
+                f"An error occured in getting the beatmap details for {beatmap_id}: {e}"
+            ) from e
+
+        return self._beatmapdetails_from_data(data)
+
 
 class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
     def _get_url(self) -> str:
@@ -157,6 +202,33 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
             }.items()
             if v is not None
         }
+
+    def _beatmapdetails_from_data(self, data: dict) -> BeatmapDetails:
+        return BeatmapDetails(
+            hitobject_counts={
+                "circles": data["circleCount"],
+                "sliders": data["sliderCount"],
+                "spinners": data["spinnerCount"],
+                "slider_ticks": data["sliderTickCount"],
+            },
+            difficulty_settings={
+                "circle_size": data["circleSize"],
+                "approach_rate": data["approachRate"],
+                "accuracy": data["accuracy"],
+                "drain_rate": data["drainRate"],
+            },
+            artist=data["artist"],
+            title=data["title"],
+            difficulty_name=data["difficultyName"],
+            author=data["author"],
+            max_combo=data["maxCombo"],
+            length=data["length"],
+            mininum_bpm=data["minBPM"],
+            maximum_bpm=data["maxBPM"],
+            common_bpm=data["commonBPM"],
+            base_velocity=data["baseVelocity"],
+            tick_rate=data["tickRate"],
+        )
 
     @staticmethod
     def engine() -> str:
@@ -188,6 +260,30 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             if v is not None
         }
 
+    def _beatmapdetails_from_data(self, data: dict) -> BeatmapDetails:
+        return BeatmapDetails(
+            hitobject_counts={
+                "hits": data["hitCount"],
+                "drum_rolls": data["drumRollCount"],
+                "swells": data["swellCount"],
+            },
+            difficulty_settings={
+                "accuracy": data["accuracy"],
+                "drain_rate": data["drainRate"],
+            },
+            artist=data["artist"],
+            title=data["title"],
+            difficulty_name=data["difficultyName"],
+            author=data["author"],
+            max_combo=data["maxCombo"],
+            length=data["length"],
+            mininum_bpm=data["minBPM"],
+            maximum_bpm=data["maxBPM"],
+            common_bpm=data["commonBPM"],
+            base_velocity=data["baseVelocity"],
+            tick_rate=data["tickRate"],
+        )
+
     @staticmethod
     def engine() -> str:
         return DIFFICALCY_TAIKO_ENGINE
@@ -218,6 +314,31 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             }.items()
             if v is not None
         }
+
+    def _beatmapdetails_from_data(self, data: dict) -> BeatmapDetails:
+        return BeatmapDetails(
+            hitobject_counts={
+                "fruits": data["fruitCount"],
+                "juice_streams": data["juiceStreamCount"],
+                "banana_showers": data["bananaShowerCount"],
+            },
+            difficulty_settings={
+                "circle_size": data["circleSize"],
+                "approach_rate": data["approachRate"],
+                "drain_rate": data["drainRate"],
+            },
+            artist=data["artist"],
+            title=data["title"],
+            difficulty_name=data["difficultyName"],
+            author=data["author"],
+            max_combo=data["maxCombo"],
+            length=data["length"],
+            mininum_bpm=data["minBPM"],
+            maximum_bpm=data["maxBPM"],
+            common_bpm=data["commonBPM"],
+            base_velocity=data["baseVelocity"],
+            tick_rate=data["tickRate"],
+        )
 
     @staticmethod
     def engine() -> str:
@@ -252,6 +373,30 @@ class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
             if v is not None
         }
 
+    def _beatmapdetails_from_data(self, data: dict) -> BeatmapDetails:
+        return BeatmapDetails(
+            hitobject_counts={
+                "notes": data["noteCount"],
+                "hold_notes": data["holdNoteCount"],
+            },
+            difficulty_settings={
+                "key_count": data["keyCount"],
+                "accuracy": data["accuracy"],
+                "drain_rate": data["drainRate"],
+            },
+            artist=data["artist"],
+            title=data["title"],
+            difficulty_name=data["difficultyName"],
+            author=data["author"],
+            max_combo=data["maxCombo"],
+            length=data["length"],
+            mininum_bpm=data["minBPM"],
+            maximum_bpm=data["maxBPM"],
+            common_bpm=data["commonBPM"],
+            base_velocity=data["baseVelocity"],
+            tick_rate=data["tickRate"],
+        )
+
     @staticmethod
     def engine() -> str:
         return DIFFICALCY_MANIA_ENGINE
@@ -284,6 +429,33 @@ class DifficalcyPerformancePlusDifficultyCalculator(
             }.items()
             if v is not None
         }
+
+    def _beatmapdetails_from_data(self, data: dict) -> BeatmapDetails:
+        return BeatmapDetails(
+            hitobject_counts={
+                "circles": data["circleCount"],
+                "sliders": data["sliderCount"],
+                "spinners": data["spinnerCount"],
+                "slider_ticks": data["sliderTickCount"],
+            },
+            difficulty_settings={
+                "circle_size": data["circleSize"],
+                "approach_rate": data["approachRate"],
+                "accuracy": data["accuracy"],
+                "drain_rate": data["drainRate"],
+            },
+            artist=data["artist"],
+            title=data["title"],
+            difficulty_name=data["difficultyName"],
+            author=data["author"],
+            max_combo=data["maxCombo"],
+            length=data["length"],
+            mininum_bpm=data["minBPM"],
+            maximum_bpm=data["maxBPM"],
+            common_bpm=data["commonBPM"],
+            base_velocity=data["baseVelocity"],
+            tick_rate=data["tickRate"],
+        )
 
     @staticmethod
     def engine() -> str:

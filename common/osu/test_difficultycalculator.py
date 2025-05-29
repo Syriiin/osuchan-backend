@@ -1,6 +1,7 @@
 import pytest
 
 from common.osu.difficultycalculator import (
+    BeatmapDetails,
     Calculation,
     CalculationException,
     DifficalcyCatchDifficultyCalculator,
@@ -195,6 +196,34 @@ class TestDifficalcyOsuDifficultyCalculator:
             )
         ]
 
+    def test_get_beatmap_details(self):
+        calc = DifficalcyOsuDifficultyCalculator()
+        assert calc.get_beatmap_details("307618") == BeatmapDetails(
+            hitobject_counts={
+                "circles": 1093,
+                "sliders": 659,
+                "spinners": 1,
+                "slider_ticks": 346,
+            },
+            difficulty_settings={
+                "circle_size": 4,
+                "approach_rate": 8,
+                "accuracy": 6,
+                "drain_rate": 5,
+            },
+            artist="senya",
+            title="Songs Compilation",
+            difficulty_name="Marathon",
+            author="Satellite",
+            max_combo=2758,
+            length=678047,
+            mininum_bpm=121,
+            maximum_bpm=168,
+            common_bpm=138,
+            base_velocity=1.7,
+            tick_rate=2,
+        )
+
 
 class TestDifficalcyTaikoDifficultyCalculator:
     def test_enigne(self):
@@ -230,6 +259,24 @@ class TestDifficalcyTaikoDifficultyCalculator:
             )
         ]
 
+    def test_get_beatmap_details(self):
+        calc = DifficalcyTaikoDifficultyCalculator()
+        assert calc.get_beatmap_details("2") == BeatmapDetails(
+            hitobject_counts={"hits": 200, "drum_rolls": 30, "swells": 8},
+            difficulty_settings={"accuracy": 7, "drain_rate": 5},
+            artist="Unknown",
+            title="Unknown",
+            difficulty_name="Normal",
+            author="Unknown Creator",
+            max_combo=200,
+            length=53000,
+            mininum_bpm=120,
+            maximum_bpm=120,
+            common_bpm=120,
+            base_velocity=1.6,
+            tick_rate=1,
+        )
+
 
 class TestDifficalcyCatchDifficultyCalculator:
     def test_enigne(self):
@@ -256,6 +303,28 @@ class TestDifficalcyCatchDifficultyCalculator:
                 performance_values={"total": 226.4106426420045},
             )
         ]
+
+    def test_get_beatmap_details(self):
+        calc = DifficalcyCatchDifficultyCalculator()
+        assert calc.get_beatmap_details("3") == BeatmapDetails(
+            hitobject_counts={"fruits": 78, "juice_streams": 12, "banana_showers": 3},
+            difficulty_settings={
+                "circle_size": 4,
+                "approach_rate": 8.3,
+                "drain_rate": 5,
+            },
+            artist="Unknown",
+            title="Unknown",
+            difficulty_name="Normal",
+            author="Unknown Creator",
+            max_combo=127,
+            length=45250,
+            mininum_bpm=120,
+            maximum_bpm=120,
+            common_bpm=120,
+            base_velocity=1.6,
+            tick_rate=1,
+        )
 
 
 class TestDifficalcyManiaDifficultyCalculator:
@@ -289,6 +358,24 @@ class TestDifficalcyManiaDifficultyCalculator:
                 },
             )
         ]
+
+    def test_get_beatmap_details(self):
+        calc = DifficalcyManiaDifficultyCalculator()
+        assert calc.get_beatmap_details("4") == BeatmapDetails(
+            hitobject_counts={"notes": 123, "hold_notes": 14},
+            difficulty_settings={"key_count": 4, "accuracy": 7, "drain_rate": 5},
+            artist="Unknown",
+            title="Unknown",
+            difficulty_name="Normal",
+            author="Unknown Creator",
+            max_combo=151,
+            length=30500,
+            mininum_bpm=120,
+            maximum_bpm=120,
+            common_bpm=120,
+            base_velocity=1.6,
+            tick_rate=1,
+        )
 
 
 class TestDifficalcyPerformancePlusDifficultyCalculator:
@@ -340,3 +427,31 @@ class TestDifficalcyPerformancePlusDifficultyCalculator:
                 },
             )
         ]
+
+    def test_get_beatmap_details(self):
+        calc = DifficalcyPerformancePlusDifficultyCalculator()
+        assert calc.get_beatmap_details("307618") == BeatmapDetails(
+            hitobject_counts={
+                "circles": 1093,
+                "sliders": 659,
+                "spinners": 1,
+                "slider_ticks": 346,
+            },
+            difficulty_settings={
+                "circle_size": 4,
+                "approach_rate": 8,
+                "accuracy": 6,
+                "drain_rate": 5,
+            },
+            artist="senya",
+            title="Songs Compilation",
+            difficulty_name="Marathon",
+            author="Satellite",
+            max_combo=2758,
+            length=678047,
+            mininum_bpm=121,
+            maximum_bpm=168,
+            common_bpm=138,
+            base_velocity=1.7,
+            tick_rate=2,
+        )
