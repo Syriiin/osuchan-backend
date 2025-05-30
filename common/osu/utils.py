@@ -60,6 +60,47 @@ def get_classic_accuracy(
         return 0
 
 
+def get_lazer_accuracy(
+    statistics: dict[str, int], hitobject_counts: dict[str, int], gamemode: Gamemode
+):
+    if gamemode == Gamemode.STANDARD:
+        great = statistics.get("great", 0)
+        ok = statistics.get("ok", 0)
+        meh = statistics.get("meh", 0)
+        miss = statistics.get("miss", 0)
+        slider_tails = statistics.get("slider_tail_hit", 0)
+        slider_ticks = statistics.get("large_tick_hit", 0)
+
+        max_slider_tails = hitobject_counts.get("sliders", 0)
+        max_slider_ticks = hitobject_counts.get("slider_ticks", 0)
+
+        max_points = (
+            300 * (great + ok + meh + miss)
+            + (max_slider_tails * 150)
+            + (max_slider_ticks * 30)
+        )
+        points = (
+            (50 * meh)
+            + (100 * ok)
+            + (300 * great)
+            + (slider_tails * 150)
+            + (slider_ticks * 30)
+        )
+    elif gamemode == Gamemode.TAIKO:
+        return get_classic_accuracy(statistics, Gamemode.TAIKO)
+    elif gamemode == Gamemode.CATCH:
+        return get_classic_accuracy(statistics, Gamemode.CATCH)
+    elif gamemode == Gamemode.MANIA:
+        return get_classic_accuracy(statistics, Gamemode.MANIA)
+    else:
+        raise ValueError(f"{gamemode} is not a valid gamemode")
+
+    try:
+        return 100 * (points / max_points)
+    except ZeroDivisionError:
+        return 0
+
+
 def get_bpm(bpm: float, mods: dict):
     bpm = float(bpm)
     if NewMods.DOUBLETIME in mods:

@@ -152,7 +152,7 @@ services:
       - difficalcy-cache
 
   difficalcy-performanceplus:
-    image: ghcr.io/syriiin/difficalcy-performanceplus:v0.11.0
+    image: ghcr.io/syriiin/difficalcy-performanceplus:v0.12.0
     env_file:
       - config/active/difficalcy.env
     volumes:

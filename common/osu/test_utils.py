@@ -9,6 +9,7 @@ from common.osu.utils import (
     get_gamemode_from_gamemode_string,
     get_gamemode_string_from_gamemode,
     get_json_mods,
+    get_lazer_accuracy,
     get_length,
     get_mod_acronyms,
     get_mods_string,
@@ -23,7 +24,7 @@ def test_calculate_pp_total():
     assert calculate_pp_total(pp_values) == 7364.831406523928
 
 
-def test_get_accuracy():
+def test_get_classic_accuracy():
     assert (
         get_classic_accuracy(
             statistics={
@@ -70,6 +71,70 @@ def test_get_accuracy():
                 "meh": 17,
                 "miss": 37,
             },
+            gamemode=Gamemode.MANIA,
+        )
+        == 98.84096786110085
+    )
+
+
+def test_get_lazer_accuracy():
+    assert (
+        get_lazer_accuracy(
+            statistics={
+                "great": 333,
+                "ok": 13,
+                "meh": 0,
+                "miss": 14,
+                "slider_tail_hit": 149,
+                "large_tick_hit": 26,
+            },
+            hitobject_counts={
+                "circles": 208,
+                "sliders": 149,
+                "spinners": 3,
+                "slider_ticks": 26,
+            },
+            gamemode=Gamemode.STANDARD,
+        )
+        == 94.81430641348281
+    )
+    assert (
+        get_lazer_accuracy(
+            statistics={
+                "great": 2950,
+                "ok": 14,
+                "miss": 0,
+            },
+            hitobject_counts={},
+            gamemode=Gamemode.TAIKO,
+        )
+        == 99.7638326585695
+    )
+    assert (
+        get_lazer_accuracy(
+            statistics={
+                "great": 4431,
+                "large_tick_hit": 109,
+                "small_tick_hit": 0,
+                "miss": 0,
+                "small_tick_miss": 2,
+            },
+            hitobject_counts={},
+            gamemode=Gamemode.CATCH,
+        )
+        == 99.95596653456627
+    )
+    assert (
+        get_lazer_accuracy(
+            statistics={
+                "perfect": 7853,
+                "great": 2724,
+                "good": 171,
+                "ok": 26,
+                "meh": 17,
+                "miss": 37,
+            },
+            hitobject_counts={},
             gamemode=Gamemode.MANIA,
         )
         == 98.84096786110085
