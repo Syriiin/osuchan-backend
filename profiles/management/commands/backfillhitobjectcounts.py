@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.core.paginator import Paginator
 from django.db.models import FilteredRelation, Q, QuerySet
 from tqdm import tqdm
 
@@ -37,17 +38,21 @@ class Command(BaseCommand):
     ):
         difficulty_calculator = get_default_difficulty_calculator_class(gamemode)()
         with tqdm(desc=gamemode.name, total=beatmaps.count()) as pbar:
-            for beatmap in beatmaps:
-                try:
-                    beatmap_details = difficulty_calculator.get_beatmap_details(
-                        str(beatmap.id)
-                    )
-                    beatmap.hitobject_counts = beatmap_details.hitobject_counts
-                    beatmap.save(update_fields=["hitobject_counts"])
-                except CalculationException as e:
-                    ErrorReporter().report_error(e)
-                    pbar.write(
-                        f"Error calculating hitobject counts for beatmap {beatmap.id} in gamemode {gamemode.name}: {e}"
-                    )
+            paginator = Paginator(beatmaps.order_by("pk"), per_page=2000)
 
-                pbar.update(1)
+            for page in paginator:
+                for beatmap in page:
+                    try:
+                        beatmap_details = difficulty_calculator.get_beatmap_details(
+                            str(beatmap.id)
+                        )
+                        beatmap.hitobject_counts = beatmap_details.hitobject_counts
+                    except CalculationException as e:
+                        ErrorReporter().report_error(e)
+                        pbar.write(
+                            f"Error calculating hitobject counts for beatmap {beatmap.id} in gamemode {gamemode.name}: {e}"
+                        )
+
+                    pbar.update(1)
+
+                Beatmap.objects.bulk_update(page, ["hitobject_counts"])
