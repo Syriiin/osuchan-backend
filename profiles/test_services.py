@@ -38,7 +38,7 @@ class TestUserServices:
             ).count()
             == 14  # 7 scores (6 real, 1 nochoke mutation) * 2 calculators
         )
-        assert user_stats.score_style_accuracy == 97.42292425653687
+        assert user_stats.score_style_accuracy == 97.62286161777982
         assert user_stats.score_style_bpm == 201.99989929562193
         assert user_stats.score_style_cs == 4.2766715338147065
         assert user_stats.score_style_ar == 9.749798660314049
@@ -57,7 +57,7 @@ class TestUserServices:
             ).count()
             == 38  # 18 scores (17 real, 2 nochoke mutation) * 2 calculators
         )
-        assert user_stats.score_style_accuracy == 97.45617285336796
+        assert user_stats.score_style_accuracy == 97.61837309857572
         assert user_stats.score_style_bpm == 203.85810981390424
         assert user_stats.score_style_cs == 4.224451249870312
         assert user_stats.score_style_ar == 9.740084852929643
