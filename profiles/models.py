@@ -581,10 +581,18 @@ class Score(models.Model):
         score.perfect = True
 
         # Calculate new accuracy
-        score.accuracy = utils.get_classic_accuracy(
-            score.statistics,
-            gamemode=gamemode,
-        )
+        if NewMods.CLASSIC in score.mods_json:
+            score.accuracy = utils.get_classic_accuracy(
+                score.statistics,
+                gamemode=gamemode,
+            )
+        else:
+            score.accuracy = utils.get_lazer_accuracy(
+                score.statistics,
+                self.beatmap.hitobject_counts,
+                gamemode=gamemode,
+            )
+
         if score.accuracy == 1:
             if (
                 NewMods.HIDDEN in score.mods_json
