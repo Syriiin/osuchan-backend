@@ -52,6 +52,7 @@ class Leaderboard(models.Model):
     notification_discord_webhook_url = models.CharField(blank=True)
     calculator_engine = models.CharField()
     primary_performance_value = models.CharField()
+    custom_colours = models.JSONField(blank=True)
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)

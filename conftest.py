@@ -179,6 +179,7 @@ def leaderboard(score_filter: ScoreFilter):
             notification_discord_webhook_url="",
             calculator_engine="osu.Game.Rulesets.Osu",
             primary_performance_value="total",
+            custom_colours={},
             score_filter=score_filter,
         ),
     )
