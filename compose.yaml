@@ -62,6 +62,8 @@ services:
   worker:
     build: .
     command: celery --app osuchan worker --loglevel info
+    healthcheck:
+      test: celery --app osuchan inspect ping || exit 1
     env_file:
       - config/active/django.env
     volumes:
