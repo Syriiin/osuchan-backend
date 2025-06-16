@@ -98,6 +98,12 @@ class NewMods(StrEnum):
     SCORE_V2 = "V2"
     MIRROR = "MI"
     CLASSIC = "CL"
+    BLINDS = "BL"
+    ACCURACY_CHALLENGE = "AC"
+    DAYCORE = "DC"
+    TRACING = "TC"
+    MUTED = "MU"
+    NO_SCOPE = "NS"
 
 
 # Gamemodes
