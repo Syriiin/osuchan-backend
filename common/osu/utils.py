@@ -103,9 +103,9 @@ def get_lazer_accuracy(
 
 def get_bpm(bpm: float, mods: dict):
     bpm = float(bpm)
-    if NewMods.DOUBLETIME in mods:
+    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
         return bpm * 1.5
-    elif NewMods.HALFTIME in mods:
+    elif NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
         return bpm * (3 / 4)
     else:
         return bpm
@@ -113,9 +113,9 @@ def get_bpm(bpm: float, mods: dict):
 
 def get_length(length: float, mods: dict):
     length = float(length)
-    if NewMods.DOUBLETIME in mods:
+    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
         return length / 1.5
-    elif NewMods.HALFTIME in mods:
+    elif NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
         return length / (3 / 4)
     else:
         return length
@@ -178,10 +178,10 @@ def get_ar(ar: float, mods: dict):
     if ar > 10:
         ar = 10
 
-    if NewMods.DOUBLETIME in mods:
+    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
         ms = ar_to_ms(ar) / 1.5
         ar = ms_to_ar(ms)
-    if NewMods.HALFTIME in mods:
+    if NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
         ms = ar_to_ms(ar) / (3 / 4)
         ar = ms_to_ar(ms)
 
@@ -207,10 +207,10 @@ def get_od(od: float, mods: dict):
     if od > 10:
         od = 10
 
-    if NewMods.DOUBLETIME in mods:
+    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
         ms = od_to_ms(od) / 1.5
         od = ms_to_od(ms)
-    if NewMods.HALFTIME in mods:
+    if NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
         ms = od_to_ms(od) / (3 / 4)
         od = ms_to_od(ms)
 

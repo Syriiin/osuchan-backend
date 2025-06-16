@@ -144,15 +144,17 @@ def test_get_lazer_accuracy():
 def test_get_bpm():
     assert get_bpm(180, {}) == 180
     assert get_bpm(180, {NewMods.DOUBLETIME: {}}) == 270
-    assert get_bpm(180, {NewMods.DOUBLETIME: {}, NewMods.NIGHTCORE: {}}) == 270
+    assert get_bpm(180, {NewMods.NIGHTCORE: {}}) == 270
     assert get_bpm(180, {NewMods.HALFTIME: {}}) == 135
+    assert get_bpm(180, {NewMods.DAYCORE: {}}) == 135
 
 
 def test_get_length():
     assert get_length(90, {}) == 90
     assert get_length(90, {NewMods.DOUBLETIME: {}}) == 60
-    assert get_length(90, {NewMods.DOUBLETIME: {}, NewMods.NIGHTCORE: {}}) == 60
+    assert get_length(90, {NewMods.NIGHTCORE: {}}) == 60
     assert get_length(90, {NewMods.HALFTIME: {}}) == 120
+    assert get_length(90, {NewMods.DAYCORE: {}}) == 120
 
 
 def test_get_cs():
@@ -174,24 +176,22 @@ def test_get_cs():
 def test_get_ar():
     assert get_ar(9, {}) == 9
     assert get_ar(9, {NewMods.DOUBLETIME: {}}) == 10.333333333333334
-    assert (
-        get_ar(9, {NewMods.DOUBLETIME: {}, NewMods.NIGHTCORE: {}}) == 10.333333333333334
-    )
+    assert get_ar(9, {NewMods.NIGHTCORE: {}}) == 10.333333333333334
     assert get_ar(9, {NewMods.HARDROCK: {}}) == 10
 
     assert get_ar(5, {NewMods.HALFTIME: {}}) == 1.6666666666666667
+    assert get_ar(5, {NewMods.DAYCORE: {}}) == 1.6666666666666667
     assert get_ar(5, {NewMods.EASY: {}}) == 2.5
 
 
 def test_get_od():
     assert get_od(9, {}) == 9
     assert get_od(9, {NewMods.DOUBLETIME: {}}) == 10.416666666666666
-    assert (
-        get_od(9, {NewMods.DOUBLETIME: {}, NewMods.NIGHTCORE: {}}) == 10.416666666666666
-    )
+    assert get_od(9, {NewMods.NIGHTCORE: {}}) == 10.416666666666666
     assert get_od(9, {NewMods.HARDROCK: {}}) == 10
 
     assert get_od(5, {NewMods.HALFTIME: {}}) == 2.25
+    assert get_od(5, {NewMods.DAYCORE: {}}) == 2.25
     assert get_od(5, {NewMods.EASY: {}}) == 2.5
 
 
