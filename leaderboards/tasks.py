@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import transaction
 
 from common.discord_webhook_sender import DiscordWebhookSender
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import Gamemode
 from common.osu.utils import (
     get_gamemode_string_from_gamemode,
     get_mods_string_from_json_mods,

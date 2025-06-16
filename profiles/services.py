@@ -11,10 +11,8 @@ from common.osu.difficultycalculator import (
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.difficultycalculator import (
-    get_difficulty_calculators_for_gamemode,
-)
-from common.osu.enums import BeatmapStatus, Gamemode, Mods, NewMods
+from common.osu.difficultycalculator import get_difficulty_calculators_for_gamemode
+from common.osu.enums import BeatmapStatus, BitMods, Gamemode, NewMods
 from common.osu.osuapi import OsuApi, ScoreData
 from leaderboards.models import Leaderboard, Membership
 from profiles.enums import ScoreMutation, ScoreResult
@@ -410,7 +408,7 @@ def update_difficulty_calculations(
         calculations.append(
             DifficultyCalculation(
                 beatmap_id=beatmap.id,
-                mods=Mods.NONE,
+                mods=BitMods.NONE,
                 calculator_engine=difficulty_calculator.engine(),
                 calculator_version=difficulty_calculator.version(),
             )

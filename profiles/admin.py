@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from common.osu import utils
-from common.osu.enums import BeatmapStatus, Gamemode, Mods
+from common.osu.enums import BeatmapStatus, BitMods, Gamemode
 from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import (
     Beatmap,
@@ -85,7 +85,7 @@ class DifficultyCalculationAdmin(admin.ModelAdmin):
 
     @admin.display(description="Mods")
     def mods_display(self, obj: DifficultyCalculation):
-        if obj.mods == Mods.NONE:
+        if obj.mods == BitMods.NONE:
             return None
         return utils.get_mods_string(obj.mods)
 
@@ -109,7 +109,7 @@ class DifficultyValueAdmin(admin.ModelAdmin):
 
     @admin.display(description="Mods")
     def mods_display(self, obj: DifficultyValue):
-        if obj.calculation.mods == Mods.NONE:
+        if obj.calculation.mods == BitMods.NONE:
             return None
         return utils.get_mods_string(obj.calculation.mods)
 

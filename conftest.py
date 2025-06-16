@@ -4,7 +4,7 @@ import pytest
 from rest_framework.test import APIRequestFactory
 
 from common.osu.beatmap_provider import BeatmapProvider
-from common.osu.enums import Gamemode, Mods, NewMods
+from common.osu.enums import BitMods, Gamemode, NewMods
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Invite, Leaderboard
 from leaderboards.services import create_leaderboard, create_membership
@@ -128,7 +128,7 @@ def score(user_stats: UserStats, beatmap: Beatmap):
         },
         best_combo=2757,
         perfect=False,
-        mods=Mods.DOUBLETIME + Mods.HIDDEN + Mods.SUDDEN_DEATH,
+        mods=BitMods.DOUBLETIME + BitMods.HIDDEN + BitMods.SUDDEN_DEATH,
         mods_json={"DT": {}, "HD": {}, "SD": {}, "CL": {}},
         is_stable=True,
         rank="SH",
@@ -150,7 +150,7 @@ def score(user_stats: UserStats, beatmap: Beatmap):
 @pytest.fixture
 def score_filter():
     return ScoreFilter.objects.create(
-        required_mods=Mods.HIDDEN, required_mods_json=[NewMods.HIDDEN]
+        required_mods=BitMods.HIDDEN, required_mods_json=[NewMods.HIDDEN]
     )
 
 

@@ -5,7 +5,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import BitMods, Gamemode
 from common.osu.utils import get_bitwise_mods, get_mod_acronyms
 from common.utils import parse_float_or_none, parse_int_or_none
 from leaderboards.models import Membership
@@ -102,7 +102,7 @@ class UserScoreList(APIView):
             required_mods = get_bitwise_mods(required_mods_json)
         else:
             required_mods = parse_int_or_none(
-                request.query_params.get("required_mods", Mods.NONE)
+                request.query_params.get("required_mods", BitMods.NONE)
             )
             required_mods_json = (
                 get_mod_acronyms(required_mods) if required_mods is not None else []
@@ -115,7 +115,7 @@ class UserScoreList(APIView):
             disqualified_mods = get_bitwise_mods(disqualified_mods_json)
         else:
             disqualified_mods = parse_int_or_none(
-                request.query_params.get("disqualified_mods", Mods.NONE)
+                request.query_params.get("disqualified_mods", BitMods.NONE)
             )
             disqualified_mods_json = (
                 get_mod_acronyms(disqualified_mods)

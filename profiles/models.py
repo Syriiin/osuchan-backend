@@ -6,7 +6,7 @@ from common.osu.difficultycalculator import (
     get_default_difficulty_calculator_class,
     get_difficulty_calculator_class_for_engine,
 )
-from common.osu.enums import BeatmapStatus, Gamemode, Mods, NewMods
+from common.osu.enums import BeatmapStatus, BitMods, Gamemode, NewMods
 from common.osu.osuapi import BeatmapData
 from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 
@@ -243,7 +243,7 @@ class Beatmap(models.Model):
 
         return DifficultyCalculation.objects.get(
             beatmap=self,
-            mods=Mods.NONE,
+            mods=BitMods.NONE,
             calculator_engine=calculator_engine_name,
         )
 
@@ -652,9 +652,9 @@ class ScoreFilter(models.Model):
     highest_od = models.FloatField(null=True, blank=True)
     lowest_cs = models.FloatField(null=True, blank=True)
     highest_cs = models.FloatField(null=True, blank=True)
-    required_mods = models.IntegerField(default=Mods.NONE)
+    required_mods = models.IntegerField(default=BitMods.NONE)
     required_mods_json = models.JSONField(default=list, blank=True)
-    disqualified_mods = models.IntegerField(default=Mods.NONE)
+    disqualified_mods = models.IntegerField(default=BitMods.NONE)
     disqualified_mods_json = models.JSONField(default=list, blank=True)
     lowest_accuracy = models.FloatField(null=True, blank=True)
     highest_accuracy = models.FloatField(null=True, blank=True)

@@ -1,4 +1,4 @@
-from common.osu.enums import Gamemode, Mods, NewMods
+from common.osu.enums import BitMods, Gamemode, NewMods
 from common.osu.utils import (
     calculate_pp_total,
     get_ar,
@@ -211,10 +211,12 @@ def test_get_gamemode_string_from_gamemode():
 
 def test_get_mods_string():
     assert (
-        get_mods_string(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH) == "HD,SD,DT"
+        get_mods_string(BitMods.HIDDEN + BitMods.DOUBLETIME + BitMods.SUDDEN_DEATH)
+        == "HD,SD,DT"
     )
     assert (
-        get_mods_string(Mods.SUDDEN_DEATH + Mods.DOUBLETIME + Mods.HIDDEN) == "HD,SD,DT"
+        get_mods_string(BitMods.SUDDEN_DEATH + BitMods.DOUBLETIME + BitMods.HIDDEN)
+        == "HD,SD,DT"
     )
 
 
@@ -247,7 +249,9 @@ def test_get_mods_string_from_json_mods():
 
 
 def test_get_json_mods():
-    assert get_json_mods(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH, True) == {
+    assert get_json_mods(
+        BitMods.HIDDEN + BitMods.DOUBLETIME + BitMods.SUDDEN_DEATH, True
+    ) == {
         "HD": {},
         "SD": {},
         "DT": {},
@@ -255,12 +259,12 @@ def test_get_json_mods():
     }
 
     assert get_json_mods(
-        Mods.HARDROCK
-        + Mods.FLASHLIGHT
-        + Mods.SUDDEN_DEATH
-        + Mods.PERFECT
-        + Mods.DOUBLETIME
-        + Mods.NIGHTCORE,
+        BitMods.HARDROCK
+        + BitMods.FLASHLIGHT
+        + BitMods.SUDDEN_DEATH
+        + BitMods.PERFECT
+        + BitMods.DOUBLETIME
+        + BitMods.NIGHTCORE,
         False,
     ) == {
         "HR": {},
@@ -271,35 +275,39 @@ def test_get_json_mods():
 
 
 def test_get_mod_acronyms():
-    assert get_mod_acronyms(Mods.HIDDEN + Mods.DOUBLETIME + Mods.SUDDEN_DEATH) == [
+    assert get_mod_acronyms(
+        BitMods.HIDDEN + BitMods.DOUBLETIME + BitMods.SUDDEN_DEATH
+    ) == [
         "HD",
         "SD",
         "DT",
     ]
-    assert get_mod_acronyms(Mods.SUDDEN_DEATH + Mods.DOUBLETIME + Mods.HIDDEN) == [
+    assert get_mod_acronyms(
+        BitMods.SUDDEN_DEATH + BitMods.DOUBLETIME + BitMods.HIDDEN
+    ) == [
         "HD",
         "SD",
         "DT",
     ]
 
     assert get_mod_acronyms(
-        Mods.HARDROCK + Mods.NIGHTCORE + Mods.FLASHLIGHT + Mods.PERFECT
+        BitMods.HARDROCK + BitMods.NIGHTCORE + BitMods.FLASHLIGHT + BitMods.PERFECT
     ) == ["HR", "NC", "FL", "PF"]
 
 
 def test_get_bitwise_mods():
     assert (
         get_bitwise_mods(["HD", "DT", "SD", "CL"])
-        == Mods.HIDDEN + Mods.SUDDEN_DEATH + Mods.DOUBLETIME
+        == BitMods.HIDDEN + BitMods.SUDDEN_DEATH + BitMods.DOUBLETIME
     )
     assert (
         get_bitwise_mods(["HR", "FL", "PF", "NC"])
-        == Mods.HARDROCK
-        + Mods.FLASHLIGHT
-        + Mods.SUDDEN_DEATH
-        + Mods.PERFECT
-        + Mods.DOUBLETIME
-        + Mods.NIGHTCORE
+        == BitMods.HARDROCK
+        + BitMods.FLASHLIGHT
+        + BitMods.SUDDEN_DEATH
+        + BitMods.PERFECT
+        + BitMods.DOUBLETIME
+        + BitMods.NIGHTCORE
     )
 
 

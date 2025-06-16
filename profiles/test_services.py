@@ -1,7 +1,7 @@
 import pytest
 
 from common.osu.difficultycalculator import get_default_difficulty_calculator_class
-from common.osu.enums import Gamemode, Mods
+from common.osu.enums import BitMods, Gamemode
 from profiles.models import DifficultyCalculation, PerformanceCalculation
 from profiles.services import (
     calculate_difficulty_values,
@@ -70,7 +70,7 @@ class TestDifficultyCalculationServices:
     def test_update_difficulty_calculations(self, beatmap):
         calculation = DifficultyCalculation.objects.create(
             beatmap=beatmap,
-            mods=Mods.NONE,
+            mods=BitMods.NONE,
             calculator_engine="osu.Game.Rulesets.Osu",
             calculator_version="2007.906.0",
         )
@@ -84,7 +84,7 @@ class TestDifficultyCalculationServices:
             update_difficulty_calculations([beatmap], difficulty_calculator)
 
         calculation = DifficultyCalculation.objects.get(
-            beatmap_id=beatmap.id, mods=Mods.NONE
+            beatmap_id=beatmap.id, mods=BitMods.NONE
         )
 
         difficulty_values = calculation.difficulty_values.all()
@@ -160,7 +160,7 @@ class TestDifficultyCalculationServices:
     def difficulty_calculation(self, beatmap):
         return DifficultyCalculation.objects.create(
             beatmap=beatmap,
-            mods=Mods.DOUBLETIME + Mods.HIDDEN,
+            mods=BitMods.DOUBLETIME + BitMods.HIDDEN,
             calculator_engine="testcalc",
             calculator_version="v1",
         )

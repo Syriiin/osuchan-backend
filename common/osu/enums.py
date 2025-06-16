@@ -6,7 +6,7 @@ from enum import IntEnum, StrEnum
 # https://github.com/ppy/osu-api/wiki#mods
 
 
-class Mods(IntEnum):
+class BitMods(IntEnum):
     NONE = 0
     NOFAIL = 1
     EASY = 2

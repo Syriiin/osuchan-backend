@@ -1,6 +1,6 @@
 # osu! related utils
 
-from common.osu.enums import Gamemode, Mods, NewMods
+from common.osu.enums import BitMods, Gamemode, NewMods
 
 
 def calculate_pp_total(sorted_pps):
@@ -245,38 +245,38 @@ def get_gamemode_string_from_gamemode(gamemode: Gamemode):
 
 
 mod_acronyms = {
-    Mods.NONE: "NONE",
-    Mods.NOFAIL: "NF",
-    Mods.EASY: "EZ",
-    Mods.TOUCH_DEVICE: "TD",
-    Mods.HIDDEN: "HD",
-    Mods.HARDROCK: "HR",
-    Mods.SUDDEN_DEATH: "SD",
-    Mods.DOUBLETIME: "DT",
-    Mods.RELAX: "RX",
-    Mods.HALFTIME: "HT",
-    Mods.NIGHTCORE: "NC",
-    Mods.FLASHLIGHT: "FL",
-    Mods.AUTO: "AUTO",
-    Mods.SPUN_OUT: "SO",
-    Mods.AUTOPILOT: "AP",
-    Mods.PERFECT: "PF",
-    Mods.KEY_4: "4K",
-    Mods.KEY_5: "5K",
-    Mods.KEY_6: "6K",
-    Mods.KEY_7: "7K",
-    Mods.KEY_8: "8K",
-    Mods.FADE_IN: "FI",
-    Mods.RANDOM: "RN",
-    Mods.CINEMA: "CN",
-    Mods.TARGET_PRACTICE: "TP",
-    Mods.KEY_9: "9K",
-    Mods.KEY_COOP: "COOP",
-    Mods.KEY_1: "1K",
-    Mods.KEY_2: "2K",
-    Mods.KEY_3: "3K",
-    Mods.SCORE_V2: "V2",
-    Mods.MIRROR: "MI",
+    BitMods.NONE: "NONE",
+    BitMods.NOFAIL: "NF",
+    BitMods.EASY: "EZ",
+    BitMods.TOUCH_DEVICE: "TD",
+    BitMods.HIDDEN: "HD",
+    BitMods.HARDROCK: "HR",
+    BitMods.SUDDEN_DEATH: "SD",
+    BitMods.DOUBLETIME: "DT",
+    BitMods.RELAX: "RX",
+    BitMods.HALFTIME: "HT",
+    BitMods.NIGHTCORE: "NC",
+    BitMods.FLASHLIGHT: "FL",
+    BitMods.AUTO: "AUTO",
+    BitMods.SPUN_OUT: "SO",
+    BitMods.AUTOPILOT: "AP",
+    BitMods.PERFECT: "PF",
+    BitMods.KEY_4: "4K",
+    BitMods.KEY_5: "5K",
+    BitMods.KEY_6: "6K",
+    BitMods.KEY_7: "7K",
+    BitMods.KEY_8: "8K",
+    BitMods.FADE_IN: "FI",
+    BitMods.RANDOM: "RN",
+    BitMods.CINEMA: "CN",
+    BitMods.TARGET_PRACTICE: "TP",
+    BitMods.KEY_9: "9K",
+    BitMods.KEY_COOP: "COOP",
+    BitMods.KEY_1: "1K",
+    BitMods.KEY_2: "2K",
+    BitMods.KEY_3: "3K",
+    BitMods.SCORE_V2: "V2",
+    BitMods.MIRROR: "MI",
 }
 
 
@@ -286,9 +286,9 @@ def get_mods_string(mods: int):
         if mod & mods:
             mod_strings.append(mod_acronyms[mod])
 
-    if Mods.NIGHTCORE & mods and "DT" in mod_strings:
+    if BitMods.NIGHTCORE & mods and "DT" in mod_strings:
         mod_strings.remove("DT")
-    if Mods.PERFECT & mods and "SD" in mod_strings:
+    if BitMods.PERFECT & mods and "SD" in mod_strings:
         mod_strings.remove("SD")
 
     return ",".join(mod_strings)
@@ -301,9 +301,9 @@ def get_mods_string_from_json_mods(mods: dict):
 def get_json_mods(mods: int, add_classic: bool) -> dict:
     mods_dict = {mod_acronyms[mod]: {} for mod in mod_acronyms if mod & mods != 0}
 
-    if Mods.NIGHTCORE & mods and "DT" in mods_dict:
+    if BitMods.NIGHTCORE & mods and "DT" in mods_dict:
         mods_dict.pop("DT")
-    if Mods.PERFECT & mods and "SD" in mods_dict:
+    if BitMods.PERFECT & mods and "SD" in mods_dict:
         mods_dict.pop("SD")
 
     if add_classic:
@@ -325,10 +325,10 @@ def get_bitwise_mods(acronyms: list[str]) -> int:
                 bitwise_mods |= mod
                 break
 
-    if bitwise_mods & Mods.NIGHTCORE:
-        bitwise_mods |= Mods.DOUBLETIME
-    if bitwise_mods & Mods.PERFECT:
-        bitwise_mods |= Mods.SUDDEN_DEATH
+    if bitwise_mods & BitMods.NIGHTCORE:
+        bitwise_mods |= BitMods.DOUBLETIME
+    if bitwise_mods & BitMods.PERFECT:
+        bitwise_mods |= BitMods.SUDDEN_DEATH
 
     return bitwise_mods
 
