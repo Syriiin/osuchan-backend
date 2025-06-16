@@ -330,6 +330,11 @@ def get_bitwise_mods(acronyms: list[str]) -> int:
     if bitwise_mods & BitMods.PERFECT:
         bitwise_mods |= BitMods.SUDDEN_DEATH
 
+    # HACK: daycore is the only diff reduction mod in the new lazer set so i want to handle it manually even if we cant do the others the same way
+    #   better to be missing pp than gain pp from missing handling
+    if Mods.DAYCORE in acronyms:
+        bitwise_mods |= BitMods.HALFTIME
+
     return bitwise_mods
 
 
