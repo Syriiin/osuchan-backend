@@ -6,7 +6,7 @@ from common.osu.difficultycalculator import (
     get_default_difficulty_calculator_class,
     get_difficulty_calculator_class_for_engine,
 )
-from common.osu.enums import BeatmapStatus, Gamemode, Mods, NewMods
+from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import BeatmapData
 from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 
@@ -243,7 +243,7 @@ class Beatmap(models.Model):
 
         return DifficultyCalculation.objects.get(
             beatmap=self,
-            mods=Mods.NONE,
+            mods=BitMods.NONE,
             calculator_engine=calculator_engine_name,
         )
 
@@ -581,7 +581,7 @@ class Score(models.Model):
         score.perfect = True
 
         # Calculate new accuracy
-        if NewMods.CLASSIC in score.mods_json:
+        if Mods.CLASSIC in score.mods_json:
             score.accuracy = utils.get_classic_accuracy(
                 score.statistics,
                 gamemode=gamemode,
@@ -594,18 +594,12 @@ class Score(models.Model):
             )
 
         if score.accuracy == 1:
-            if (
-                NewMods.HIDDEN in score.mods_json
-                or NewMods.FLASHLIGHT in score.mods_json
-            ):
+            if Mods.HIDDEN in score.mods_json or Mods.FLASHLIGHT in score.mods_json:
                 score.rank = "XH"
             else:
                 score.rank = "X"
         else:
-            if (
-                NewMods.HIDDEN in score.mods_json
-                or NewMods.FLASHLIGHT in score.mods_json
-            ):
+            if Mods.HIDDEN in score.mods_json or Mods.FLASHLIGHT in score.mods_json:
                 score.rank = "SH"
             else:
                 score.rank = "S"
@@ -652,9 +646,9 @@ class ScoreFilter(models.Model):
     highest_od = models.FloatField(null=True, blank=True)
     lowest_cs = models.FloatField(null=True, blank=True)
     highest_cs = models.FloatField(null=True, blank=True)
-    required_mods = models.IntegerField(default=Mods.NONE)
+    required_mods = models.IntegerField(default=BitMods.NONE)
     required_mods_json = models.JSONField(default=list, blank=True)
-    disqualified_mods = models.IntegerField(default=Mods.NONE)
+    disqualified_mods = models.IntegerField(default=BitMods.NONE)
     disqualified_mods_json = models.JSONField(default=list, blank=True)
     lowest_accuracy = models.FloatField(null=True, blank=True)
     highest_accuracy = models.FloatField(null=True, blank=True)

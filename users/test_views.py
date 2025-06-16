@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import force_authenticate
 
-from common.osu.enums import Mods, NewMods
+from common.osu.enums import BitMods, Mods
 from leaderboards.models import Invite
 from users.models import ScoreFilterPreset
 from users.views import (
@@ -73,7 +73,7 @@ class TestMeScoreFilterPresetList:
             data={
                 "name": "test sudden death filter",
                 "score_filter": {
-                    "required_mods": Mods.SUDDEN_DEATH,
+                    "required_mods": BitMods.SUDDEN_DEATH,
                 },
             },
             format="json",
@@ -85,9 +85,9 @@ class TestMeScoreFilterPresetList:
 
         assert response.status_code == HTTPStatus.OK
         assert response.data["name"] == "test sudden death filter"
-        assert response.data["score_filter"]["required_mods"] == Mods.SUDDEN_DEATH
+        assert response.data["score_filter"]["required_mods"] == BitMods.SUDDEN_DEATH
         assert response.data["score_filter"]["required_mods_json"] == [
-            NewMods.SUDDEN_DEATH
+            Mods.SUDDEN_DEATH
         ]
 
 
@@ -126,7 +126,7 @@ class TestMeScoreFilterPresetDetail:
 
         assert response.status_code == HTTPStatus.OK
         assert response.data["name"] == "new name"
-        assert response.data["score_filter"]["required_mods"] == Mods.NONE
+        assert response.data["score_filter"]["required_mods"] == BitMods.NONE
         assert response.data["score_filter"]["required_mods_json"] == []
         assert response.data["score_filter"]["highest_ar"] == 8
 

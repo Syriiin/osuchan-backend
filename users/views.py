@@ -4,7 +4,7 @@ from rest_framework.exceptions import NotAuthenticated, ParseError, PermissionDe
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common.osu.enums import Mods
+from common.osu.enums import BitMods
 from common.osu.utils import get_bitwise_mods, get_mod_acronyms
 from leaderboards.models import Invite
 from leaderboards.serialisers import UserInviteSerialiser
@@ -78,14 +78,14 @@ class MeScoreFilterPresetList(APIView):
             required_mods_json = score_filter_data["required_mods_json"]
             required_mods = get_bitwise_mods(required_mods_json)
         else:
-            required_mods = score_filter_data.get("required_mods", Mods.NONE)
+            required_mods = score_filter_data.get("required_mods", BitMods.NONE)
             required_mods_json = get_mod_acronyms(required_mods)
 
         if "disqualified_mods_json" in score_filter_data:
             disqualified_mods_json = score_filter_data["disqualified_mods_json"]
             disqualified_mods = get_bitwise_mods(disqualified_mods_json)
         else:
-            disqualified_mods = score_filter_data.get("disqualified_mods", Mods.NONE)
+            disqualified_mods = score_filter_data.get("disqualified_mods", BitMods.NONE)
             disqualified_mods_json = get_mod_acronyms(disqualified_mods)
 
         score_filter_preset = ScoreFilterPreset.objects.create(
@@ -159,14 +159,14 @@ class MeScoreFilterPresetDetail(APIView):
             required_mods_json = score_filter_data["required_mods_json"]
             required_mods = get_bitwise_mods(required_mods_json)
         else:
-            required_mods = score_filter_data.get("required_mods", Mods.NONE)
+            required_mods = score_filter_data.get("required_mods", BitMods.NONE)
             required_mods_json = get_mod_acronyms(required_mods)
 
         if "disqualified_mods_json" in score_filter_data:
             disqualified_mods_json = score_filter_data["disqualified_mods_json"]
             disqualified_mods = get_bitwise_mods(disqualified_mods_json)
         else:
-            disqualified_mods = score_filter_data.get("disqualified_mods", Mods.NONE)
+            disqualified_mods = score_filter_data.get("disqualified_mods", BitMods.NONE)
             disqualified_mods_json = get_mod_acronyms(disqualified_mods)
 
         score_filter = preset.score_filter

@@ -42,11 +42,11 @@ class Migration(migrations.Migration):
                 ("highest_cs", models.FloatField(blank=True, null=True)),
                 (
                     "required_mods",
-                    models.IntegerField(default=common.osu.enums.Mods["NONE"]),
+                    models.IntegerField(default=common.osu.enums.BitMods["NONE"]),
                 ),
                 (
                     "disqualified_mods",
-                    models.IntegerField(default=common.osu.enums.Mods["NONE"]),
+                    models.IntegerField(default=common.osu.enums.BitMods["NONE"]),
                 ),
                 ("lowest_accuracy", models.FloatField(blank=True, null=True)),
                 ("highest_accuracy", models.FloatField(blank=True, null=True)),
