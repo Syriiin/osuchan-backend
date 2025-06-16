@@ -11,8 +11,10 @@ from common.osu.difficultycalculator import (
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.difficultycalculator import get_difficulty_calculators_for_gamemode
-from common.osu.enums import BeatmapStatus, BitMods, Gamemode, NewMods
+from common.osu.difficultycalculator import (
+    get_difficulty_calculators_for_gamemode,
+)
+from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import OsuApi, ScoreData
 from leaderboards.models import Leaderboard, Membership
 from profiles.enums import ScoreMutation, ScoreResult
@@ -354,7 +356,7 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
 
         # Update convenience fields
         score.gamemode = gamemode
-        if NewMods.CLASSIC in score.mods_json:
+        if Mods.CLASSIC in score.mods_json:
             score.accuracy = utils.get_classic_accuracy(
                 score.statistics,
                 gamemode=gamemode,

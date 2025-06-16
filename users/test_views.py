@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import force_authenticate
 
-from common.osu.enums import BitMods, NewMods
+from common.osu.enums import BitMods, Mods
 from leaderboards.models import Invite
 from users.models import ScoreFilterPreset
 from users.views import (
@@ -87,7 +87,7 @@ class TestMeScoreFilterPresetList:
         assert response.data["name"] == "test sudden death filter"
         assert response.data["score_filter"]["required_mods"] == BitMods.SUDDEN_DEATH
         assert response.data["score_filter"]["required_mods_json"] == [
-            NewMods.SUDDEN_DEATH
+            Mods.SUDDEN_DEATH
         ]
 
 

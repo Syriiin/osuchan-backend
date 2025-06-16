@@ -1,6 +1,6 @@
 # osu! related utils
 
-from common.osu.enums import BitMods, Gamemode, NewMods
+from common.osu.enums import BitMods, Gamemode, Mods
 
 
 def calculate_pp_total(sorted_pps):
@@ -103,9 +103,9 @@ def get_lazer_accuracy(
 
 def get_bpm(bpm: float, mods: dict):
     bpm = float(bpm)
-    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
+    if Mods.DOUBLETIME in mods or Mods.NIGHTCORE in mods:
         return bpm * 1.5
-    elif NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
+    elif Mods.HALFTIME in mods or Mods.DAYCORE in mods:
         return bpm * (3 / 4)
     else:
         return bpm
@@ -113,9 +113,9 @@ def get_bpm(bpm: float, mods: dict):
 
 def get_length(length: float, mods: dict):
     length = float(length)
-    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
+    if Mods.DOUBLETIME in mods or Mods.NIGHTCORE in mods:
         return length / 1.5
-    elif NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
+    elif Mods.HALFTIME in mods or Mods.DAYCORE in mods:
         return length / (3 / 4)
     else:
         return length
@@ -125,29 +125,29 @@ def get_cs(cs: float, mods: dict, gamemode: Gamemode):
     cs = float(cs)
 
     if gamemode == Gamemode.MANIA:
-        if NewMods.KEY_1 in mods:
+        if Mods.KEY_1 in mods:
             return 1
-        if NewMods.KEY_2 in mods:
+        if Mods.KEY_2 in mods:
             return 2
-        if NewMods.KEY_3 in mods:
+        if Mods.KEY_3 in mods:
             return 3
-        if NewMods.KEY_4 in mods:
+        if Mods.KEY_4 in mods:
             return 4
-        if NewMods.KEY_5 in mods:
+        if Mods.KEY_5 in mods:
             return 5
-        if NewMods.KEY_6 in mods:
+        if Mods.KEY_6 in mods:
             return 6
-        if NewMods.KEY_7 in mods:
+        if Mods.KEY_7 in mods:
             return 7
-        if NewMods.KEY_8 in mods:
+        if Mods.KEY_8 in mods:
             return 8
-        if NewMods.KEY_9 in mods:
+        if Mods.KEY_9 in mods:
             return 9
         return cs
 
-    if NewMods.HARDROCK in mods:
+    if Mods.HARDROCK in mods:
         cs *= 1.3
-    if NewMods.EASY in mods:
+    if Mods.EASY in mods:
         cs *= 0.5
 
     return cs
@@ -170,18 +170,18 @@ def get_ar(ar: float, mods: dict):
 
     ar = float(ar)
 
-    if NewMods.HARDROCK in mods:
+    if Mods.HARDROCK in mods:
         ar *= 1.4
-    if NewMods.EASY in mods:
+    if Mods.EASY in mods:
         ar *= 0.5
 
     if ar > 10:
         ar = 10
 
-    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
+    if Mods.DOUBLETIME in mods or Mods.NIGHTCORE in mods:
         ms = ar_to_ms(ar) / 1.5
         ar = ms_to_ar(ms)
-    if NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
+    if Mods.HALFTIME in mods or Mods.DAYCORE in mods:
         ms = ar_to_ms(ar) / (3 / 4)
         ar = ms_to_ar(ms)
 
@@ -199,18 +199,18 @@ def get_od(od: float, mods: dict):
 
     od = float(od)
 
-    if NewMods.HARDROCK in mods:
+    if Mods.HARDROCK in mods:
         od *= 1.4
-    elif NewMods.EASY in mods:
+    elif Mods.EASY in mods:
         od *= 0.5
 
     if od > 10:
         od = 10
 
-    if NewMods.DOUBLETIME in mods or NewMods.NIGHTCORE in mods:
+    if Mods.DOUBLETIME in mods or Mods.NIGHTCORE in mods:
         ms = od_to_ms(od) / 1.5
         od = ms_to_od(ms)
-    if NewMods.HALFTIME in mods or NewMods.DAYCORE in mods:
+    if Mods.HALFTIME in mods or Mods.DAYCORE in mods:
         ms = od_to_ms(od) / (3 / 4)
         od = ms_to_od(ms)
 
@@ -295,7 +295,7 @@ def get_mods_string(mods: int):
 
 
 def get_mods_string_from_json_mods(mods: dict):
-    return ",".join(mod for mod in NewMods if mod in mods)
+    return ",".join(mod for mod in Mods if mod in mods)
 
 
 def get_json_mods(mods: int, add_classic: bool) -> dict:
@@ -334,15 +334,15 @@ def get_bitwise_mods(acronyms: list[str]) -> int:
 
 
 unranked_mods = [
-    NewMods.RELAX,
-    NewMods.AUTO,
-    NewMods.AUTOPILOT,
-    NewMods.KEY_1,
-    NewMods.KEY_2,
-    NewMods.KEY_3,
-    NewMods.KEY_COOP,
-    NewMods.RANDOM,
-    NewMods.SCORE_V2,
+    Mods.RELAX,
+    Mods.AUTO,
+    Mods.AUTOPILOT,
+    Mods.KEY_1,
+    Mods.KEY_2,
+    Mods.KEY_3,
+    Mods.KEY_COOP,
+    Mods.RANDOM,
+    Mods.SCORE_V2,
 ]
 
 
@@ -351,6 +351,6 @@ def mods_are_ranked(mods: dict, is_stable: bool) -> bool:
         return False
     if any(settings != {} for settings in mods.values()):
         return False
-    if not is_stable and NewMods.CLASSIC in mods:
+    if not is_stable and Mods.CLASSIC in mods:
         return False
     return True

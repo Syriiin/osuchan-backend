@@ -11,14 +11,14 @@ from common.osu.difficultycalculator import (
     DifficalcyTaikoDifficultyCalculator,
     Score,
 )
-from common.osu.enums import NewMods
+from common.osu.enums import Mods
 
 
 class TestDifficalcyDifficultyCalculator:
     def test_context_manager(self):
         with DifficalcyOsuDifficultyCalculator() as calc:
             assert calc.calculate_scores(
-                [Score("307618", mods={NewMods.CLASSIC: {}})]
+                [Score("307618", mods={Mods.CLASSIC: {}})]
             ) == [
                 Calculation(
                     difficulty_values={
@@ -47,7 +47,7 @@ class TestDifficalcyDifficultyCalculator:
         scores = [
             Score(
                 "307618",
-                mods={NewMods.DOUBLETIME: {}, NewMods.HIDDEN: {}, NewMods.CLASSIC: {}},
+                mods={Mods.DOUBLETIME: {}, Mods.HIDDEN: {}, Mods.CLASSIC: {}},
                 statistics={
                     "ok": 14,
                     "meh": 1,
@@ -58,10 +58,10 @@ class TestDifficalcyDifficultyCalculator:
             Score(
                 "307618",
                 mods={
-                    NewMods.DOUBLETIME: {},
-                    NewMods.HIDDEN: {},
-                    NewMods.HARDROCK: {},
-                    NewMods.CLASSIC: {},
+                    Mods.DOUBLETIME: {},
+                    Mods.HIDDEN: {},
+                    Mods.HARDROCK: {},
+                    Mods.CLASSIC: {},
                 },
                 statistics={
                     "ok": 14,
@@ -73,10 +73,10 @@ class TestDifficalcyDifficultyCalculator:
             Score(
                 "307618",
                 mods={
-                    NewMods.DOUBLETIME: {},
-                    NewMods.HIDDEN: {},
-                    NewMods.HARDROCK: {},
-                    NewMods.CLASSIC: {},
+                    Mods.DOUBLETIME: {},
+                    Mods.HIDDEN: {},
+                    Mods.HARDROCK: {},
+                    Mods.CLASSIC: {},
                 },
             ),
             Score(
@@ -170,7 +170,7 @@ class TestDifficalcyOsuDifficultyCalculator:
         calc = DifficalcyOsuDifficultyCalculator()
         score = Score(
             "307618",
-            mods={NewMods.DOUBLETIME: {}, NewMods.HIDDEN: {}, NewMods.CLASSIC: {}},
+            mods={Mods.DOUBLETIME: {}, Mods.HIDDEN: {}, Mods.CLASSIC: {}},
             statistics={
                 "ok": 14,
                 "meh": 1,
@@ -236,7 +236,7 @@ class TestDifficalcyTaikoDifficultyCalculator:
         calc = DifficalcyTaikoDifficultyCalculator()
         score = Score(
             "2",
-            mods={NewMods.DOUBLETIME: {}, NewMods.HARDROCK: {}, NewMods.CLASSIC: {}},
+            mods={Mods.DOUBLETIME: {}, Mods.HARDROCK: {}, Mods.CLASSIC: {}},
             statistics={
                 "ok": 3,
                 "miss": 5,
@@ -289,7 +289,7 @@ class TestDifficalcyCatchDifficultyCalculator:
         calc = DifficalcyCatchDifficultyCalculator()
         score = Score(
             "3",
-            mods={NewMods.DOUBLETIME: {}, NewMods.HARDROCK: {}, NewMods.CLASSIC: {}},
+            mods={Mods.DOUBLETIME: {}, Mods.HARDROCK: {}, Mods.CLASSIC: {}},
             statistics={
                 "large_tick_hit": 18,
                 "small_tick_hit": 200,
@@ -338,7 +338,7 @@ class TestDifficalcyManiaDifficultyCalculator:
         calc = DifficalcyManiaDifficultyCalculator()
         score = Score(
             "4",
-            mods={NewMods.DOUBLETIME: {}, NewMods.EASY: {}, NewMods.CLASSIC: {}},
+            mods={Mods.DOUBLETIME: {}, Mods.EASY: {}, Mods.CLASSIC: {}},
             statistics={
                 "great": 1,
                 "good": 2,
@@ -395,7 +395,7 @@ class TestDifficalcyPerformancePlusDifficultyCalculator:
         calc = DifficalcyPerformancePlusDifficultyCalculator()
         score = Score(
             "307618",
-            mods={NewMods.DOUBLETIME: {}, NewMods.HIDDEN: {}, NewMods.CLASSIC: {}},
+            mods={Mods.DOUBLETIME: {}, Mods.HIDDEN: {}, Mods.CLASSIC: {}},
             statistics={
                 "ok": 14,
                 "meh": 1,

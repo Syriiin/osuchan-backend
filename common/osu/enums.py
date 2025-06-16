@@ -65,7 +65,7 @@ class BitMods(IntEnum):
     )
 
 
-class NewMods(StrEnum):
+class Mods(StrEnum):
     NOFAIL = "NF"
     EASY = "EZ"
     TOUCH_DEVICE = "TD"

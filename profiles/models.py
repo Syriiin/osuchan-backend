@@ -6,7 +6,7 @@ from common.osu.difficultycalculator import (
     get_default_difficulty_calculator_class,
     get_difficulty_calculator_class_for_engine,
 )
-from common.osu.enums import BeatmapStatus, BitMods, Gamemode, NewMods
+from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import BeatmapData
 from profiles.enums import AllowedBeatmapStatus, ScoreMutation, ScoreResult, ScoreSet
 
@@ -581,7 +581,7 @@ class Score(models.Model):
         score.perfect = True
 
         # Calculate new accuracy
-        if NewMods.CLASSIC in score.mods_json:
+        if Mods.CLASSIC in score.mods_json:
             score.accuracy = utils.get_classic_accuracy(
                 score.statistics,
                 gamemode=gamemode,
@@ -594,18 +594,12 @@ class Score(models.Model):
             )
 
         if score.accuracy == 1:
-            if (
-                NewMods.HIDDEN in score.mods_json
-                or NewMods.FLASHLIGHT in score.mods_json
-            ):
+            if Mods.HIDDEN in score.mods_json or Mods.FLASHLIGHT in score.mods_json:
                 score.rank = "XH"
             else:
                 score.rank = "X"
         else:
-            if (
-                NewMods.HIDDEN in score.mods_json
-                or NewMods.FLASHLIGHT in score.mods_json
-            ):
+            if Mods.HIDDEN in score.mods_json or Mods.FLASHLIGHT in score.mods_json:
                 score.rank = "SH"
             else:
                 score.rank = "S"
