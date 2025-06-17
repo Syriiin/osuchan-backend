@@ -2,7 +2,7 @@ from unittest.mock import Mock, create_autospec, patch
 
 from celery import Task
 
-from osuchan.celery import debug_task, task_failure_handler
+from osuchan.celery import task_failure_handler
 
 
 @patch("osuchan.celery.ErrorReporter.report_error")
