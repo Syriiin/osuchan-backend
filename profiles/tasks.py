@@ -24,7 +24,14 @@ def dispatch_update_all_global_leaderboard_top_members(
         members = leaderboard.memberships.order_by("-pp")[:limit].values("user_id")
 
         for member in members:
-            update_user.delay(member["user_id"], leaderboard.gamemode, cooldown_seconds)
+            update_user.apply_async(
+                kwargs={
+                    "user_id": member["user_id"],
+                    "gamemode": leaderboard.gamemode,
+                    "cooldown_seconds": cooldown_seconds,
+                },
+                priority=4,
+            )
 
 
 @shared_task(priority=3)
@@ -38,7 +45,13 @@ def dispatch_update_community_leaderboard_members(
     members = leaderboard.memberships.order_by("-pp")[:limit].values("user_id")
 
     for member in members:
-        update_user.delay(member["user_id"], leaderboard.gamemode)
+        update_user.apply_async(
+            kwargs={
+                "user_id": member["user_id"],
+                "gamemode": leaderboard.gamemode,
+            },
+            priority=4,
+        )
 
 
 @shared_task(priority=7)
