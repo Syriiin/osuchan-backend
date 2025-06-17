@@ -6,6 +6,7 @@ import os
 from datetime import timedelta
 
 from celery.schedules import crontab
+from kombu import Exchange, Queue
 from pydantic_settings import BaseSettings
 
 from common.osu.enums import Gamemode
@@ -207,6 +208,20 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = 250000  # 250MB TODO: investigate this memory leak
+
+CELERY_TASK_QUEUES = [
+    Queue(
+        "tasks",
+        Exchange("tasks"),
+        routing_key="tasks",
+        queue_arguments={
+            "x-max-priority": 10,
+        },
+    )
+]
+
+CELERY_TASK_DEFAULT_PRIORITY = 5
+CELERY_TASK_DEFAULT_QUEUE = "tasks"
 
 CELERY_BEAT_SCHEDULE = {
     "update-top-global-members-every-day": {
