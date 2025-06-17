@@ -92,4 +92,4 @@ COPY . ./
 # Run production server
 EXPOSE 8000
 ENTRYPOINT [ "tini", "--" ]
-CMD ["gunicorn", "--workers", "5", "--timeout", "120", "--bind", "0.0.0.0:8000", "osuchan.wsgi"]
+CMD ["gunicorn", "--workers", "9", "--timeout", "120", "--bind", "0.0.0.0:8000", "osuchan.wsgi"]
