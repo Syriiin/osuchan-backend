@@ -18,7 +18,7 @@ from profiles.enums import ScoreResult
 from profiles.models import Score
 
 
-@shared_task
+@shared_task(priority=7)
 @transaction.atomic
 def update_memberships(user_id, gamemode=Gamemode.STANDARD):
     """
@@ -36,7 +36,7 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
     return memberships
 
 
-@shared_task
+@shared_task(priority=10)
 def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     # passing score_id instead of querying for top score in case it changes before the job is picked up
 
@@ -108,7 +108,7 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     )
 
 
-@shared_task
+@shared_task(priority=10)
 def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
     # passing user_id instead of querying for top player in case it changes before the job is picked up
 
@@ -167,7 +167,7 @@ def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
     )
 
 
-@shared_task
+@shared_task(priority=10)
 def send_leaderboard_podium_notification(leaderboard_id: int):
     leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
     if leaderboard.notification_discord_webhook_url == "":

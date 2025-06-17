@@ -13,7 +13,7 @@ from profiles.services import refresh_beatmaps_from_api, refresh_user_from_api
 logger = logging.getLogger(__name__)
 
 
-@shared_task
+@shared_task(priority=1)
 def dispatch_update_all_global_leaderboard_top_members(
     limit: int = 100, cooldown_seconds: int = 300
 ):
@@ -27,7 +27,7 @@ def dispatch_update_all_global_leaderboard_top_members(
             update_user.delay(member["user_id"], leaderboard.gamemode, cooldown_seconds)
 
 
-@shared_task
+@shared_task(priority=3)
 def dispatch_update_community_leaderboard_members(
     leaderboard_id: int, limit: int = 100
 ):
@@ -41,7 +41,7 @@ def dispatch_update_community_leaderboard_members(
         update_user.delay(member["user_id"], leaderboard.gamemode)
 
 
-@shared_task
+@shared_task(priority=7)
 def update_user(
     user_id: int, gamemode: int = Gamemode.STANDARD, cooldown_seconds: int = 300
 ):
@@ -58,7 +58,7 @@ def update_user(
     return user_stats
 
 
-@shared_task
+@shared_task(priority=7)
 def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
     """
     Runs an update for a given user
@@ -73,7 +73,7 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
     return user_stats
 
 
-@shared_task
+@shared_task(priority=0)
 def update_loved_beatmaps():
     """
     Updates all loved beatmaps, cleaning up outdated data
