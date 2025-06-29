@@ -49,6 +49,9 @@ class PPRaceTeam(models.Model):
         Score, through="PPRaceScore", related_name="pprace_teams"
     )
 
+    def __str__(self):
+        return f"{self.pprace.name}: {self.name}"
+
 
 class PPRacePlayer(models.Model):
     """
@@ -69,6 +72,9 @@ class PPRacePlayer(models.Model):
     scores = models.ManyToManyField(
         Score, through="PPRaceScore", related_name="pprace_players"
     )
+
+    def __str__(self):
+        return f"{self.user.username} ({self.team.name})"
 
     class Meta:
         constraints = [
