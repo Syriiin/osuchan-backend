@@ -49,6 +49,12 @@ class PPRaceTeam(models.Model):
         Score, through="PPRaceScore", related_name="pprace_teams"
     )
 
+    def get_top_scores(self):
+        """
+        Returns the top scores for this team
+        """
+        return self.scores.get_score_set()
+
     def __str__(self):
         return f"{self.pprace.name}: {self.name}"
 

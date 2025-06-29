@@ -7,6 +7,7 @@ from common.osu.beatmap_provider import BeatmapProvider
 from common.osu.enums import BeatmapStatus, Gamemode
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
+from ppraces.tasks import update_pprace_players
 from profiles.models import Beatmap
 from profiles.services import refresh_beatmaps_from_api, refresh_user_from_api
 
@@ -68,6 +69,9 @@ def update_user(
         update_memberships.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
+        update_pprace_players.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
     return user_stats
 
 
@@ -81,6 +85,9 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
     )
     if user_stats is not None and updated:
         update_memberships.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+        update_pprace_players.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
     return user_stats
