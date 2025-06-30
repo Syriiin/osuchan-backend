@@ -5,7 +5,7 @@ from ppraces.models import PPRace, PPRacePlayer, PPRaceTeam
 
 class PPRaceAdmin(admin.ModelAdmin):
     model = PPRace
-    list_display = ["id", "name", "start_time"]
+    list_display = ["id", "name", "start_time", "duration", "status"]
     search_fields = ["name"]
 
 
