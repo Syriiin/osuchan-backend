@@ -30,6 +30,18 @@ def update_pprace(pprace_id: int):
     pprace = PPRace.objects.get(id=pprace_id)
     update_pprace_status(pprace)
 
+    # TODO: fix circular import
+
+    if pprace.status == PPRaceStatus.IN_PROGRESS:
+        from profiles.tasks import update_user_recent
+
+        for team in pprace.teams.all():
+            for player in team.players.all():
+
+                update_user_recent.delay(
+                    user_id=player.user_id, gamemode=pprace.gamemode
+                )
+
 
 @shared_task(priority=8)
 def update_pprace_players(user_id, gamemode=Gamemode.STANDARD):

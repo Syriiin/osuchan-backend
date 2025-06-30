@@ -9,7 +9,11 @@ from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
 from ppraces.tasks import update_pprace_players
 from profiles.models import Beatmap
-from profiles.services import refresh_beatmaps_from_api, refresh_user_from_api
+from profiles.services import (
+    refresh_beatmaps_from_api,
+    refresh_user_from_api,
+    refresh_user_recent_from_api,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +86,26 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
     """
     user_stats, updated = refresh_user_from_api(
         username=username, gamemode=Gamemode(gamemode)
+    )
+    if user_stats is not None and updated:
+        update_memberships.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+        update_pprace_players.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+    return user_stats
+
+
+@shared_task(priority=8)
+def update_user_recent(
+    user_id: int, gamemode: int = Gamemode.STANDARD, cooldown_seconds: int = 60
+):
+    """
+    Runs an update for a given user strictly for recent scores
+    """
+    user_stats, updated = refresh_user_recent_from_api(
+        user_id=user_id, gamemode=Gamemode(gamemode), cooldown_seconds=cooldown_seconds
     )
     if user_stats is not None and updated:
         update_memberships.delay(

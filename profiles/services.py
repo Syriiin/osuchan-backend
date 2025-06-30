@@ -11,9 +11,7 @@ from common.osu.difficultycalculator import (
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.difficultycalculator import (
-    get_difficulty_calculators_for_gamemode,
-)
+from common.osu.difficultycalculator import get_difficulty_calculators_for_gamemode
 from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import OsuApi, ScoreData
 from leaderboards.models import Leaderboard, Membership
@@ -187,6 +185,51 @@ def refresh_user_from_api(
     )
 
     user_stats.save()
+
+    # Process and add scores
+    created_scores = add_scores_from_data(user_stats, score_data_list)
+
+    if len(created_scores) > 0:
+        difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
+        for difficulty_calculator in difficulty_calculators:
+            with difficulty_calculator() as calc:
+                update_performance_calculations(created_scores, calc)
+
+        # Recalculate with new scores added
+        user_stats.recalculate()
+        user_stats.save()
+
+    return user_stats, True
+
+
+@transaction.atomic
+def refresh_user_recent_from_api(
+    user_id: int,
+    gamemode: Gamemode = Gamemode.STANDARD,
+    cooldown_seconds: int = 300,
+):
+    """
+    Fetch and update user recent scores
+    """
+    user_stats = fetch_user(user_id=user_id, gamemode=gamemode)
+
+    assert user_stats is not None, "Task should not be called if user does not exist"
+
+    if user_stats.last_updated > (
+        datetime.utcnow().replace(tzinfo=timezone.utc)
+        - timedelta(seconds=cooldown_seconds)
+    ):
+        # User was last updated less than 1 minutes ago, so just return it
+        return user_stats, False
+
+    osu_api = OsuApi()
+
+    # Fetch user scores from osu api
+    score_data_list = [
+        score
+        for score in osu_api.get_user_recent_scores(user_stats.user_id, gamemode)
+        if score.rank != "F"
+    ]
 
     # Process and add scores
     created_scores = add_scores_from_data(user_stats, score_data_list)
