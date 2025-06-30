@@ -14,8 +14,12 @@ def update_pprace_status(pprace: PPRace) -> PPRace:
     """
     Update the status of a pp race
     """
+    assert pprace.status != PPRaceStatus.LOBBY, "PPRace must not be in lobby status"
+    assert pprace.start_time is not None, "PPRace must have a start time"
+    assert pprace.end_time is not None, "PPRace must have an end time"
+
     if pprace.start_time > datetime.now():
-        pprace.status = PPRaceStatus.WAITING
+        pprace.status = PPRaceStatus.WAITING_TO_START
     elif pprace.end_time < datetime.now():
         pprace.status = PPRaceStatus.FINISHED
         # TODO: trigger final update for all players and teams

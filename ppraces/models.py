@@ -15,7 +15,8 @@ class PPRace(models.Model):
     gamemode = models.IntegerField()
     status = models.CharField(
         choices=[
-            (PPRaceStatus.WAITING, "Waiting to start"),
+            (PPRaceStatus.LOBBY, "Lobby"),
+            (PPRaceStatus.WAITING_TO_START, "Waiting to start"),
             (PPRaceStatus.IN_PROGRESS, "In progress"),
             (PPRaceStatus.FINISHED, "Finished"),
         ]

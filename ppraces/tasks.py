@@ -15,7 +15,9 @@ def dispatch_update_all_ppraces():
     """
     Dispatch update tasks for all pp races
     """
-    ppraces = PPRace.objects.exclude(status=PPRaceStatus.FINISHED)
+    ppraces = PPRace.objects.filter(
+        status__in=[PPRaceStatus.IN_PROGRESS, PPRaceStatus.WAITING_TO_START]
+    )
     for pprace in ppraces:
         update_pprace.delay(pprace_id=pprace.id)
 
