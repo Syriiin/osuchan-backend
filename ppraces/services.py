@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from django.db import transaction
 
@@ -18,9 +18,9 @@ def update_pprace_status(pprace: PPRace) -> PPRace:
     assert pprace.start_time is not None, "PPRace must have a start time"
     assert pprace.end_time is not None, "PPRace must have an end time"
 
-    if pprace.start_time > datetime.now():
+    if pprace.start_time > datetime.now(tz=timezone.utc):
         pprace.status = PPRaceStatus.WAITING_TO_START
-    elif pprace.end_time < datetime.now():
+    elif pprace.end_time < datetime.now(tz=timezone.utc):
         pprace.status = PPRaceStatus.FINISHED
         # TODO: trigger final update for all players and teams
     else:
@@ -38,7 +38,7 @@ def update_pprace_team(team: PPRaceTeam) -> PPRaceTeam:
     pprace_scores = PPRaceScore.objects.filter(team_id=team.id)
     scores = Score.objects.filter(
         id__in=pprace_scores.values_list("score_id", flat=True),
-    ).get_score_set()
+    ).get_score_set(team.pprace.gamemode)
 
     team.total_pp = calculate_pp_total(
         pp for pp in scores.values_list("performance_total", flat=True)
@@ -58,12 +58,12 @@ def update_pprace_player(player: PPRacePlayer) -> PPRacePlayer:
     pprace = team.pprace
 
     scores = Score.objects.filter(
-        user_id=player.user_id,
+        user_stats__user_id=player.user_id,
         gamemode=pprace.gamemode,
         date__gte=pprace.start_time,
         date__lte=pprace.end_time,
     ).get_score_set(
-        gamemode=pprace.gamemode,
+        pprace.gamemode,
         score_set=ScoreSet.NORMAL,
         calculator_engine=pprace.calculator_engine,
         primary_performance_value=pprace.primary_performance_value,
