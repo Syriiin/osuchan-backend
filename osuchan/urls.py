@@ -29,6 +29,7 @@ urlpatterns = [
     path("api/users/", include("users.urls")),
     path("api/profiles/", include("profiles.urls")),
     path("api/leaderboards/", include("leaderboards.urls")),
+    path("api/ppraces/", include("ppraces.urls")),
     path("osuauth/", include("osuauth.urls")),
     path("beatmapfiles/<int:beatmap_id>", getBeatmapFile),
     path("", include("django_prometheus.urls")),
