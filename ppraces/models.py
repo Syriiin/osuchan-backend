@@ -27,6 +27,16 @@ class PPRace(models.Model):
     calculator_engine = models.CharField()
     primary_performance_value = models.CharField()
 
+    def get_recent_scores(self):
+        """
+        Returns the most recent scores for this
+        """
+        return Score.objects.filter(
+            pprace_scores__team__pprace=self,
+        ).order_by(
+            "-date"
+        )[:50]
+
     def __str__(self):
         return self.name
 
@@ -54,10 +64,13 @@ class PPRaceTeam(models.Model):
         """
         Returns the top scores for this team
         """
-        return self.scores.get_score_set()
+        return self.scores.get_score_set(self.pprace.gamemode)[:3]
 
     def __str__(self):
         return f"{self.pprace.name}: {self.name}"
+
+    class Meta:
+        ordering = ["id"]
 
 
 class PPRacePlayer(models.Model):

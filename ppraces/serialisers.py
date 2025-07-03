@@ -1,15 +1,20 @@
 from rest_framework import serializers
 
-from ppraces.models import PPRace, PPRacePlayer, PPRaceScore, PPRaceTeam
-from profiles.serialisers import BeatmapSerialiser, OsuUserSerialiser, ScoreSerialiser
+from ppraces.models import PPRace, PPRacePlayer, PPRaceTeam
+from profiles.serialisers import (
+    BeatmapSerialiser,
+    OsuUserSerialiser,
+    ScoreSerialiser,
+    UserStatsSerialiser,
+)
 
 
 class PPRacesScoreSerialiser(ScoreSerialiser):
+    user_stats = UserStatsSerialiser()
     beatmap = BeatmapSerialiser()
 
 
 class PPRacePlayerSerialiser(serializers.ModelSerializer):
-    scores = PPRacesScoreSerialiser(many=True)
     user = OsuUserSerialiser()
 
     class Meta:
@@ -21,7 +26,6 @@ class PPRacePlayerSerialiser(serializers.ModelSerializer):
             "score_count",
             # relations
             "user",
-            "scores",
         )
 
 
