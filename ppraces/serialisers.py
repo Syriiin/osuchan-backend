@@ -17,6 +17,7 @@ class PPRacePlayerSerialiser(serializers.ModelSerializer):
         fields = (
             "id",
             "pp",
+            "pp_contribution",
             "score_count",
             # relations
             "user",

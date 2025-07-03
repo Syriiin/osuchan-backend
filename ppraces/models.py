@@ -68,6 +68,7 @@ class PPRacePlayer(models.Model):
     id = models.BigAutoField(primary_key=True)
 
     pp = models.FloatField()
+    pp_contribution = models.FloatField()
     score_count = models.IntegerField()
 
     team = models.ForeignKey(

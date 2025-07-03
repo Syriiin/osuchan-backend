@@ -33,19 +33,37 @@ def update_pprace_status(pprace: PPRace) -> PPRace:
 @transaction.atomic
 def update_pprace_team(team: PPRaceTeam) -> PPRaceTeam:
     """
-    Update the total pp and score count of a team
+    Update the total pp and score count of a team, and player pp contribution
     """
     pprace_scores = PPRaceScore.objects.filter(team_id=team.id)
     scores = Score.objects.filter(
         id__in=pprace_scores.values_list("score_id", flat=True),
     ).get_score_set(team.pprace.gamemode)
 
-    team.total_pp = calculate_pp_total(
-        pp for pp in scores.values_list("performance_total", flat=True)
-    )
-    team.score_count = scores.count()
+    pp_values = scores.values_list("performance_total", "user_stats__user_id")
 
+    pp_contributions = {}
+    pp_weight = 1
+    total_pp = 0
+    for pp_value, user_id in pp_values:
+        weighted_pp = pp_value * pp_weight
+        total_pp += weighted_pp
+        if user_id not in pp_contributions:
+            pp_contributions[user_id] = 0
+        pp_contributions[user_id] += weighted_pp
+        pp_weight *= 0.95
+
+    team.total_pp = total_pp
+    team.score_count = len(pp_values)
     team.save()
+
+    for player in team.players.all():
+        if player.user_id in pp_contributions:
+            player.pp_contribution = pp_contributions[player.user_id]
+        else:
+            player.pp_contribution = 0
+        player.save()
+
     return team
 
 
