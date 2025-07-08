@@ -9,7 +9,6 @@ volumes:
   cache-data:
   difficalcy-cache-data:
 
-
 secrets:
   grafana_admin_password:
     file: ./config/active/secrets/grafana_admin_password
@@ -25,7 +24,6 @@ services:
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.17.1
-    command: --no-collector.stat_bgwriter # https://github.com/prometheus-community/postgres_exporter/pull/1072
     env_file:
       - config/active/postgres-exporter.env
 
