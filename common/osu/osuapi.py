@@ -8,9 +8,16 @@ import requests
 from django.conf import settings
 from django.utils.module_loading import import_string
 from ossapi import Beatmap, GameMode, Ossapi, Score, ScoreType, User, UserLookupKey
+from prometheus_client import Counter
 
 from common.osu.enums import BeatmapStatus, Gamemode
 from common.osu.utils import get_bitwise_mods, get_json_mods
+
+osuapi_requests_counter = Counter(
+    "osuapi_requests_total",
+    "Total number of requests made to the osu! API",
+    ["api_version", "endpoint"],
+)
 
 
 class MalformedResponseError(Exception):
@@ -449,6 +456,8 @@ class LiveOsuApiV1(AbstractOsuApi):
         )
         response.raise_for_status()
 
+        osuapi_requests_counter.labels(endpoint=endpoint_name, api_version="v1").inc()
+
         return response.json()
 
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
@@ -729,6 +738,7 @@ class LiveOsuApiV2(AbstractOsuApi):
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
         try:
             beatmap = self.client.beatmap(beatmap_id)
+            osuapi_requests_counter.labels(endpoint="beatmap", api_version="v2").inc()
         except ValueError:
             return None
 
@@ -739,6 +749,7 @@ class LiveOsuApiV2(AbstractOsuApi):
             user = self.client.user(
                 user_id, mode=self.__get_ossapi_gamemode(gamemode), key=UserLookupKey.ID
             )
+            osuapi_requests_counter.labels(endpoint="user", api_version="v2").inc()
         except ValueError:
             return None
 
@@ -751,6 +762,7 @@ class LiveOsuApiV2(AbstractOsuApi):
                 mode=self.__get_ossapi_gamemode(gamemode),
                 key=UserLookupKey.USERNAME,
             )
+            osuapi_requests_counter.labels(endpoint="user", api_version="v2").inc()
         except ValueError:
             return None
 
@@ -765,6 +777,9 @@ class LiveOsuApiV2(AbstractOsuApi):
                 user_id,
                 mode=self.__get_ossapi_gamemode(gamemode),
             )
+            osuapi_requests_counter.labels(
+                endpoint="beatmap_user_scores", api_version="v2"
+            ).inc()
         except ValueError:
             return []
 
@@ -781,6 +796,9 @@ class LiveOsuApiV2(AbstractOsuApi):
                 mode=self.__get_ossapi_gamemode(gamemode),
                 limit=100,
             )
+            osuapi_requests_counter.labels(
+                endpoint="user_best_scores", api_version="v2"
+            ).inc()
         except ValueError:
             return []
 
@@ -796,6 +814,9 @@ class LiveOsuApiV2(AbstractOsuApi):
                 mode=self.__get_ossapi_gamemode(gamemode),
                 limit=50,
             )
+            osuapi_requests_counter.labels(
+                endpoint="user_recent_scores", api_version="v2"
+            ).inc()
         except ValueError:
             return []
 
