@@ -260,13 +260,14 @@ def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
         if beatmap_data is None:
             continue
 
-        beatmap = Beatmap.from_data(beatmap_data)
-        if beatmap.status not in [
+        if beatmap_data.status not in [
             BeatmapStatus.APPROVED,
             BeatmapStatus.RANKED,
             BeatmapStatus.LOVED,
         ]:
             continue
+
+        beatmap = Beatmap.from_data(beatmap_data)
 
         beatmaps.append(beatmap)
 
