@@ -219,7 +219,9 @@ def refresh_user_recent_from_api(
     """
     user_stats = fetch_user(user_id=user_id, gamemode=gamemode)
 
-    assert user_stats is not None, "Task should not be called if user does not exist"
+    if user_stats is None:
+        # User does not exist in the db, so return None
+        return None, False
 
     if user_stats.last_updated > (
         datetime.utcnow().replace(tzinfo=timezone.utc)
