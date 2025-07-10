@@ -72,7 +72,7 @@ FROM tooling AS development-runner
 # Run development server
 EXPOSE 8000
 ENTRYPOINT [ "tini", "--" ]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000", "--noreload"]
+CMD ["watchmedo", "auto-restart", "--pattern=*.py", "--recursive", "--", "gunicorn", "--workers", "9", "--timeout", "120", "--bind", "0.0.0.0:8000", "osuchan.wsgi"]
 
 # --------------------------------------------------------------------------------
 
