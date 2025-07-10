@@ -175,6 +175,11 @@ def refresh_user_from_api(
     user_stats.count_rank_sh = user_data.count_rank_sh
     user_stats.count_rank_a = user_data.count_rank_a
 
+    # Fetch date of latest score
+    latest_score_date = (
+        user_stats.scores.order_by("-date").values_list("date", flat=True).first()
+    )
+
     # Fetch user scores from osu api
     score_data_list = []
     score_data_list.extend(osu_api.get_user_best_scores(user_stats.user_id, gamemode))
@@ -182,6 +187,7 @@ def refresh_user_from_api(
         score
         for score in osu_api.get_user_recent_scores(user_stats.user_id, gamemode)
         if score.rank != "F"
+        and (latest_score_date is None or score.date > latest_score_date)
     )
 
     user_stats.save()
@@ -224,11 +230,17 @@ def refresh_user_recent_from_api(
 
     osu_api = OsuApi()
 
+    # Fetch date of latest score
+    latest_score_date = (
+        user_stats.scores.order_by("-date").values_list("date", flat=True).first()
+    )
+
     # Fetch user scores from osu api
     score_data_list = [
         score
         for score in osu_api.get_user_recent_scores(user_stats.user_id, gamemode)
         if score.rank != "F"
+        and (latest_score_date is None or score.date > latest_score_date)
     ]
 
     # Process and add scores
