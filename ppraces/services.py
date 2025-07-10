@@ -22,7 +22,6 @@ def update_pprace_status(pprace: PPRace) -> PPRace:
         pprace.status = PPRaceStatus.WAITING_TO_START
     elif pprace.end_time < datetime.now(tz=timezone.utc):
         pprace.status = PPRaceStatus.FINISHED
-        # TODO: trigger final update for all players and teams
     else:
         pprace.status = PPRaceStatus.IN_PROGRESS
 

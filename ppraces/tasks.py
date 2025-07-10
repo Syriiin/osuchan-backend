@@ -28,11 +28,17 @@ def update_pprace(pprace_id: int):
     Update state of a pp race
     """
     pprace = PPRace.objects.get(id=pprace_id)
+
+    assert pprace.status not in [
+        PPRaceStatus.LOBBY,
+        PPRaceStatus.FINISHED,
+    ], "PPRace should be waiting or in progress to be updated"
+
     update_pprace_status(pprace)
 
     # TODO: fix circular import
 
-    if pprace.status == PPRaceStatus.IN_PROGRESS:
+    if pprace.status in [PPRaceStatus.IN_PROGRESS, PPRaceStatus.FINISHED]:
         from profiles.tasks import update_user_recent
 
         for team in pprace.teams.all():
