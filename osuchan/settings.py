@@ -307,6 +307,14 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 STATICFILES_DIRS = []
 
+# Prometheus metrics
+# https://github.com/django-commons/django-prometheus/blob/master/documentation/exports.md
+
+PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(
+    8001,
+    8999,
+)
+
 
 # Frontend config
 

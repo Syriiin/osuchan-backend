@@ -32,7 +32,6 @@ urlpatterns = [
     path("api/ppraces/", include("ppraces.urls")),
     path("osuauth/", include("osuauth.urls")),
     path("beatmapfiles/<int:beatmap_id>", getBeatmapFile),
-    path("", include("django_prometheus.urls")),
 ]
 
 # Enable debug toolbar in debug mode

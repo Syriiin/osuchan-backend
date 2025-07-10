@@ -1,5 +1,6 @@
 from celery import Celery
-from celery.signals import task_failure
+from celery.signals import task_failure, worker_process_init
+from prometheus_client import start_http_server
 
 from common.error_reporter import ErrorReporter
 
@@ -40,3 +41,19 @@ def task_failure_handler(
         title=f"Exception occured in task `{sender.name}`",
         extra_details=extra_details,
     )
+
+
+@worker_process_init.connect
+def worker_init_handler(**kwargs):
+    print("Worker initialized, setting up prometheus metrics...")
+    ports = range(9001, 9050)
+    for port in ports:
+        try:
+            start_http_server(port)
+            print(f"Prometheus metrics server started on port {port}")
+            break
+        except OSError as e:
+            pass
+    else:
+        print("No available ports for Prometheus metrics server. Exiting worker.")
+        raise RuntimeError("No available ports for Prometheus metrics server.")
