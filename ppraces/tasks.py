@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from celery import shared_task
 
 from common.osu.enums import Gamemode
@@ -42,11 +44,39 @@ def update_pprace(pprace_id: int):
         from profiles.tasks import update_user_recent
 
         for team in pprace.teams.all():
-            for player in team.players.all():
+            if team.players.count() < 5:
+                for player in team.players.all():
+                    update_user_recent.delay(
+                        user_id=player.user_id,
+                        gamemode=pprace.gamemode,
+                        cooldown_seconds=30,
+                    )
+                continue
 
-                update_user_recent.delay(
-                    user_id=player.user_id, gamemode=pprace.gamemode
+            for player in team.players.all():
+                user_stats = player.user.stats.get(
+                    gamemode=pprace.gamemode,
                 )
+                if user_stats is None:
+                    continue
+
+                if user_stats.scores.filter(
+                    date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=5)
+                ).exists():
+                    update_user_recent.delay(
+                        user_id=player.user_id,
+                        gamemode=pprace.gamemode,
+                        cooldown_seconds=30,
+                    )
+                    continue
+
+                if user_stats.last_updated < datetime.now(tz=timezone.utc) - timedelta(
+                    minutes=5
+                ):
+                    update_user_recent.delay(
+                        user_id=player.user_id, gamemode=pprace.gamemode
+                    )
+                    continue
 
 
 @shared_task(priority=8)
