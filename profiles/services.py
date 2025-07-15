@@ -11,7 +11,9 @@ from common.osu.difficultycalculator import (
     DifficultyCalculatorException,
 )
 from common.osu.difficultycalculator import Score as DifficultyCalculatorScore
-from common.osu.difficultycalculator import get_difficulty_calculators_for_gamemode
+from common.osu.difficultycalculator import (
+    get_difficulty_calculators_for_gamemode,
+)
 from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import OsuApi, ScoreData
 from leaderboards.models import Leaderboard, Membership
