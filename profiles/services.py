@@ -177,6 +177,8 @@ def refresh_user_from_api(
     user_stats.count_rank_sh = user_data.count_rank_sh
     user_stats.count_rank_a = user_data.count_rank_a
 
+    user_stats.save()
+
     # Fetch date of latest score
     latest_score_date = (
         user_stats.scores.order_by("-date").values_list("date", flat=True).first()
@@ -191,8 +193,6 @@ def refresh_user_from_api(
         if score.rank != "F"
         and (latest_score_date is None or score.date > latest_score_date)
     )
-
-    user_stats.save()
 
     # Process and add scores
     created_scores = add_scores_from_data(user_stats, score_data_list)
