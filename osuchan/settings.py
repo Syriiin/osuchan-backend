@@ -239,9 +239,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "profiles.tasks.update_loved_beatmaps",
         "schedule": crontab(minute="0", hour="0", day_of_month="1"),
     },
-    "update-ppraces-every-5-minutes": {
+    "update-ppraces-every-minute": {
         "task": "ppraces.tasks.dispatch_update_all_ppraces",
-        "schedule": crontab(minute="*/5"),  # every 5 minutes
+        "schedule": crontab(minute="*"),  # every minute
     },
 }
 
