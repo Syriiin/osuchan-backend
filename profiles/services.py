@@ -124,6 +124,7 @@ def refresh_user_from_api(
     else:
         user_stats = UserStats()
         user_stats.gamemode = gamemode
+        user_stats.last_updated = datetime.now(tz=timezone.utc)
 
         # Get or create OsuUser model
         try:
@@ -205,7 +206,9 @@ def refresh_user_from_api(
 
         # Recalculate with new scores added
         user_stats.recalculate()
-        user_stats.save()
+
+    user_stats.last_updated = datetime.now(tz=timezone.utc)
+    user_stats.save()
 
     return user_stats, True
 
@@ -258,8 +261,9 @@ def refresh_user_recent_from_api(
 
         # Recalculate with new scores added
         user_stats.recalculate()
-        user_stats.save()
 
+    user_stats.last_updated = datetime.now(tz=timezone.utc)
+    user_stats.save()
     return user_stats, True
 
 

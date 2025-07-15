@@ -81,7 +81,7 @@ class UserStats(models.Model):
     user = models.ForeignKey(OsuUser, on_delete=models.CASCADE, related_name="stats")
 
     # Dates
-    last_updated = models.DateTimeField(auto_now=True)
+    last_updated = models.DateTimeField()
 
     objects = UserStatsQuerySet.as_manager()
 
