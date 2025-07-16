@@ -12,6 +12,8 @@ services:
   api:
     build:
       target: development-runner
+    ports:
+      - 8000:8000
     volumes:
       - .:/app
 
@@ -25,6 +27,8 @@ services:
   worker_monitor:
     build:
       target: development-runner
+    ports:
+      - 5555:5555
     volumes:
       - .:/app
 
@@ -38,6 +42,10 @@ services:
   prometheus:
     ports:
       - 9090:9090
+
+  grafana:
+    ports:
+      - 3001:3000
 
   difficalcy-osu:
     ports:

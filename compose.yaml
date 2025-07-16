@@ -41,8 +41,6 @@ services:
 
   api:
     build: .
-    ports:
-      - 8000:8000
     env_file:
       - config/active/django.env
     volumes:
@@ -78,8 +76,6 @@ services:
   worker_monitor:
     build: .
     command: celery --app osuchan flower
-    ports:
-      - 5555:5555
     env_file:
       - config/active/django.env
       - config/active/flower.env
@@ -106,8 +102,6 @@ services:
 
   grafana:
     image: grafana/grafana:12.0.2
-    ports:
-      - 3001:3000
     env_file:
       - ./config/active/grafana.env
     volumes:
