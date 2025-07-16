@@ -124,6 +124,7 @@ def refresh_user_from_api(
     else:
         user_stats = UserStats()
         user_stats.gamemode = gamemode
+        user_stats.last_updated = datetime.now(tz=timezone.utc)
 
         # Get or create OsuUser model
         try:
@@ -177,6 +178,13 @@ def refresh_user_from_api(
     user_stats.count_rank_sh = user_data.count_rank_sh
     user_stats.count_rank_a = user_data.count_rank_a
 
+    user_stats.save()
+
+    # Fetch date of latest score
+    latest_score_date = (
+        user_stats.scores.order_by("-date").values_list("date", flat=True).first()
+    )
+
     # Fetch user scores from osu api
     score_data_list = []
     score_data_list.extend(osu_api.get_user_best_scores(user_stats.user_id, gamemode))
@@ -184,9 +192,8 @@ def refresh_user_from_api(
         score
         for score in osu_api.get_user_recent_scores(user_stats.user_id, gamemode)
         if score.rank != "F"
+        and (latest_score_date is None or score.date > latest_score_date)
     )
-
-    user_stats.save()
 
     # Process and add scores
     created_scores = add_scores_from_data(user_stats, score_data_list)
@@ -199,8 +206,64 @@ def refresh_user_from_api(
 
         # Recalculate with new scores added
         user_stats.recalculate()
-        user_stats.save()
 
+    user_stats.last_updated = datetime.now(tz=timezone.utc)
+    user_stats.save()
+
+    return user_stats, True
+
+
+@transaction.atomic
+def refresh_user_recent_from_api(
+    user_id: int,
+    gamemode: Gamemode = Gamemode.STANDARD,
+    cooldown_seconds: int = 300,
+):
+    """
+    Fetch and update user recent scores
+    """
+    user_stats = fetch_user(user_id=user_id, gamemode=gamemode)
+
+    if user_stats is None:
+        # User does not exist in the db, so return None
+        return None, False
+
+    if user_stats.last_updated > (
+        datetime.utcnow().replace(tzinfo=timezone.utc)
+        - timedelta(seconds=cooldown_seconds)
+    ):
+        # User was last updated less than 1 minutes ago, so just return it
+        return user_stats, False
+
+    osu_api = OsuApi()
+
+    # Fetch date of latest score
+    latest_score_date = (
+        user_stats.scores.order_by("-date").values_list("date", flat=True).first()
+    )
+
+    # Fetch user scores from osu api
+    score_data_list = [
+        score
+        for score in osu_api.get_user_recent_scores(user_stats.user_id, gamemode)
+        if score.rank != "F"
+        and (latest_score_date is None or score.date > latest_score_date)
+    ]
+
+    # Process and add scores
+    created_scores = add_scores_from_data(user_stats, score_data_list)
+
+    if len(created_scores) > 0:
+        difficulty_calculators = get_difficulty_calculators_for_gamemode(gamemode)
+        for difficulty_calculator in difficulty_calculators:
+            with difficulty_calculator() as calc:
+                update_performance_calculations(created_scores, calc)
+
+        # Recalculate with new scores added
+        user_stats.recalculate()
+
+    user_stats.last_updated = datetime.now(tz=timezone.utc)
+    user_stats.save()
     return user_stats, True
 
 
@@ -217,13 +280,14 @@ def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
         if beatmap_data is None:
             continue
 
-        beatmap = Beatmap.from_data(beatmap_data)
-        if beatmap.status not in [
+        if beatmap_data.status not in [
             BeatmapStatus.APPROVED,
             BeatmapStatus.RANKED,
             BeatmapStatus.LOVED,
         ]:
             continue
+
+        beatmap = Beatmap.from_data(beatmap_data)
 
         beatmaps.append(beatmap)
 

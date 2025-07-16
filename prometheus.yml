@@ -7,7 +7,44 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets:
-          - api:8000
+          - api:8001
+          - api:8002
+          - api:8003
+          - api:8004
+          - api:8005
+          - api:8006
+          - api:8007
+          - api:8008
+          - api:8009
+
+  - job_name: worker
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - worker:9001
+          - worker:9002
+          - worker:9003
+          - worker:9004
+          - worker:9005
+          - worker:9006
+          - worker:9007
+          - worker:9008
+          - worker:9009
+          - worker:9010
+          - worker:9011
+          - worker:9012
+          - worker:9013
+          - worker:9014
+          - worker:9015
+          - worker:9016
+          - worker:9017
+          - worker:9018
+          - worker:9019
+          - worker:9020
+          - worker:9021
+          - worker:9022
+          - worker:9023
+          - worker:9024
 
   - job_name: queue
     metrics_path: /metrics/per-object

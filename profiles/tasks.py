@@ -5,10 +5,16 @@ from celery import shared_task
 
 from common.osu.beatmap_provider import BeatmapProvider
 from common.osu.enums import BeatmapStatus, Gamemode
+from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
-from profiles.models import Beatmap
-from profiles.services import refresh_beatmaps_from_api, refresh_user_from_api
+from ppraces.tasks import update_pprace_players
+from profiles.models import Beatmap, OsuUser
+from profiles.services import (
+    refresh_beatmaps_from_api,
+    refresh_user_from_api,
+    refresh_user_recent_from_api,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,20 +24,24 @@ def dispatch_update_all_global_leaderboard_top_members(
     limit: int = 100, cooldown_seconds: int = 300
 ):
     """
-    Dispatches update_user tasks for the top members of all global leaderboards
+    Dispatches update_user_recent tasks for the top members of all global leaderboards
     """
+    updates_to_run = set()
+
     for leaderboard in Leaderboard.global_leaderboards.all():
         members = leaderboard.memberships.order_by("-pp")[:limit].values("user_id")
-
         for member in members:
-            update_user.apply_async(
-                kwargs={
-                    "user_id": member["user_id"],
-                    "gamemode": leaderboard.gamemode,
-                    "cooldown_seconds": cooldown_seconds,
-                },
-                priority=4,
-            )
+            updates_to_run.add((member["user_id"], leaderboard.gamemode))
+
+    for user_id, gamemode in updates_to_run:
+        update_user_recent.apply_async(
+            kwargs={
+                "user_id": user_id,
+                "gamemode": gamemode,
+                "cooldown_seconds": cooldown_seconds,
+            },
+            priority=4,
+        )
 
 
 @shared_task(priority=3)
@@ -45,7 +55,7 @@ def dispatch_update_community_leaderboard_members(
     members = leaderboard.memberships.order_by("-pp")[:limit].values("user_id")
 
     for member in members:
-        update_user.apply_async(
+        update_user_recent.apply_async(
             kwargs={
                 "user_id": member["user_id"],
                 "gamemode": leaderboard.gamemode,
@@ -68,6 +78,9 @@ def update_user(
         update_memberships.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
+        update_pprace_players.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
     return user_stats
 
 
@@ -81,6 +94,29 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
     )
     if user_stats is not None and updated:
         update_memberships.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+        update_pprace_players.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+    return user_stats
+
+
+@shared_task(priority=8)
+def update_user_recent(
+    user_id: int, gamemode: int = Gamemode.STANDARD, cooldown_seconds: int = 60
+):
+    """
+    Runs an update for a given user strictly for recent scores
+    """
+    user_stats, updated = refresh_user_recent_from_api(
+        user_id=user_id, gamemode=Gamemode(gamemode), cooldown_seconds=cooldown_seconds
+    )
+    if user_stats is not None and updated:
+        update_memberships.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+        update_pprace_players.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
     return user_stats

@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",  # api for users
     "profiles.apps.ProfilesConfig",  # api for profiles
     "leaderboards.apps.LeaderboardsConfig",  # api for leaderboards
+    "ppraces.apps.PPRacesConfig",  # api for ppraces
 ]
 
 MIDDLEWARE = [
@@ -208,6 +209,8 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_WORKER_MAX_MEMORY_PER_CHILD = 250000  # 250MB TODO: investigate this memory leak
+CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_TASK_SEND_SENT_EVENT = True
 
 CELERY_TASK_QUEUES = [
     Queue(
@@ -235,6 +238,10 @@ CELERY_BEAT_SCHEDULE = {
     "update-loved-beatmaps-every-month": {
         "task": "profiles.tasks.update_loved_beatmaps",
         "schedule": crontab(minute="0", hour="0", day_of_month="1"),
+    },
+    "update-ppraces-every-minute": {
+        "task": "ppraces.tasks.dispatch_update_all_ppraces",
+        "schedule": crontab(minute="*"),  # every minute
     },
 }
 
@@ -268,8 +275,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "30/minute",
         "user": "45/minute",
-        "anon": "1000/day",
-        "user": "1500/day",
+        "anon": "7200/day",  # 5 requests per minute
+        "user": "10800/day",
     },
 }
 
@@ -299,6 +306,14 @@ STATIC_URL = "/backendstatic/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 STATICFILES_DIRS = []
+
+# Prometheus metrics
+# https://github.com/django-commons/django-prometheus/blob/master/documentation/exports.md
+
+PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(
+    8001,
+    8999,
+)
 
 
 # Frontend config

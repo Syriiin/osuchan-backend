@@ -69,6 +69,7 @@ def user_stats(osu_user: OsuUser):
         score_style_od=0,
         score_style_length=0,
         user=osu_user,
+        last_updated=datetime(2025, 7, 14, tzinfo=timezone.utc),
     )
 
 
