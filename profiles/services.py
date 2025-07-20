@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
 from django.db import transaction
+from prometheus_client import Counter
 
 from common.error_reporter import ErrorReporter
 from common.osu import utils
@@ -27,6 +28,12 @@ from profiles.models import (
     PerformanceValue,
     Score,
     UserStats,
+)
+
+scores_added_counter = Counter(
+    "profiles_scores_added_total",
+    "Total number of real scores (non-mutations) added to the database",
+    ["gamemode"],
 )
 
 
@@ -447,6 +454,8 @@ def add_scores_from_data(user_stats: UserStats, score_data_list: list[ScoreData]
 
     # Bulk add and update and scores
     created_scores = Score.objects.bulk_create(scores_to_create)
+
+    scores_added_counter.labels(gamemode=gamemode.value).inc(len(created_scores))
 
     if gamemode == Gamemode.STANDARD:
         nochoke_mutations_to_create = [
