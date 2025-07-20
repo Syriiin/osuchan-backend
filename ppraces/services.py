@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from django.db import transaction
 
+from common.osu.enums import BeatmapStatus
 from common.osu.utils import calculate_pp_total
 from ppraces.enums import PPRaceStatus
 from ppraces.models import PPRace, PPRacePlayer, PPRaceScore, PPRaceTeam
@@ -79,6 +80,7 @@ def update_pprace_player(player: PPRacePlayer) -> PPRacePlayer:
         gamemode=pprace.gamemode,
         date__gte=pprace.start_time,
         date__lte=pprace.end_time,
+        beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED],
     ).get_score_set(
         pprace.gamemode,
         score_set=ScoreSet.NORMAL,
