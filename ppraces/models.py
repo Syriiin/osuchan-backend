@@ -66,6 +66,12 @@ class PPRaceTeam(models.Model):
         """
         return self.scores.get_score_set(self.pprace.gamemode)[:3]
 
+    def is_small_team(self):
+        """
+        Returns True if the team has less than 5 players
+        """
+        return self.players.count() < 5
+
     def __str__(self):
         return f"{self.pprace.name}: {self.name}"
 
