@@ -9,8 +9,8 @@ Generally higher priority tasks should tend to be shorter so as to not block the
 | Priority    | Use                                 |
 | ----------- | ----------------------------------- |
 | Priority 10 | Time sensitive notifications        |
-| Priority 9  |                                     |
-| Priority 8  | Time sensitive updates              |
+| Priority 9  | Time sensitive updates              |
+| Priority 8  | High priority updates               |
 | Priority 7  | Profile updates                     |
 | Priority 6  |                                     |
 | Priority 5  | Default                             |

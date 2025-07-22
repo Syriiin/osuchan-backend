@@ -46,10 +46,13 @@ def update_pprace(pprace_id: int):
         for team in pprace.teams.all():
             if team.players.count() < 5:
                 for player in team.players.all():
-                    update_user_recent.delay(
-                        user_id=player.user_id,
-                        gamemode=pprace.gamemode,
-                        cooldown_seconds=30,
+                    update_user_recent.apply_async(
+                        kwargs={
+                            "user_id": player.user_id,
+                            "gamemode": pprace.gamemode,
+                            "cooldown_seconds": 30,
+                        },
+                        priority=9,
                     )
                 continue
 
