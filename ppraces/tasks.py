@@ -66,7 +66,7 @@ def update_pprace(pprace_id: int):
                     continue
 
                 if user_stats.scores.filter(
-                    date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=5)
+                    date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=10)
                 ).exists():
                     update_user_recent.delay(
                         user_id=player.user_id,
