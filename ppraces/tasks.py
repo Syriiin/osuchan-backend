@@ -44,12 +44,17 @@ def update_pprace(pprace_id: int):
         from profiles.tasks import update_user_recent
 
         for team in pprace.teams.all():
-            if team.players.count() < 5:
+            update_pprace_team(team)
+
+            if team.is_small_team():
                 for player in team.players.all():
-                    update_user_recent.delay(
-                        user_id=player.user_id,
-                        gamemode=pprace.gamemode,
-                        cooldown_seconds=30,
+                    update_user_recent.apply_async(
+                        kwargs={
+                            "user_id": player.user_id,
+                            "gamemode": pprace.gamemode,
+                            "cooldown_seconds": 30,
+                        },
+                        priority=9,
                     )
                 continue
 
@@ -61,7 +66,7 @@ def update_pprace(pprace_id: int):
                     continue
 
                 if user_stats.scores.filter(
-                    date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=5)
+                    date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=10)
                 ).exists():
                     update_user_recent.delay(
                         user_id=player.user_id,
@@ -92,6 +97,7 @@ def update_pprace_players(user_id, gamemode=Gamemode.STANDARD):
 
     for player in players:
         update_pprace_player(player)
-        update_pprace_team(player.team)
+        if player.team.is_small_team():
+            update_pprace_team(player.team)
 
     return players
