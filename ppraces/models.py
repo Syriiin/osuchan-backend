@@ -64,7 +64,7 @@ class PPRaceTeam(models.Model):
         """
         Returns the top scores for this team
         """
-        return self.scores.get_score_set(self.pprace.gamemode)[:3]
+        return self.scores.get_score_set(self.pprace.gamemode)[:100]
 
     def is_small_team(self):
         """
