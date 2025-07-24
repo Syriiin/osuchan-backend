@@ -59,7 +59,7 @@ def update_pprace_team(team: PPRaceTeam) -> PPRaceTeam:
         if user_id not in pp_contributions:
             pp_contributions[user_id] = 0
         pp_contributions[user_id] += weighted_pp
-        pp_weight *= 0.95
+        pp_weight *= team.pprace.pp_decay_base
 
     team.total_pp = total_pp
     team.score_count = len(pp_values)

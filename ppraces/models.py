@@ -25,6 +25,7 @@ class PPRace(models.Model):
     duration = models.IntegerField()
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
+    pp_decay_base = models.FloatField()
     calculator_engine = models.CharField()
     primary_performance_value = models.CharField()
 
