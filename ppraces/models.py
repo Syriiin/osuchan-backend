@@ -22,7 +22,6 @@ class PPRace(models.Model):
             (PPRaceStatus.FINISHED, "Finished"),
         ]
     )
-    duration = models.IntegerField()
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     pp_decay_base = models.FloatField()
