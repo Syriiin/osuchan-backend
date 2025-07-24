@@ -10,7 +10,6 @@ from ppraces.services import (
     update_pprace_status,
     update_pprace_team,
 )
-from profiles.models import UserStats
 
 
 @shared_task(priority=8)

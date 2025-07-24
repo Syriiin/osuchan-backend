@@ -4,6 +4,11 @@ from ppraces import views
 
 urlpatterns = [
     path(
+        "",
+        views.PPRaceList.as_view(),
+        name="leaderboard-list",
+    ),
+    path(
         "<int:pprace_id>",
         views.PPRaceDetail.as_view(),
         name="pprace-detail",

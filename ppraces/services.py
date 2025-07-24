@@ -2,12 +2,42 @@ from datetime import datetime, timezone
 
 from django.db import transaction
 
-from common.osu.enums import BeatmapStatus
+from common.osu.difficultycalculator import get_default_difficulty_calculator_class
+from common.osu.enums import BeatmapStatus, Gamemode
 from common.osu.utils import calculate_pp_total
 from ppraces.enums import PPRaceStatus
 from ppraces.models import PPRace, PPRacePlayer, PPRaceScore, PPRaceTeam
 from profiles.enums import ScoreSet
 from profiles.models import Score
+
+
+@transaction.atomic
+def create_pprace_lobby(
+    name: str,
+    gamemode: Gamemode,
+    teams: dict[str, list[int]],
+) -> PPRace:
+    """
+    Create a lobby for a pp race
+    """
+    diffcalc = get_default_difficulty_calculator_class(gamemode)
+    pprace = PPRace.objects.create(
+        name=name,
+        gamemode=gamemode,
+        status=PPRaceStatus.LOBBY,
+        pp_decay_base=0.95,
+        calculator_engine=diffcalc.engine(),
+        primary_performance_value="total",
+    )
+    for team_name, player_ids in teams.items():
+        team = PPRaceTeam.objects.create(
+            pprace=pprace, name=team_name, total_pp=0, score_count=0
+        )
+        for player_id in player_ids:
+            PPRacePlayer.objects.create(
+                user_id=player_id, team=team, pp=0, pp_contribution=0, score_count=0
+            )
+    return pprace
 
 
 @transaction.atomic
