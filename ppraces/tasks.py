@@ -18,7 +18,11 @@ def dispatch_update_all_ppraces():
     Dispatch update tasks for all pp races
     """
     ppraces = PPRace.objects.filter(
-        status__in=[PPRaceStatus.IN_PROGRESS, PPRaceStatus.WAITING_TO_START]
+        status__in=[
+            PPRaceStatus.WAITING_TO_START,
+            PPRaceStatus.IN_PROGRESS,
+            PPRaceStatus.FINALISING,
+        ]
     )
     for pprace in ppraces:
         update_pprace.delay(pprace_id=pprace.id)
@@ -31,18 +35,18 @@ def update_pprace(pprace_id: int):
     """
     pprace = PPRace.objects.get(id=pprace_id)
 
-    assert pprace.status not in [
-        PPRaceStatus.LOBBY,
-        PPRaceStatus.FINISHED,
-    ], "PPRace should be waiting or in progress to be updated"
+    assert pprace.status in [
+        PPRaceStatus.WAITING_TO_START,
+        PPRaceStatus.IN_PROGRESS,
+        PPRaceStatus.FINALISING,
+    ], "PPRace must be in a valid status for update"
 
     update_pprace_status(pprace)
 
     # TODO: fix circular import
+    from profiles.tasks import update_user_recent
 
-    if pprace.status in [PPRaceStatus.IN_PROGRESS, PPRaceStatus.FINISHED]:
-        from profiles.tasks import update_user_recent
-
+    if pprace.status == PPRaceStatus.IN_PROGRESS:
         for team in pprace.teams.all():
             update_pprace_team(team)
 
@@ -82,6 +86,25 @@ def update_pprace(pprace_id: int):
                         user_id=player.user_id, gamemode=pprace.gamemode
                     )
                     continue
+    elif pprace.status == PPRaceStatus.FINALISING:
+        for team in pprace.teams.all():
+            update_pprace_team(team)
+
+        unfinalised_player_ids = pprace.get_unfinalised_players().values_list(
+            "user_id", flat=True
+        )
+
+        for user_id in unfinalised_player_ids:
+            assert pprace.end_time is not None, "PPRace must have an end time"
+            time_since_race_end = datetime.now(tz=timezone.utc) - pprace.end_time
+            update_user_recent.apply_async(
+                kwargs={
+                    "user_id": user_id,
+                    "gamemode": pprace.gamemode,
+                    "cooldown_seconds": time_since_race_end.total_seconds(),
+                },
+                priority=9,
+            )
 
 
 @shared_task(priority=8)
@@ -92,7 +115,7 @@ def update_pprace_players(user_id, gamemode=Gamemode.STANDARD):
     players = PPRacePlayer.objects.filter(
         user_id=user_id,
         team__pprace__gamemode=gamemode,
-        team__pprace__status=PPRaceStatus.IN_PROGRESS,
+        team__pprace__status__in=[PPRaceStatus.IN_PROGRESS, PPRaceStatus.FINALISING],
     ).select_related("team", "team__pprace")
 
     for player in players:

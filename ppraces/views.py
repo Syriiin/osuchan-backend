@@ -1,10 +1,49 @@
 from rest_framework import permissions
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.osu.enums import Gamemode
 from ppraces.models import PPRace, PPRaceTeam
 from ppraces.serialisers import PPRaceSerialiser, PPRacesScoreSerialiser
+from ppraces.services import create_pprace_lobby
+
+
+class PPRaceList(APIView):
+    """
+    API endpoint for listing pp races
+    """
+
+    def post(self, request):
+        """
+        Create a new pp race
+        """
+        # check user is staff
+        if not request.user.is_staff:
+            raise PermissionDenied("You do not have permission to create a pp race.")
+
+        name = request.data.get("name")
+        if name is None:
+            raise ParseError("Missing name parameter.")
+        gamemode = request.data.get("gamemode")
+        if gamemode is None:
+            raise ParseError("Missing gamemode parameter.")
+        try:
+            gamemode = Gamemode(gamemode)
+        except ValueError:
+            raise ParseError("Invalid gamemode parameter.")
+
+        teams = request.data.get("teams")
+        if not isinstance(teams, dict):
+            raise ParseError("Invalid teams parameter.")
+
+        pprace = create_pprace_lobby(
+            name=name,
+            gamemode=gamemode,
+            teams=teams,
+        )
+        serialiser = PPRaceSerialiser(pprace)
+        return Response(serialiser.data)
 
 
 class PPRaceDetail(APIView):

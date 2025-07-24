@@ -2,7 +2,8 @@ from datetime import datetime, timezone
 
 from django.db import transaction
 
-from common.osu.enums import BeatmapStatus
+from common.osu.difficultycalculator import get_default_difficulty_calculator_class
+from common.osu.enums import BeatmapStatus, Gamemode
 from common.osu.utils import calculate_pp_total
 from ppraces.enums import PPRaceStatus
 from ppraces.models import PPRace, PPRacePlayer, PPRaceScore, PPRaceTeam
@@ -11,20 +12,57 @@ from profiles.models import Score
 
 
 @transaction.atomic
+def create_pprace_lobby(
+    name: str,
+    gamemode: Gamemode,
+    teams: dict[str, list[int]],
+) -> PPRace:
+    """
+    Create a lobby for a pp race
+    """
+    diffcalc = get_default_difficulty_calculator_class(gamemode)
+    pprace = PPRace.objects.create(
+        name=name,
+        gamemode=gamemode,
+        status=PPRaceStatus.LOBBY,
+        pp_decay_base=0.95,
+        calculator_engine=diffcalc.engine(),
+        primary_performance_value="total",
+    )
+    for team_name, player_ids in teams.items():
+        team = PPRaceTeam.objects.create(
+            pprace=pprace, name=team_name, total_pp=0, score_count=0
+        )
+        for player_id in player_ids:
+            PPRacePlayer.objects.create(
+                user_id=player_id, team=team, pp=0, pp_contribution=0, score_count=0
+            )
+    return pprace
+
+
+@transaction.atomic
 def update_pprace_status(pprace: PPRace) -> PPRace:
     """
     Update the status of a pp race
     """
-    assert pprace.status != PPRaceStatus.LOBBY, "PPRace must not be in lobby status"
+    assert pprace.status not in [
+        PPRaceStatus.LOBBY,
+        PPRaceStatus.FINISHED,
+    ], "PPRace should not be in lobby or finished status"
     assert pprace.start_time is not None, "PPRace must have a start time"
     assert pprace.end_time is not None, "PPRace must have an end time"
 
-    if pprace.start_time > datetime.now(tz=timezone.utc):
+    now = datetime.now(tz=timezone.utc)
+    if now < pprace.start_time:
         pprace.status = PPRaceStatus.WAITING_TO_START
-    elif pprace.end_time < datetime.now(tz=timezone.utc):
-        pprace.status = PPRaceStatus.FINISHED
-    else:
+    elif now < pprace.end_time:
         pprace.status = PPRaceStatus.IN_PROGRESS
+    else:
+        pprace.status = PPRaceStatus.FINALISING
+        if pprace.all_players_finalised():
+            pprace.status = PPRaceStatus.FINISHED
+            for team in pprace.teams.all():
+                update_pprace_team(team)
 
     pprace.save()
     return pprace
@@ -51,7 +89,7 @@ def update_pprace_team(team: PPRaceTeam) -> PPRaceTeam:
         if user_id not in pp_contributions:
             pp_contributions[user_id] = 0
         pp_contributions[user_id] += weighted_pp
-        pp_weight *= 0.95
+        pp_weight *= team.pprace.pp_decay_base
 
     team.total_pp = total_pp
     team.score_count = len(pp_values)
@@ -115,6 +153,7 @@ def update_pprace_player(player: PPRacePlayer) -> PPRacePlayer:
     player.score_count = len(pprace_scores)
     player.pp = calculate_pp_total(score.performance_total for score in pprace_scores)
 
+    player.last_update = datetime.now(tz=timezone.utc)
     player.save()
 
     return player

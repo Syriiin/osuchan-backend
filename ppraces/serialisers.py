@@ -54,9 +54,9 @@ class PPRaceSerialiser(serializers.ModelSerializer):
             "name",
             "gamemode",
             "status",
-            "duration",
             "start_time",
             "end_time",
+            "pp_decay_base",
             # relations
             "teams",
         )
