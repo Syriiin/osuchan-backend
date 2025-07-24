@@ -15,16 +15,24 @@ def update_pprace_status(pprace: PPRace) -> PPRace:
     """
     Update the status of a pp race
     """
-    assert pprace.status != PPRaceStatus.LOBBY, "PPRace must not be in lobby status"
+    assert pprace.status not in [
+        PPRaceStatus.LOBBY,
+        PPRaceStatus.FINISHED,
+    ], "PPRace should not be in lobby or finished status"
     assert pprace.start_time is not None, "PPRace must have a start time"
     assert pprace.end_time is not None, "PPRace must have an end time"
 
-    if pprace.start_time > datetime.now(tz=timezone.utc):
+    now = datetime.now(tz=timezone.utc)
+    if now < pprace.start_time:
         pprace.status = PPRaceStatus.WAITING_TO_START
-    elif pprace.end_time < datetime.now(tz=timezone.utc):
-        pprace.status = PPRaceStatus.FINISHED
-    else:
+    elif now < pprace.end_time:
         pprace.status = PPRaceStatus.IN_PROGRESS
+    else:
+        pprace.status = PPRaceStatus.FINALISING
+        if pprace.all_players_finalised():
+            pprace.status = PPRaceStatus.FINISHED
+            for team in pprace.teams.all():
+                update_pprace_team(team)
 
     pprace.save()
     return pprace
@@ -115,6 +123,7 @@ def update_pprace_player(player: PPRacePlayer) -> PPRacePlayer:
     player.score_count = len(pprace_scores)
     player.pp = calculate_pp_total(score.performance_total for score in pprace_scores)
 
+    player.last_update = datetime.now(tz=timezone.utc)
     player.save()
 
     return player

@@ -1,7 +1,7 @@
 from django.db import models
 
 from ppraces.enums import PPRaceStatus
-from profiles.models import OsuUser, Score
+from profiles.models import OsuUser, Score, UserStats
 
 
 class PPRace(models.Model):
@@ -18,6 +18,7 @@ class PPRace(models.Model):
             (PPRaceStatus.LOBBY, "Lobby"),
             (PPRaceStatus.WAITING_TO_START, "Waiting to start"),
             (PPRaceStatus.IN_PROGRESS, "In progress"),
+            (PPRaceStatus.FINALISING, "Finalising"),
             (PPRaceStatus.FINISHED, "Finished"),
         ]
     )
@@ -36,6 +37,26 @@ class PPRace(models.Model):
         ).order_by(
             "-date"
         )[:50]
+
+    def all_players_finalised(self) -> bool:
+        """
+        Returns True if all players last update is past the end time
+        """
+        return not UserStats.objects.filter(
+            gamemode=self.gamemode,
+            user__pprace_players__team__pprace=self,
+            last_updated__lt=self.end_time,
+        ).exists()
+
+    def get_unfinalised_players(self):
+        """
+        Returns a queryset of players whose scores have not been finalised
+        """
+        return UserStats.objects.filter(
+            gamemode=self.gamemode,
+            user__pprace_players__team__pprace=self,
+            last_updated__lt=self.end_time,
+        )
 
     def __str__(self):
         return self.name
