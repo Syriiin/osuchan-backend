@@ -14,6 +14,11 @@ urlpatterns = [
         name="pprace-detail",
     ),
     path(
+        "<int:pprace_id>/start",
+        views.PPRaceStart.as_view(),
+        name="pprace-start",
+    ),
+    path(
         "<int:pprace_id>/recentscores",
         views.PPRaceRecentScoresList.as_view(),
         name="pprace-recent-scores-list",
