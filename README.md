@@ -29,7 +29,15 @@
 ## Setup dev environment
 
 1. [Install poetry](https://python-poetry.org/docs/)
-2. Install dependencies locally (for IDE, code formatting, etc...)
+1. Install python
+   ```
+   $ poetry python install 3.13
+   ```
+1. Create venv
+   ```
+   $ poetry env use 3.13
+   ```
+1. Install dependencies locally (for IDE, code formatting, etc...)
    ```
    $ poetry install
    ```

@@ -243,6 +243,86 @@ CELERY_BEAT_SCHEDULE = {
         "task": "ppraces.tasks.dispatch_update_all_ppraces",
         "schedule": crontab(minute="*"),  # every minute
     },
+    "update-coe-top-50-members-osu-every-10-minutes": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="*/10"),
+        "args": (837, 50),
+    },
+    "update-coe-top-50-members-taiko-every-10-minutes": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="*/10"),
+        "args": (838, 50),
+    },
+    "update-coe-top-50-members-catch-every-10-minutes": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="*/10"),
+        "args": (839, 50),
+    },
+    "update-coe-top-50-members-mania-every-10-minutes": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="*/10"),
+        "args": (840, 50),
+    },
+    "update-coe-top-100-members-osu-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="*"),
+        "args": (837, 100),
+    },
+    "update-coe-top-100-members-taiko-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="*"),
+        "args": (838, 100),
+    },
+    "update-coe-top-100-members-catch-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="*"),
+        "args": (839, 100),
+    },
+    "update-coe-top-100-members-mania-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="*"),
+        "args": (840, 100),
+    },
+    "update-coe-all-members-osu-every-day": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
+        "args": (837, 1000),
+    },
+    "update-coe-all-members-taiko-every-day": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
+        "args": (838, 1000),
+    },
+    "update-coe-all-members-catch-every-day": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
+        "args": (839, 1000),
+    },
+    "update-coe-all-members-mania-every-day": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="19"),  # 21:00 netherlands time
+        "args": (840, 1000),
+    },
+    "send-coe-podium-osu-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="20"),  # 22:00 netherlands time
+        "args": (837,),
+    },
+    "send-coe-podium-taiko-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="20"),  # 22:00 netherlands time
+        "args": (838,),
+    },
+    "send-coe-podium-catch-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="20"),  # 22:00 netherlands time
+        "args": (839,),
+    },
+    "send-coe-podium-mania-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="20"),  # 22:00 netherlands time
+        "args": (840,),
+    },
 }
 
 
