@@ -43,6 +43,7 @@ class EnvSettings(BaseSettings):
     USE_STUB_OSU_API: bool
     USE_STUB_BEATMAP_PROVIDER: bool
     USE_STUB_OSU_OAUTH: bool
+    COE_API_KEY: str
 
 
 env_settings = EnvSettings()
@@ -481,3 +482,5 @@ else:
     DISCORD_WEBHOOK_SENDER_CLASS = (
         "common.discord_webhook_sender.LiveDiscordWebhookSender"
     )
+
+COE_API_KEY = env_settings.COE_API_KEY

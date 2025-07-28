@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from django.db import transaction
 
@@ -157,3 +157,14 @@ def update_pprace_player(player: PPRacePlayer) -> PPRacePlayer:
     player.save()
 
     return player
+
+
+def start_pprace_in_1_minute(pprace: PPRace) -> PPRace:
+    """Set a pp race to start in 1 minute, for 1 hour."""
+    assert pprace.status == PPRaceStatus.LOBBY, "PPRace must be in lobby status"
+
+    pprace.start_time = datetime.now(tz=timezone.utc) + timedelta(minutes=1)
+    pprace.end_time = pprace.start_time + timedelta(hours=1)
+    pprace.status = PPRaceStatus.WAITING_TO_START
+    pprace.save()
+    return pprace
