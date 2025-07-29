@@ -9,6 +9,11 @@ urlpatterns = [
         name="leaderboard-list",
     ),
     path(
+        "trigger-update",
+        views.PPRacePlayerTriggerUpdate.as_view(),
+        name="pprace-team-players-trigger-update",
+    ),
+    path(
         "<int:pprace_id>",
         views.PPRaceDetail.as_view(),
         name="pprace-detail",
