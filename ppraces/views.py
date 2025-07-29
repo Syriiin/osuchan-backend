@@ -16,13 +16,17 @@ class PPRaceList(APIView):
     API endpoint for listing pp races
     """
 
+    authentication_classes = []
+    permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
         """
         Create a new pp race
         """
-        # check user is staff
-        if not request.user.is_staff:
-            raise PermissionDenied("You do not have permission to create a pp race.")
+
+        api_key = request.query_params.get("api_key")
+        if api_key != settings.COE_API_KEY:
+            raise PermissionDenied("Invalid API key.")
 
         name = request.data.get("name")
         if name is None:
