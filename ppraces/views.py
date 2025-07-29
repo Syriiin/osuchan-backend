@@ -8,7 +8,7 @@ from common.osu.enums import Gamemode
 from ppraces.enums import PPRaceStatus
 from ppraces.models import PPRace, PPRaceTeam
 from ppraces.serialisers import PPRaceSerialiser, PPRacesScoreSerialiser
-from ppraces.services import create_pprace_lobby, start_pprace_in_1_minute
+from ppraces.services import create_pprace_lobby, start_pprace
 
 
 class PPRaceList(APIView):
@@ -16,13 +16,17 @@ class PPRaceList(APIView):
     API endpoint for listing pp races
     """
 
+    authentication_classes = []
+    permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
         """
         Create a new pp race
         """
-        # check user is staff
-        if not request.user.is_staff:
-            raise PermissionDenied("You do not have permission to create a pp race.")
+
+        api_key = request.query_params.get("api_key")
+        if api_key != settings.COE_API_KEY:
+            raise PermissionDenied("Invalid API key.")
 
         name = request.data.get("name")
         if name is None:
@@ -88,7 +92,7 @@ class PPRaceStart(APIView):
         if pprace.status != PPRaceStatus.LOBBY:
             raise ParseError("PP race is not in lobby state.")
 
-        pprace = start_pprace_in_1_minute(pprace)
+        pprace = start_pprace(pprace)
         serialiser = PPRaceSerialiser(pprace)
         return Response(serialiser.data)
 

@@ -159,12 +159,30 @@ def update_pprace_player(player: PPRacePlayer) -> PPRacePlayer:
     return player
 
 
-def start_pprace_in_1_minute(pprace: PPRace) -> PPRace:
-    """Set a pp race to start in 1 minute, for 1 hour."""
+def start_pprace(pprace: PPRace) -> PPRace:
+    """Start a 1 hour pp race immediately."""
     assert pprace.status == PPRaceStatus.LOBBY, "PPRace must be in lobby status"
 
-    pprace.start_time = datetime.now(tz=timezone.utc) + timedelta(minutes=1)
+    pprace.start_time = datetime.now(tz=timezone.utc)
     pprace.end_time = pprace.start_time + timedelta(hours=1)
-    pprace.status = PPRaceStatus.WAITING_TO_START
+    pprace.status = PPRaceStatus.IN_PROGRESS
     pprace.save()
     return pprace
+
+
+def add_player_to_team(team: PPRaceTeam, user_id: int) -> tuple[PPRacePlayer, bool]:
+    """
+    Add a player to a pprace team.
+    """
+    try:
+        player = team.players.get(user_id=user_id)
+        return player, False
+    except PPRacePlayer.DoesNotExist:
+        player = PPRacePlayer.objects.create(
+            user_id=user_id,
+            team=team,
+            pp=0,
+            pp_contribution=0,
+            score_count=0,
+        )
+        return player, True
