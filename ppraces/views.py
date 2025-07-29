@@ -6,9 +6,15 @@ from rest_framework.views import APIView
 
 from common.osu.enums import Gamemode
 from ppraces.enums import PPRaceStatus
-from ppraces.models import PPRace, PPRaceTeam
-from ppraces.serialisers import PPRaceSerialiser, PPRacesScoreSerialiser
+from ppraces.models import PPRace, PPRacePlayer, PPRaceTeam
+from ppraces.serialisers import (
+    PPRacePlayerSerialiser,
+    PPRaceSerialiser,
+    PPRacesScoreSerialiser,
+)
 from ppraces.services import create_pprace_lobby, start_pprace
+from ppraces.tasks import update_pprace_players
+from profiles.tasks import update_user_recent
 
 
 class PPRaceList(APIView):
@@ -148,3 +154,38 @@ class PPRaceTeamScoresList(APIView):
 
         serialiser = PPRacesScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
+
+
+class PPRacePlayerTriggerUpdate(APIView):
+    """
+    API endpoint to force an update for a user
+    """
+
+    authentication_classes = []
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        api_key = request.query_params.get("api_key")
+        if api_key != settings.COE_API_KEY:
+            raise PermissionDenied("Invalid API key.")
+
+        user_id = request.query_params.get("user_id")
+        if user_id is None:
+            raise ParseError("Missing user_id parameter.")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise ParseError("Invalid user_id parameter.")
+
+        gamemode = request.query_params.get("gamemode")
+        if gamemode is None:
+            raise ParseError("Missing gamemode parameter.")
+        try:
+            gamemode = Gamemode(int(gamemode))
+        except ValueError:
+            raise ParseError("Invalid gamemode parameter.")
+
+        update_user_recent(user_id, gamemode, cooldown_seconds=0)
+        update_pprace_players(user_id=user_id, gamemode=gamemode)
+
+        return Response({"status": "success"})
