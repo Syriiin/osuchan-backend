@@ -8,7 +8,7 @@ from common.osu.enums import Gamemode
 from ppraces.enums import PPRaceStatus
 from ppraces.models import PPRace, PPRaceTeam
 from ppraces.serialisers import PPRaceSerialiser, PPRacesScoreSerialiser
-from ppraces.services import create_pprace_lobby, start_pprace_in_1_minute
+from ppraces.services import create_pprace_lobby, start_pprace
 
 
 class PPRaceList(APIView):
@@ -88,7 +88,7 @@ class PPRaceStart(APIView):
         if pprace.status != PPRaceStatus.LOBBY:
             raise ParseError("PP race is not in lobby state.")
 
-        pprace = start_pprace_in_1_minute(pprace)
+        pprace = start_pprace(pprace)
         serialiser = PPRaceSerialiser(pprace)
         return Response(serialiser.data)
 
