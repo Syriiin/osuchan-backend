@@ -27,8 +27,11 @@ def create_membership(leaderboard_id, user_id):
     Creates a membership with a community leaderboard and update Leaderboard.member_count
     """
     leaderboard = Leaderboard.community_leaderboards.get(id=leaderboard_id)
-    membership = update_membership(leaderboard, user_id)
-    leaderboard.update_member_count()
+    try:
+        membership = leaderboard.memberships.get(user_id=user_id)
+    except Membership.DoesNotExist:
+        membership = update_membership(leaderboard, user_id)
+        leaderboard.update_member_count()
     return membership
 
 
