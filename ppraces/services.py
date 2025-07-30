@@ -159,12 +159,12 @@ def update_pprace_player(player: PPRacePlayer) -> PPRacePlayer:
     return player
 
 
-def start_pprace(pprace: PPRace) -> PPRace:
+def start_pprace(pprace: PPRace, race_length: int, countdown: int) -> PPRace:
     """Start a 1 hour pp race immediately."""
     assert pprace.status == PPRaceStatus.LOBBY, "PPRace must be in lobby status"
 
-    pprace.start_time = datetime.now(tz=timezone.utc)
-    pprace.end_time = pprace.start_time + timedelta(hours=1)
+    pprace.start_time = datetime.now(tz=timezone.utc) + timedelta(seconds=countdown)
+    pprace.end_time = pprace.start_time + timedelta(seconds=race_length)
     pprace.status = PPRaceStatus.IN_PROGRESS
     pprace.save()
     return pprace
