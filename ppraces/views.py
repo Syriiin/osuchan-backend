@@ -90,6 +90,24 @@ class PPRaceStart(APIView):
         if api_key != settings.COE_API_KEY:
             raise PermissionDenied("Invalid API key.")
 
+        race_length = request.query_params.get("race_length")
+        if race_length is None:
+            race_length = 60 * 60  # Default to 1 hour
+        else:
+            try:
+                race_length = int(race_length)
+            except ValueError:
+                raise ParseError("Invalid race_length parameter.")
+
+        countdown = request.query_params.get("countdown")
+        if countdown is None:
+            countdown = 60  # Default to 1 minute
+        else:
+            try:
+                countdown = int(countdown)
+            except ValueError:
+                raise ParseError("Invalid countdown parameter.")
+
         try:
             pprace = PPRace.objects.get(id=pprace_id)
         except PPRace.DoesNotExist:
@@ -98,7 +116,7 @@ class PPRaceStart(APIView):
         if pprace.status != PPRaceStatus.LOBBY:
             raise ParseError("PP race is not in lobby state.")
 
-        pprace = start_pprace(pprace)
+        pprace = start_pprace(pprace, race_length, countdown)
         serialiser = PPRaceSerialiser(pprace)
         return Response(serialiser.data)
 
