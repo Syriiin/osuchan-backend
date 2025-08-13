@@ -776,13 +776,13 @@ files = [
 
 [[package]]
 name = "ossapi"
-version = "5.3.1"
+version = "5.3.2"
 description = "The definitive python wrapper for the osu! api"
 optional = false
 python-versions = "*"
 files = [
-    {file = "ossapi-5.3.1-py3-none-any.whl", hash = "sha256:565e49a454c32815965a6057072d7643aa50530bc463c5f81f2afb40dd8ca8d5"},
-    {file = "ossapi-5.3.1.tar.gz", hash = "sha256:1debf5acd4ca5ba854b1747672fdff20764ed8060d693503e2b1718638293251"},
+    {file = "ossapi-5.3.2-py3-none-any.whl", hash = "sha256:7072b1236fbde519620b0f7a3c44a5e6a89b0765988c8aef0bf3fbe45debcb2b"},
+    {file = "ossapi-5.3.2.tar.gz", hash = "sha256:f4c6451c889e1b38390fa34d6ec0d7f4ac953069d4119c777f84def12a33ecc7"},
 ]
 
 [package.dependencies]
