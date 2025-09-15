@@ -4,7 +4,7 @@ jobs:
   checkfixup:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - run: make checkfixup
@@ -12,21 +12,21 @@ jobs:
   checkformatting:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: make env
       - run: make checkformatting
 
   checkmigrations:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: make env
       - run: make checkmigrations
 
   test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: make env
       - run: make test
       - run: make test-coverage-report
