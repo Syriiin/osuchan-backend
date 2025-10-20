@@ -47,6 +47,9 @@ resetdb:	## Resets the database
 test:	## Runs test suite
 	$(COMPOSE_RUN_TOOLING) coverage run -m pytest
 
+update-test-snapshots:	## Runs test suite and updates snapshots
+	$(COMPOSE_RUN_TOOLING) pytest --snapshot-update
+
 test-coverage-report:	## Get test coverage report
 	$(COMPOSE_RUN_TOOLING) sh -c "coverage report -m && coverage html"
 
