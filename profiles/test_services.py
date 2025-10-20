@@ -146,15 +146,15 @@ class TestDifficultyCalculationServices:
         performance_values = performance_calculation.performance_values.all()
         assert len(performance_values) == 5
         assert performance_values[0].name == "aim"
-        assert performance_values[0].value == 642.809051926895
+        assert performance_values[0].value == 642.6807949568927
         assert performance_values[1].name == "speed"
-        assert performance_values[1].value == 70.15728635717791
+        assert performance_values[1].value == 69.93240841164256
         assert performance_values[2].name == "accuracy"
-        assert performance_values[2].value == 3.199536008089327
+        assert performance_values[2].value == 3.1624441288609773
         assert performance_values[3].name == "flashlight"
         assert performance_values[3].value == 0
         assert performance_values[4].name == "total"
-        assert performance_values[4].value == 799.7298873161342
+        assert performance_values[4].value == 799.3530819911197
 
     @pytest.fixture
     def difficulty_calculation(self, beatmap):
@@ -202,12 +202,12 @@ class TestDifficultyCalculationServices:
         assert len(performance_values) == 1
         assert len(performance_values[0]) == 5
         assert performance_values[0][0].name == "aim"
-        assert performance_values[0][0].value == 642.809051926895
+        assert performance_values[0][0].value == 642.6807949568927
         assert performance_values[0][1].name == "speed"
-        assert performance_values[0][1].value == 70.15728635717791
+        assert performance_values[0][1].value == 69.93240841164256
         assert performance_values[0][2].name == "accuracy"
-        assert performance_values[0][2].value == 3.199536008089327
+        assert performance_values[0][2].value == 3.1624441288609773
         assert performance_values[0][3].name == "flashlight"
         assert performance_values[0][3].value == 0
         assert performance_values[0][4].name == "total"
-        assert performance_values[0][4].value == 799.7298873161342
+        assert performance_values[0][4].value == 799.3530819911197
