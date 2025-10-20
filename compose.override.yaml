@@ -20,7 +20,7 @@ services:
   worker:
     build:
       target: development-runner
-    command: watchmedo auto-restart --pattern=*.py --recursive -- celery --app osuchan worker --loglevel info
+    command: watchmedo auto-restart --pattern=*.py --recursive -- celery --app osuchan worker --loglevel info --concurrency 9
     volumes:
       - .:/app
 
