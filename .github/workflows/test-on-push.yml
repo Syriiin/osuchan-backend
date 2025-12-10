@@ -31,7 +31,7 @@ jobs:
       - run: make test
       - run: make test-coverage-report
       - name: Upload test coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-coverage-report
           path: htmlcov
