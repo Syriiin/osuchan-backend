@@ -488,23 +488,23 @@ toml = ["tomli"]
 
 [[package]]
 name = "django"
-version = "5.2.10"
+version = "6.0.2"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.10"
+python-versions = ">=3.12"
 files = [
-    {file = "django-5.2.10-py3-none-any.whl", hash = "sha256:cf85067a64250c95d5f9067b056c5eaa80591929f7e16fbcd997746e40d6c45c"},
-    {file = "django-5.2.10.tar.gz", hash = "sha256:74df100784c288c50a2b5cad59631d71214f40f72051d5af3fdf220c20bdbbbe"},
+    {file = "django-6.0.2-py3-none-any.whl", hash = "sha256:610dd3b13d15ec3f1e1d257caedd751db8033c5ad8ea0e2d1219a8acf446ecc6"},
+    {file = "django-6.0.2.tar.gz", hash = "sha256:3046a53b0e40d4b676c3b774c73411d7184ae2745fe8ce5e45c0f33d3ddb71a7"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.8.1"
-sqlparse = ">=0.3.1"
+asgiref = ">=3.9.1"
+sqlparse = ">=0.5.0"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
-argon2 = ["argon2-cffi (>=19.1.0)"]
-bcrypt = ["bcrypt"]
+argon2 = ["argon2-cffi (>=23.1.0)"]
+bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
 name = "django-debug-toolbar"
@@ -523,17 +523,16 @@ sqlparse = ">=0.2"
 
 [[package]]
 name = "django-prometheus"
-version = "2.4.1"
+version = "2.4.0"
 description = "Django middlewares to monitor your application with Prometheus.io."
 optional = false
 python-versions = "*"
 files = [
-    {file = "django_prometheus-2.4.1-py2.py3-none-any.whl", hash = "sha256:7fe5af7f7c9ad9cd8a429fe0f3f1bf651f0e244f77162147869eab7ec09cc5e7"},
-    {file = "django_prometheus-2.4.1.tar.gz", hash = "sha256:073628243d2a6de6a8a8c20e5b512872dfb85d66e1b60b28bcf1eca0155dad95"},
+    {file = "django_prometheus-2.4.0-py2.py3-none-any.whl", hash = "sha256:5b46b5f07b02ba8dd7abdb03a3c39073e8fd9120e2293a1ecb949bbb865378ac"},
+    {file = "django_prometheus-2.4.0.tar.gz", hash = "sha256:67da5c73d8e859aa73f6e11f52341c482691b17f8bd9844157cff6cdf51ce9bc"},
 ]
 
 [package.dependencies]
-Django = ">=4.2,<6.0"
 prometheus-client = ">=0.7"
 
 [[package]]
@@ -1644,4 +1643,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "2492c5c0b1218b7e50b5e14c185854e5b8195be9d6bc46032572db83745a1ae1"
+content-hash = "2697461c8e7f23daa04e545fddc4deb1e8af818e1bc9983429e58ff820675162"
