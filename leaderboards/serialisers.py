@@ -30,6 +30,7 @@ class LeaderboardSerialiser(serializers.ModelSerializer):
             "calculator_engine",
             "primary_performance_value",
             "custom_colours",
+            "is_event",
             # relations
             "score_filter",
             "owner",

@@ -33,6 +33,7 @@ class TestMembershipServices:
                 calculator_engine="osu.Game.Rulesets.Osu",
                 primary_performance_value="total",
                 custom_colours={},
+                is_event=False,
                 score_filter=ScoreFilter.objects.create(),
             ),
         )
