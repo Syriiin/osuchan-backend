@@ -6,7 +6,11 @@ if [ -z "${1+x}" ]; then
     exit 1
 fi
 
-docker compose up -d db
+# Check if the database container is running
+if ! docker compose ps db | grep -q "Up"; then
+    echo "Database is not running. Please start the database container before running this script."
+    exit 1
+fi
 
 docker compose exec -T db pg_dump \
     --username=osuchan \
