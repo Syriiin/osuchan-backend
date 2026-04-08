@@ -53,6 +53,7 @@ class Leaderboard(models.Model):
     calculator_engine = models.CharField()
     primary_performance_value = models.CharField()
     custom_colours = models.JSONField(blank=True)
+    is_event = models.BooleanField()
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)

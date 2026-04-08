@@ -154,6 +154,7 @@ class LeaderboardList(APIView):
             calculator_engine=calculator_engine,
             primary_performance_value=primary_performance_value,
             custom_colours={},
+            is_event=False,
             score_filter=ScoreFilter(
                 allowed_beatmap_status=score_filter_data.get(
                     "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY
