@@ -50,6 +50,7 @@ class Leaderboard(models.Model):
     )  # global leaderboards will have null member count
     archived = models.BooleanField(default=False)
     notification_discord_webhook_url = models.CharField(blank=True)
+    notification_settings = models.JSONField()
     calculator_engine = models.CharField()
     primary_performance_value = models.CharField()
     custom_colours = models.JSONField(blank=True)

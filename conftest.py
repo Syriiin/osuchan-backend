@@ -182,6 +182,11 @@ def leaderboard(score_filter: ScoreFilter):
             primary_performance_value="total",
             custom_colours={},
             is_event=False,
+            notification_settings={
+                "top_score": False,
+                "top_player": False,
+                "podium": False,
+            },
             score_filter=score_filter,
         ),
     )
