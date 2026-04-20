@@ -138,9 +138,12 @@ def update_membership(
     membership.save()
 
     if not skip_notifications and leaderboard.notification_discord_webhook_url != "":
+        notification_settings = leaderboard.notification_settings
+
         # Check for new top score
         if (
-            len(membership_scores) > 0
+            notification_settings.get("top_score")
+            and len(membership_scores) > 0
             and membership_scores[0].performance_total > pp_record
         ):
             # NOTE: need to use a function with default params here so the closure has the correct variables
@@ -156,7 +159,8 @@ def update_membership(
 
         # Check for new top player
         if (
-            leaderboard_top_player is not None
+            notification_settings.get("top_player")
+            and leaderboard_top_player is not None
             and leaderboard_top_player.user_id != membership.user_id
             and membership.rank == 1
             and membership.pp > 0

@@ -43,6 +43,8 @@ def send_leaderboard_top_score_notification(leaderboard_id: int, score_id: int):
     leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
     if leaderboard.notification_discord_webhook_url == "":
         return
+    if not leaderboard.notification_settings.get("top_score"):
+        return
 
     score: Score = Score.objects.get(id=score_id)
 
@@ -115,6 +117,8 @@ def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
     leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
     if leaderboard.notification_discord_webhook_url == "":
         return
+    if not leaderboard.notification_settings.get("top_player"):
+        return
 
     membership: Membership = leaderboard.memberships.get(user_id=user_id)
 
@@ -171,6 +175,8 @@ def send_leaderboard_top_player_notification(leaderboard_id: int, user_id: int):
 def send_leaderboard_podium_notification(leaderboard_id: int):
     leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
     if leaderboard.notification_discord_webhook_url == "":
+        return
+    if not leaderboard.notification_settings.get("podium"):
         return
 
     if leaderboard.access_type == LeaderboardAccessType.GLOBAL:
