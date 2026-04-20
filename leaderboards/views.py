@@ -155,6 +155,11 @@ class LeaderboardList(APIView):
             primary_performance_value=primary_performance_value,
             custom_colours={},
             is_event=False,
+            notification_settings={
+                "top_score": False,
+                "top_player": False,
+                "podium": False,
+            },
             score_filter=ScoreFilter(
                 allowed_beatmap_status=score_filter_data.get(
                     "allowed_beatmap_status", AllowedBeatmapStatus.RANKED_ONLY

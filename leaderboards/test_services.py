@@ -15,7 +15,6 @@ from profiles.services import fetch_scores
 
 @pytest.mark.django_db
 class TestMembershipServices:
-
     def test_nochoke_leaderboard(self, stub_user_stats, score_filter):
         leaderboard = create_leaderboard(
             stub_user_stats.user_id,
@@ -34,6 +33,11 @@ class TestMembershipServices:
                 primary_performance_value="total",
                 custom_colours={},
                 is_event=False,
+                notification_settings={
+                    "top_score": False,
+                    "top_player": False,
+                    "podium": False,
+                },
                 score_filter=ScoreFilter.objects.create(),
             ),
         )
