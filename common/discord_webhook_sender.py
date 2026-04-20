@@ -1,9 +1,12 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Type
 
 import httpx
 from django.conf import settings
 from django.utils.module_loading import import_string
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidWebhookUrlError(ValueError):
@@ -29,7 +32,9 @@ class LiveDiscordWebhookSender(AbstractDiscordWebhookSender):
 
 class DummyDiscordWebhookSender(AbstractDiscordWebhookSender):
     def send(self, webhook_url: str, data: dict):
-        pass
+        logger.info(
+            "Dummy send to Discord webhook: %s with data: %s", webhook_url, data
+        )
 
 
 DiscordWebhookSender: Type[AbstractDiscordWebhookSender] = import_string(

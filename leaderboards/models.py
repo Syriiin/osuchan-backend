@@ -50,7 +50,7 @@ class Leaderboard(models.Model):
     )  # global leaderboards will have null member count
     archived = models.BooleanField(default=False)
     notification_discord_webhook_url = models.CharField(blank=True)
-    notification_settings = models.JSONField()
+    notification_settings = models.JSONField(blank=True)
     calculator_engine = models.CharField()
     primary_performance_value = models.CharField()
     custom_colours = models.JSONField(blank=True)
@@ -193,6 +193,13 @@ class Membership(models.Model):
     community_memberships = CommunityMembershipManager.from_queryset(
         CommunityMembershipQuerySet
     )()
+
+    def get_pp_record(self) -> float:
+        max_pp = self.scores.aggregate(Max("membership_scores__performance_total"))[
+            "membership_scores__performance_total__max"
+        ]
+
+        return max_pp if max_pp is not None else 0
 
     def __str__(self):
         return f"{self.leaderboard}: {self.user.username}"

@@ -226,3 +226,226 @@ def send_leaderboard_podium_notification(leaderboard_id: int):
             "attachments": [],
         },
     )
+
+
+@shared_task(priority=10)
+def send_leaderboard_player_first_score_notification(
+    leaderboard_id: int, score_id: int
+):
+    leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    if leaderboard.notification_discord_webhook_url == "":
+        return
+    if not leaderboard.notification_settings.get("player_first_score"):
+        return
+
+    score: Score = Score.objects.get(id=score_id)
+
+    leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
+
+    beatmap_details = f"[{score.beatmap}](https://osu.ppy.sh/beatmapsets/{score.beatmap.set_id}#{get_gamemode_string_from_gamemode(score.beatmap.gamemode)}/{score.beatmap.id})"
+    if len(score.mods_json) != 0:
+        beatmap_details += f" +{get_mods_string_from_json_mods(score.mods_json)}"
+
+    performance_calculation = score.get_performance_calculation()
+    difficulty_total = (
+        performance_calculation.difficulty_calculation.get_total_difficulty()
+    )
+
+    beatmap_details += f" **{difficulty_total:.2f} stars**"
+
+    performance_calculation = score.get_performance_calculation()
+    performance_total = performance_calculation.get_total_performance()
+    score_details = f"**{performance_total:.0f}pp** ({score.accuracy:.2f}%)"
+    if score.result is not None and score.result & ScoreResult.FULL_COMBO:
+        score_details += " FC"
+    else:
+        score_details += (
+            f" {score.best_combo}/{score.beatmap.max_combo} {score.count_miss}x misses"
+        )
+
+    discord_webhook_sender = DiscordWebhookSender()
+    discord_webhook_sender.send(
+        leaderboard.notification_discord_webhook_url,
+        data={
+            "content": None,
+            "embeds": [
+                {
+                    "title": f"{score.user_stats.user.username} has set their first score!",
+                    "description": f"{leaderboard_link}",
+                    "url": f"{leaderboard_link}",
+                    "color": 3816140,  # #3A3ACC
+                    "fields": [
+                        {
+                            "name": "Beatmap",
+                            "value": beatmap_details,
+                        },
+                        {"name": "Score", "value": score_details},
+                    ],
+                    "author": {
+                        "name": f"Leaderboard - {leaderboard.name}",
+                        "url": f"{leaderboard_link}",
+                        "icon_url": f"{leaderboard.icon_url}",
+                    },
+                    "timestamp": score.date.isoformat(),
+                    "image": {
+                        "url": f"https://assets.ppy.sh/beatmaps/{score.beatmap.set_id}/covers/cover.jpg"
+                    },
+                    "thumbnail": {
+                        "url": f"https://a.ppy.sh/{score.user_stats.user_id}"
+                    },
+                }
+            ],
+            "username": "osu!chan",
+            "avatar_url": f"{settings.FRONTEND_URL}/static/icon-128.png",
+            "attachments": [],
+        },
+    )
+
+
+@shared_task(priority=10)
+def send_leaderboard_player_top_score_notification(
+    leaderboard_id: int, user_id: int, score_id: int
+):
+    leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    if leaderboard.notification_discord_webhook_url == "":
+        return
+    if not leaderboard.notification_settings.get("player_top_score"):
+        return
+
+    membership: Membership = leaderboard.memberships.get(user_id=user_id)
+    score: Score = Score.objects.get(id=score_id)
+
+    leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
+
+    beatmap_details = f"[{score.beatmap}](https://osu.ppy.sh/beatmapsets/{score.beatmap.set_id}#{get_gamemode_string_from_gamemode(score.beatmap.gamemode)}/{score.beatmap.id})"
+    if len(score.mods_json) != 0:
+        beatmap_details += f" +{get_mods_string_from_json_mods(score.mods_json)}"
+
+    performance_calculation = score.get_performance_calculation()
+    difficulty_total = (
+        performance_calculation.difficulty_calculation.get_total_difficulty()
+    )
+
+    beatmap_details += f" **{difficulty_total:.2f} stars**"
+
+    performance_calculation = score.get_performance_calculation()
+    performance_total = performance_calculation.get_total_performance()
+    score_details = f"**{performance_total:.0f}pp** ({score.accuracy:.2f}%)"
+    if score.result is not None and score.result & ScoreResult.FULL_COMBO:
+        score_details += " FC"
+    else:
+        score_details += (
+            f" {score.best_combo}/{score.beatmap.max_combo} {score.count_miss}x misses"
+        )
+
+    discord_webhook_sender = DiscordWebhookSender()
+    discord_webhook_sender.send(
+        leaderboard.notification_discord_webhook_url,
+        data={
+            "content": None,
+            "embeds": [
+                {
+                    "title": f"New personal pp record for {score.user_stats.user.username}! ({performance_total:.0f}pp)",
+                    "description": f"{leaderboard_link}",
+                    "url": f"{leaderboard_link}",
+                    "color": 3816140,  # #3A3ACC
+                    "fields": [
+                        {
+                            "name": "Beatmap",
+                            "value": beatmap_details,
+                        },
+                        {"name": "Score", "value": score_details},
+                    ],
+                    "author": {
+                        "name": f"Leaderboard - {leaderboard.name}",
+                        "url": f"{leaderboard_link}",
+                        "icon_url": f"{leaderboard.icon_url}",
+                    },
+                    "timestamp": score.date.isoformat(),
+                    "image": {
+                        "url": f"https://assets.ppy.sh/beatmaps/{score.beatmap.set_id}/covers/cover.jpg"
+                    },
+                    "thumbnail": {
+                        "url": f"https://a.ppy.sh/{score.user_stats.user_id}"
+                    },
+                }
+            ],
+            "username": "osu!chan",
+            "avatar_url": f"{settings.FRONTEND_URL}/static/icon-128.png",
+            "attachments": [],
+        },
+    )
+
+
+@shared_task(priority=10)
+def send_leaderboard_top_10_score_notification(
+    leaderboard_id: int, score_id: int, rank: int
+):
+    leaderboard: Leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    if leaderboard.notification_discord_webhook_url == "":
+        return
+    if not leaderboard.notification_settings.get("top_10_score"):
+        return
+
+    score: Score = Score.objects.get(id=score_id)
+
+    leaderboard_link = f"{settings.FRONTEND_URL}/leaderboards/{get_leaderboard_type_string_from_leaderboard_access_type(leaderboard.access_type)}/{get_gamemode_string_from_gamemode(leaderboard.gamemode)}/{leaderboard.id}"
+
+    beatmap_details = f"[{score.beatmap}](https://osu.ppy.sh/beatmapsets/{score.beatmap.set_id}#{get_gamemode_string_from_gamemode(score.beatmap.gamemode)}/{score.beatmap.id})"
+    if len(score.mods_json) != 0:
+        beatmap_details += f" +{get_mods_string_from_json_mods(score.mods_json)}"
+
+    performance_calculation = score.get_performance_calculation()
+    difficulty_total = (
+        performance_calculation.difficulty_calculation.get_total_difficulty()
+    )
+
+    beatmap_details += f" **{difficulty_total:.2f} stars**"
+
+    performance_calculation = score.get_performance_calculation()
+    performance_total = performance_calculation.get_total_performance()
+    score_details = f"**{performance_total:.0f}pp** ({score.accuracy:.2f}%)"
+    if score.result is not None and score.result & ScoreResult.FULL_COMBO:
+        score_details += " FC"
+    else:
+        score_details += (
+            f" {score.best_combo}/{score.beatmap.max_combo} {score.count_miss}x misses"
+        )
+
+    discord_webhook_sender = DiscordWebhookSender()
+    discord_webhook_sender.send(
+        leaderboard.notification_discord_webhook_url,
+        data={
+            "content": None,
+            "embeds": [
+                {
+                    "title": f"New #{rank} score! ({performance_total:.0f}pp by {score.user_stats.user.username})",
+                    "description": f"{leaderboard_link}",
+                    "url": f"{leaderboard_link}",
+                    "color": 3816140,  # #3A3ACC
+                    "fields": [
+                        {
+                            "name": "Beatmap",
+                            "value": beatmap_details,
+                        },
+                        {"name": "Score", "value": score_details},
+                    ],
+                    "author": {
+                        "name": f"Leaderboard - {leaderboard.name}",
+                        "url": f"{leaderboard_link}",
+                        "icon_url": f"{leaderboard.icon_url}",
+                    },
+                    "timestamp": score.date.isoformat(),
+                    "image": {
+                        "url": f"https://assets.ppy.sh/beatmaps/{score.beatmap.set_id}/covers/cover.jpg"
+                    },
+                    "thumbnail": {
+                        "url": f"https://a.ppy.sh/{score.user_stats.user_id}"
+                    },
+                }
+            ],
+            "username": "osu!chan",
+            "avatar_url": f"{settings.FRONTEND_URL}/static/icon-128.png",
+            "attachments": [],
+        },
+    )

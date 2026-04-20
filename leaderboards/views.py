@@ -159,6 +159,9 @@ class LeaderboardList(APIView):
                 "top_score": False,
                 "top_player": False,
                 "podium": False,
+                "player_first_score": False,
+                "player_top_score": False,
+                "top_10_score": False,
             },
             score_filter=ScoreFilter(
                 allowed_beatmap_status=score_filter_data.get(

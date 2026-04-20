@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Max
 from rest_framework.exceptions import PermissionDenied
 
 from common.osu.utils import calculate_pp_total
@@ -85,6 +86,9 @@ def update_membership(
         # Get leaderboard records before updating, so we can compare for notifications
         pp_record = leaderboard.get_pp_record()
         leaderboard_top_player = leaderboard.get_top_membership()
+        old_member_pp_record = membership.get_pp_record()
+        old_score_count = membership.score_count
+        old_top_10_scores = set(leaderboard.get_top_scores(limit=10))
 
     scores = Score.objects.filter(
         user_stats__user_id=user_id, user_stats__gamemode=leaderboard.gamemode
@@ -175,5 +179,79 @@ def update_membership(
                 send_leaderboard_top_player_notification.delay(leaderboard_id, user_id)
 
             transaction.on_commit(send_notification)
+
+        # Check for first score on leaderboard
+        if (
+            notification_settings.get("player_first_score")
+            and old_score_count == 0
+            and membership.score_count > 0
+        ):
+
+            def send_notification(
+                leaderboard_id=leaderboard.id,
+                score_id=membership.scores.order_by("date").first().id,
+            ):
+                from leaderboards.tasks import (
+                    send_leaderboard_player_first_score_notification,
+                )
+
+                send_leaderboard_player_first_score_notification.delay(
+                    leaderboard_id, score_id
+                )
+
+            transaction.on_commit(send_notification)
+
+        personal_pp_record_score = (
+            membership_scores[0] if len(membership_scores) > 0 else None
+        )
+        personal_pp_record = (
+            personal_pp_record_score.performance_total
+            if personal_pp_record_score is not None
+            else 0
+        )
+
+        # Check for personal pp record improvement
+        if (
+            notification_settings.get("player_top_score")
+            and personal_pp_record > old_member_pp_record
+        ):
+
+            def send_notification(
+                leaderboard_id=leaderboard.id,
+                user_id=membership.user_id,
+            ):
+                from leaderboards.tasks import (
+                    send_leaderboard_player_top_score_notification,
+                )
+
+                send_leaderboard_player_top_score_notification.delay(
+                    leaderboard_id, user_id, personal_pp_record_score.score_id
+                )
+
+            transaction.on_commit(send_notification)
+
+        # Check for top 10 scores (excluding #1 since it has it's own notification)
+        if notification_settings.get("top_10_score") and len(membership_scores) > 0:
+            leaderboard_top_10_scores = leaderboard.get_top_scores(limit=10)[
+                1:
+            ]  # Exclude top score since it has it's own notification
+
+            for rank, score in enumerate(leaderboard_top_10_scores, start=2):
+                if score not in old_top_10_scores:
+
+                    def send_notification(
+                        leaderboard_id=leaderboard.id,
+                        score_id=score.id,
+                        rank=rank,
+                    ):
+                        from leaderboards.tasks import (
+                            send_leaderboard_top_10_score_notification,
+                        )
+
+                        send_leaderboard_top_10_score_notification.delay(
+                            leaderboard_id, score_id, rank
+                        )
+
+                    transaction.on_commit(send_notification)
 
     return membership
