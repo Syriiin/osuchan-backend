@@ -244,6 +244,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "ppraces.tasks.dispatch_update_all_ppraces",
         "schedule": crontab(minute="*"),  # every minute
     },
+    "update-trt-top-50-members-every-10-minutes": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="*/10"),
+        "args": (854, 50),
+    },
+    "update-trt-all-members-every-hour": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="0", hour="*"),
+        "args": (854, 1000),
+    },
 }
 
 
