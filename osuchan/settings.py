@@ -254,6 +254,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute="0", hour="*"),
         "args": (854, 1000),
     },
+    "update-trt-test-all-members-every-10-minutes": {
+        "task": "profiles.tasks.dispatch_update_community_leaderboard_members",
+        "schedule": crontab(minute="*/10"),
+        "args": (855, 1000),
+    },
 }
 
 
