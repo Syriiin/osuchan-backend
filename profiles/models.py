@@ -342,7 +342,7 @@ class ScoreQuerySet(models.QuerySet):
         # Mods
         scores = self.all()
         if score_filter.required_mods_json != []:
-            scores = self.filter(mods_json__has_keys=score_filter.required_mods_json)
+            scores = scores.filter(mods_json__has_keys=score_filter.required_mods_json)
         if score_filter.disqualified_mods_json != []:
             scores = scores.exclude(
                 mods_json__has_any_keys=score_filter.disqualified_mods_json
