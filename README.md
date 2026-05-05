@@ -28,18 +28,10 @@
 
 ## Setup dev environment
 
-1. [Install poetry](https://python-poetry.org/docs/)
-1. Install python
-   ```
-   $ poetry python install 3.13
-   ```
-1. Create venv
-   ```
-   $ poetry env use 3.13
-   ```
+1. [Install uv](https://github.com/astral-sh/uv)
 1. Install dependencies locally (for IDE, code formatting, etc...)
    ```
-   $ poetry install
+   $ uv sync
    ```
 
 ## Common Issues

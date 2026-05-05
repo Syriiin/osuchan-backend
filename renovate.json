@@ -6,12 +6,12 @@
   "packageRules": [
     {
       "matchManagers": [
-        "poetry"
+        "uv"
       ],
       "matchDepTypes": [
         "dev"
       ],
-      "groupName": "poetry-dev-dependencies"
+      "groupName": "uv-dev-dependencies"
     },
     {
       "matchManagers": [
