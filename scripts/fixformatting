@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-poetry run black .
-poetry run isort . --profile black
+uv run black .
+uv run isort . --profile black
