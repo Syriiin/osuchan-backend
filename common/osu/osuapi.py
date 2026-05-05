@@ -857,7 +857,7 @@ class StubOsuApi(AbstractOsuApi):
                 for user in users
                 if users[user][gamemode_str]["username"].lower() == username.lower()
             )
-        except (KeyError, StopIteration):
+        except KeyError, StopIteration:
             return None
 
     def get_user_scores_for_beatmap(
