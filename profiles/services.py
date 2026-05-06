@@ -76,6 +76,11 @@ def refresh_user_from_api(
 
     user_stats = fetch_user(user_id=user_id, username=username, gamemode=gamemode)
 
+    if user_stats is not None:
+        # Refetch user stats with select_for_update to lock it for the transaction (crude way to prevent multiple simultaneous refreshes for the same user)
+        # TODO: refactor user updating flow to replace this with a properly readable and maintainable locking mechanism
+        UserStats.objects.select_for_update().get(id=user_stats.id)
+
     if user_stats is not None and user_stats.last_updated > (
         datetime.utcnow().replace(tzinfo=timezone.utc)
         - timedelta(seconds=cooldown_seconds)
@@ -230,6 +235,10 @@ def refresh_user_recent_from_api(
     Fetch and update user recent scores
     """
     user_stats = fetch_user(user_id=user_id, gamemode=gamemode)
+
+    # Refetch user stats with select_for_update to lock it for the transaction (crude way to prevent multiple simultaneous refreshes for the same user)
+    # TODO: refactor user updating flow to replace this with a properly readable and maintainable locking mechanism
+    UserStats.objects.select_for_update().get(id=user_stats.id)
 
     if user_stats is None:
         # User does not exist in the db, so return None
