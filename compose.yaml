@@ -33,6 +33,7 @@ services:
       - config/active/rabbitmq.env
     volumes:
       - queue-data:/var/lib/rabbitmq:rw
+      - ./config/active/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
 
   cache:
     image: redis:8
