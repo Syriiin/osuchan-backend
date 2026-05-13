@@ -218,6 +218,7 @@ CELERY_TASK_QUEUES = [
         "tasks",
         Exchange("tasks"),
         routing_key="tasks",
+        durable=True,
         queue_arguments={
             "x-max-priority": 10,
         },
