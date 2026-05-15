@@ -14,7 +14,7 @@ services:
     user: ${DOCKER_UID}:${DOCKER_GID}
     depends_on:
       - db
-      - queue
+      - broker
       - cache
       - difficalcy-osu
       - difficalcy-taiko

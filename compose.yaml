@@ -2,7 +2,7 @@
 
 volumes:
   db-data:
-  queue-data:
+  broker-data:
   prometheus-data:
   grafana-data:
   beatmaps:
@@ -27,13 +27,12 @@ services:
     env_file:
       - config/active/postgres-exporter.env
 
-  queue:
-    image: rabbitmq:4-management
-    env_file:
-      - config/active/rabbitmq.env
+  broker:
+    image: redis:8
+    command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
-      - queue-data:/var/lib/rabbitmq:rw
-      - ./config/active/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./config/active/broker-redis.conf:/usr/local/etc/redis/redis.conf
+      - broker-data:/data
 
   cache:
     image: redis:8
@@ -48,7 +47,7 @@ services:
       - beatmaps:/beatmaps
     depends_on:
       - db
-      - queue
+      - broker
       - cache
       - difficalcy-osu
       - difficalcy-taiko
@@ -67,7 +66,7 @@ services:
       - beatmaps:/beatmaps
     depends_on:
       - db
-      - queue
+      - broker
       - difficalcy-osu
       - difficalcy-taiko
       - difficalcy-catch
@@ -93,7 +92,7 @@ services:
     volumes:
       - beatmaps:/beatmaps
     depends_on:
-      - queue
+      - broker
 
   prometheus:
     image: prom/prometheus:v3.11.3

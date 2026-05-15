@@ -24,10 +24,8 @@ class EnvSettings(BaseSettings):
     POSTGRES_DB_PORT: str
     REDIS_HOST: str
     REDIS_PORT: str
-    CELERY_USER: str
-    CELERY_PASSWORD: str
-    CELERY_HOST: str
-    CELERY_PORT: str
+    CELERY_REDIS_HOST: str
+    CELERY_REDIS_PORT: str
     DIFFICALCY_OSU_HOST: str
     DIFFICALCY_TAIKO_HOST: str
     DIFFICALCY_CATCH_HOST: str
@@ -205,28 +203,25 @@ CACHES = {
 # Celery
 # https://docs.celeryproject.org/en/latest/userguide/configuration.html
 
-CELERY_BROKER_URL = f"amqp://{env_settings.CELERY_USER}:{env_settings.CELERY_PASSWORD}@{env_settings.CELERY_HOST}:{env_settings.CELERY_PORT}"
+CELERY_BROKER_URL = (
+    f"redis://{env_settings.CELERY_REDIS_HOST}:{env_settings.CELERY_REDIS_PORT}/0"
+)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-CELERY_WORKER_MAX_MEMORY_PER_CHILD = 250000  # 250MB TODO: investigate this memory leak
-CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
-
-CELERY_TASK_QUEUES = [
-    Queue(
-        "tasks",
-        Exchange("tasks"),
-        routing_key="tasks",
-        durable=True,
-        queue_arguments={
-            "x-max-priority": 10,
-        },
-    )
-]
-
 CELERY_TASK_DEFAULT_PRIORITY = 5
 CELERY_TASK_DEFAULT_QUEUE = "tasks"
+
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "priority_steps": list(range(10)),
+    "sep": ":",
+    "queue_order_strategy": "priority",
+}
+
+CELERY_WORKER_MAX_MEMORY_PER_CHILD = 250000  # 250MB TODO: investigate this memory leak
+CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 CELERY_BEAT_SCHEDULE = {
     "update-top-global-members-every-day": {
