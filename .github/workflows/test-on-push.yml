@@ -35,3 +35,10 @@ jobs:
         with:
           name: test-coverage-report
           path: htmlcov
+
+  test-integration:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - run: make env
+      - run: make test-integration

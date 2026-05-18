@@ -67,3 +67,7 @@ data/
 # Env vars
 config/*
 !config/dev
+
+# Test temp files
+tests/tmp/*
+!tests/tmp/.gitkeep

@@ -45,13 +45,19 @@ resetdb:	## Resets the database
 	$(COMPOSE_RUN_TOOLING) sh -c "python manage.py sqlflush | python manage.py dbshell"
 
 test:	## Runs test suite
-	$(COMPOSE_RUN_TOOLING) coverage run -m pytest
+	$(COMPOSE_RUN_TOOLING) coverage run -m pytest -m "not integration"
 
 update-test-snapshots:	## Runs test suite and updates snapshots
-	$(COMPOSE_RUN_TOOLING) pytest --snapshot-update
+	$(COMPOSE_RUN_TOOLING) pytest --snapshot-update -m "not integration"
 
 test-coverage-report:	## Get test coverage report
 	$(COMPOSE_RUN_TOOLING) sh -c "coverage report -m && coverage html"
+
+test-integration:	## Runs integration test suite
+	chmod -R a+rw tests/tmp
+	$(COMPOSE_RUN_TOOLING) coverage run -m pytest -m integration
+	rm -rf tests/tmp/*
+	touch tests/tmp/.gitkeep
 
 collectstatic:	## Collect static files
 	$(COMPOSE_RUN_TOOLING) python manage.py collectstatic --no-input

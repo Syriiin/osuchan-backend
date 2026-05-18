@@ -23,9 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-redis = [
-    "celery>=5.6.3",
-]
+redis = ["celery>=5.6.3"]
 
 [dependency-groups]
 dev = [
@@ -42,6 +40,7 @@ dev = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "osuchan.settings"
 norecursedirs = ["data", "beatmaps"]
+markers = ["integration: marks a test as an integration test."]
 
 [tool.coverage.run]
 source = ["."]

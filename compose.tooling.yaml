@@ -13,6 +13,7 @@ services:
       - beatmaps:/beatmaps
     user: ${DOCKER_UID}:${DOCKER_GID}
     depends_on:
+      - worker
       - db
       - broker
       - cache
