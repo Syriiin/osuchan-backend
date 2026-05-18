@@ -9,7 +9,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  queue:
+  broker:
     restart: always
     logging:
       driver: json-file

@@ -13,8 +13,9 @@ services:
       - beatmaps:/beatmaps
     user: ${DOCKER_UID}:${DOCKER_GID}
     depends_on:
+      - worker
       - db
-      - queue
+      - broker
       - cache
       - difficalcy-osu
       - difficalcy-taiko

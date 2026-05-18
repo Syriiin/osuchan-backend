@@ -12,7 +12,7 @@ from ppraces.services import (
 )
 
 
-@shared_task(priority=8)
+@shared_task(priority=2)
 def dispatch_update_all_ppraces():
     """
     Dispatch update tasks for all pp races
@@ -28,7 +28,7 @@ def dispatch_update_all_ppraces():
         update_pprace.delay(pprace_id=pprace.id)
 
 
-@shared_task(priority=8)
+@shared_task(priority=2)
 def update_pprace(pprace_id: int):
     """
     Update state of a pp race
@@ -58,7 +58,7 @@ def update_pprace(pprace_id: int):
                             "gamemode": pprace.gamemode,
                             "cooldown_seconds": 30,
                         },
-                        priority=9,
+                        priority=1,
                     )
                 continue
 
@@ -103,7 +103,7 @@ def update_pprace(pprace_id: int):
                     "gamemode": pprace.gamemode,
                     "cooldown_seconds": time_since_race_end.total_seconds(),
                 },
-                priority=9,
+                priority=1,
             )
 
 

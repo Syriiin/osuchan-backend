@@ -1,4 +1,5 @@
 import logging
+import time
 
 from celery import Celery
 from celery.signals import task_failure, worker_process_init
@@ -23,6 +24,14 @@ app.autodiscover_tasks()
 @app.task(bind=True)
 def debug_task(self):
     logger.info("Request: {0!r}".format(self.request))
+
+
+@app.task
+def test_task(logging_id: str | None = None):
+    if logging_id is not None:
+        file_path = f"tests/tmp/celery_test_{logging_id}.txt"
+        with open(file_path, "w") as f:
+            f.write(f"completed:{time.time()}")
 
 
 @task_failure.connect
