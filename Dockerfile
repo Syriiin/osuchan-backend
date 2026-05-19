@@ -29,7 +29,7 @@ RUN apt-get install -y tini
 FROM python-base AS builder
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.11.9 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.15 /uv /uvx /bin/
 
 # Install dependencies
 WORKDIR ${APPDEPS_PATH}
