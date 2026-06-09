@@ -95,13 +95,13 @@ services:
       - broker
 
   prometheus:
-    image: prom/prometheus:v3.11.3
+    image: prom/prometheus:v3.12.0
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus:rw
 
   grafana:
-    image: grafana/grafana:13.0.1
+    image: grafana/grafana:13.0.2
     env_file:
       - ./config/active/grafana.env
     volumes:
