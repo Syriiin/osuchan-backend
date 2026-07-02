@@ -40,62 +40,62 @@
   list([
     Calculation(
       difficulty_values=dict({
-        'aim': 3.1001372651417562,
+        'aim': 3.100137265141757,
         'flashlight': 0,
-        'speed': 3.2200802624048364,
-        'total': 6.48283986401029,
+        'speed': 3.2200802624048372,
+        'total': 6.482839864010291,
       }),
       performance_values=dict({
         'accuracy': 83.9838091927015,
-        'aim': 131.8212815664092,
+        'aim': 131.8212815664093,
         'flashlight': 0,
-        'speed': 138.06664881331807,
-        'total': 365.87508718883106,
+        'speed': 138.06664881331818,
+        'total': 365.8750871888313,
       }),
     ),
     Calculation(
       difficulty_values=dict({
         'aim': 3.5593526086539664,
         'flashlight': 0,
-        'speed': 3.446319988670145,
-        'total': 7.185090035860263,
+        'speed': 3.4463199886701457,
+        'total': 7.185090035860264,
       }),
       performance_values=dict({
         'accuracy': 160.712520330394,
         'aim': 200.14707721575004,
         'flashlight': 0,
-        'speed': 173.1858648513255,
-        'total': 551.1783642025379,
+        'speed': 173.1858648513256,
+        'total': 551.178364202538,
       }),
     ),
     Calculation(
       difficulty_values=dict({
         'aim': 3.5593526086539664,
         'flashlight': 0,
-        'speed': 3.446319988670145,
-        'total': 7.185090035860263,
+        'speed': 3.4463199886701457,
+        'total': 7.185090035860264,
       }),
       performance_values=dict({
         'accuracy': 205.62929602393217,
         'aim': 227.68665492715283,
         'flashlight': 0,
-        'speed': 206.36349680141984,
+        'speed': 206.36349680141993,
         'total': 659.9971793177803,
       }),
     ),
     Calculation(
       difficulty_values=dict({
-        'aim': 3.3381188143323404,
+        'aim': 3.33811881433234,
         'flashlight': 0,
-        'speed': 2.0061675598571997,
+        'speed': 2.0061675598572,
         'total': 5.849595805249367,
       }),
       performance_values=dict({
         'accuracy': 12.368997155942548,
-        'aim': 53.881021372712006,
+        'aim': 53.881021372711984,
         'flashlight': 0,
-        'speed': 6.562817168421105,
-        'total': 77.79652849596229,
+        'speed': 6.56281716842111,
+        'total': 77.79652849596228,
       }),
     ),
   ])
@@ -107,7 +107,7 @@
         'aim': 2.1637224075981187,
         'flashlight': 0,
         'speed': 2.174461378401703,
-        'total': 4.447966206106835,
+        'total': 4.447966206106836,
       }),
       performance_values=dict({
         'accuracy': 36.07670429437059,
@@ -160,17 +160,17 @@
   list([
     Calculation(
       difficulty_values=dict({
-        'aim': 3.1001372651417562,
+        'aim': 3.100137265141757,
         'flashlight': 0,
-        'speed': 3.2200802624048364,
-        'total': 6.48283986401029,
+        'speed': 3.2200802624048372,
+        'total': 6.482839864010291,
       }),
       performance_values=dict({
         'accuracy': 83.9838091927015,
-        'aim': 131.8212815664092,
+        'aim': 131.8212815664093,
         'flashlight': 0,
-        'speed': 138.06664881331807,
-        'total': 365.87508718883106,
+        'speed': 138.06664881331818,
+        'total': 365.8750871888313,
       }),
     ),
   ])
