@@ -17,8 +17,5 @@ services:
       - db
       - broker
       - cache
-      - difficalcy-osu
-      - difficalcy-taiko
-      - difficalcy-catch
-      - difficalcy-mania
+      - difficalcy
       - difficalcy-performanceplus

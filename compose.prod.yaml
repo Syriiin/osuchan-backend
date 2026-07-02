@@ -87,31 +87,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  difficalcy-osu:
-    restart: always
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  difficalcy-taiko:
-    restart: always
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  difficalcy-catch:
-    restart: always
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  difficalcy-mania:
+  difficalcy:
     restart: always
     logging:
       driver: json-file

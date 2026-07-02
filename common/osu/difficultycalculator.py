@@ -9,12 +9,20 @@ from django.utils.module_loading import import_string
 from common.osu.enums import Gamemode
 
 # TODO: lazy load this instead of doing at import
-difficalcy_osu_info = httpx.get(f"{settings.DIFFICALCY_OSU_URL}/api/info").json()
-difficalcy_taiko_info = httpx.get(f"{settings.DIFFICALCY_TAIKO_URL}/api/info").json()
-difficalcy_catch_info = httpx.get(f"{settings.DIFFICALCY_CATCH_URL}/api/info").json()
-difficalcy_mania_info = httpx.get(f"{settings.DIFFICALCY_MANIA_URL}/api/info").json()
+difficalcy_osu_info = httpx.get(
+    f"{settings.DIFFICALCY_URL}/api/calculators/osu/info"
+).json()
+difficalcy_taiko_info = httpx.get(
+    f"{settings.DIFFICALCY_URL}/api/calculators/taiko/info"
+).json()
+difficalcy_catch_info = httpx.get(
+    f"{settings.DIFFICALCY_URL}/api/calculators/catch/info"
+).json()
+difficalcy_mania_info = httpx.get(
+    f"{settings.DIFFICALCY_URL}/api/calculators/mania/info"
+).json()
 difficalcy_performanceplus_info = httpx.get(
-    f"{settings.DIFFICALCY_PERFORMANCEPLUS_URL}/api/info"
+    f"{settings.DIFFICALCY_PERFORMANCEPLUS_URL}/api/calculators/osu/info"
 ).json()
 
 DIFFICALCY_OSU_ENGINE = difficalcy_osu_info["calculatorPackage"]
@@ -141,7 +149,7 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def calculate_scores(self, scores: Iterable[Score]) -> list[Calculation]:
         try:
             response = self.client.post(
-                f"{self._get_url()}/api/batch/calculation",
+                f"{self._get_url()}/batch/calculation",
                 json=[self._difficalcy_score_from_score(score) for score in scores],
             )
             response.raise_for_status()
@@ -166,7 +174,7 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
     def get_beatmap_details(self, beatmap_id: str) -> BeatmapDetails:
         try:
             response = self.client.get(
-                f"{self._get_url()}/api/beatmapdetails",
+                f"{self._get_url()}/beatmapdetails",
                 params={"beatmapId": beatmap_id},
             )
             response.raise_for_status()
@@ -185,7 +193,7 @@ class AbstractDifficalcyDifficultyCalculator(AbstractDifficultyCalculator):
 
 class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
     def _get_url(self) -> str:
-        return settings.DIFFICALCY_OSU_URL
+        return f"{settings.DIFFICALCY_URL}/api/calculators/osu"
 
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         return {
@@ -245,7 +253,7 @@ class DifficalcyOsuDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
 
 class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
     def _get_url(self) -> str:
-        return settings.DIFFICALCY_TAIKO_URL
+        return f"{settings.DIFFICALCY_URL}/api/calculators/taiko"
 
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         return {
@@ -299,7 +307,7 @@ class DifficalcyTaikoDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
 
 class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
     def _get_url(self) -> str:
-        return settings.DIFFICALCY_CATCH_URL
+        return f"{settings.DIFFICALCY_URL}/api/calculators/catch"
 
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         return {
@@ -355,7 +363,7 @@ class DifficalcyCatchDifficultyCalculator(AbstractDifficalcyDifficultyCalculator
 
 class DifficalcyManiaDifficultyCalculator(AbstractDifficalcyDifficultyCalculator):
     def _get_url(self) -> str:
-        return settings.DIFFICALCY_MANIA_URL
+        return f"{settings.DIFFICALCY_URL}/api/calculators/mania"
 
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         return {
@@ -414,7 +422,7 @@ class DifficalcyPerformancePlusDifficultyCalculator(
     AbstractDifficalcyDifficultyCalculator
 ):
     def _get_url(self) -> str:
-        return settings.DIFFICALCY_PERFORMANCEPLUS_URL
+        return f"{settings.DIFFICALCY_PERFORMANCEPLUS_URL}/api/calculators/osu"
 
     def _difficalcy_score_from_score(self, score: Score) -> dict:
         return {
