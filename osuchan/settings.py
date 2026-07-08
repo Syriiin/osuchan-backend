@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     "profiles.apps.ProfilesConfig",  # api for profiles
     "leaderboards.apps.LeaderboardsConfig",  # api for leaderboards
     "ppraces.apps.PPRacesConfig",  # api for ppraces
+    "minigames.apps.MinigamesConfig",  # api for minigames
     "events.apps.EventsConfig",  # api for events
 ]
 
@@ -236,6 +237,10 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-ppraces-every-minute": {
         "task": "ppraces.tasks.dispatch_update_all_ppraces",
+        "schedule": crontab(minute="*"),  # every minute
+    },
+    "update-minigames-every-minute": {
+        "task": "minigames.tasks.dispatch_minigame_updates",
         "schedule": crontab(minute="*"),  # every minute
     },
 }
@@ -395,3 +400,11 @@ else:
     )
 
 COE_API_KEY = env_settings.COE_API_KEY
+
+MINIGAMES = {
+    "first_to_n": "minigames.games.FirstToN",
+}
+
+MINIGAMES_BETA_WHITELIST: list[int] = [
+    # TODO: add whitelisted beta tester osu user IDs
+]

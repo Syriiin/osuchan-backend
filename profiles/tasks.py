@@ -8,6 +8,7 @@ from common.osu.enums import BeatmapStatus, Gamemode
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
+from minigames.tasks import update_minigame_players_scores
 from ppraces.tasks import update_pprace_players
 from profiles.models import Beatmap, OsuUser
 from profiles.services import (
@@ -81,6 +82,9 @@ def update_user(
         update_pprace_players.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
+        update_minigame_players_scores.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
     return user_stats
 
 
@@ -97,6 +101,9 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
         update_pprace_players.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+        update_minigame_players_scores.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
     return user_stats
@@ -117,6 +124,9 @@ def update_user_recent(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
         update_pprace_players.delay(
+            user_id=user_stats.user_id, gamemode=user_stats.gamemode
+        )
+        update_minigame_players_scores.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
     return user_stats
