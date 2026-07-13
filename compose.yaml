@@ -104,7 +104,7 @@ services:
       - grafana_admin_password
 
   difficalcy:
-    image: ghcr.io/syriiin/difficalcy:v1.0.0-alpha.2-slim
+    image: ghcr.io/syriiin/difficalcy:v1.0.0-alpha.3-slim
     env_file:
       - config/active/difficalcy.env
     volumes:
