@@ -38,12 +38,12 @@ class TestUserServices:
             ).count()
             == 14  # 7 scores (6 real, 1 nochoke mutation) * 2 calculators
         )
-        assert user_stats.score_style_accuracy == 97.62286161777982
-        assert user_stats.score_style_bpm == 201.99989929562193
+        assert user_stats.score_style_accuracy == 97.62487865392988
+        assert user_stats.score_style_bpm == 201.55895502285534
         assert user_stats.score_style_cs == 4.2766715338147065
-        assert user_stats.score_style_ar == 9.749798660314049
+        assert user_stats.score_style_ar == 9.742799544873309
         assert user_stats.score_style_od == 8.914664666393149
-        assert user_stats.score_style_length == 154.3321236835792
+        assert user_stats.score_style_length == 154.71707503281988
 
     def test_fetch_scores(self):
         user_stats, _ = refresh_user_from_api(user_id=5701575)
@@ -57,12 +57,12 @@ class TestUserServices:
             ).count()
             == 38  # 18 scores (17 real, 2 nochoke mutation) * 2 calculators
         )
-        assert user_stats.score_style_accuracy == 97.61837309857572
-        assert user_stats.score_style_bpm == 203.85810981390424
+        assert user_stats.score_style_accuracy == 97.62009555255409
+        assert user_stats.score_style_bpm == 203.4815641496913
         assert user_stats.score_style_cs == 4.224451249870312
-        assert user_stats.score_style_ar == 9.740084852929643
+        assert user_stats.score_style_ar == 9.734107937624676
         assert user_stats.score_style_od == 8.940208492500652
-        assert user_stats.score_style_length == 139.73474300453674
+        assert user_stats.score_style_length == 140.06347334630993
 
 
 @pytest.mark.django_db
@@ -88,15 +88,17 @@ class TestDifficultyCalculationServices:
         )
 
         difficulty_values = calculation.difficulty_values.all()
-        assert len(difficulty_values) == 4
+        assert len(difficulty_values) == 5
         assert difficulty_values[0].name == "aim"
-        assert difficulty_values[0].value == 3.8012985833855883
+        assert difficulty_values[0].value == 3.809399008867019
         assert difficulty_values[1].name == "speed"
-        assert difficulty_values[1].value == 2.1987202735588194
+        assert difficulty_values[1].value == 1.564710574509105
         assert difficulty_values[2].name == "flashlight"
         assert difficulty_values[2].value == 0
-        assert difficulty_values[3].name == "total"
-        assert difficulty_values[3].value == 6.623253933857446
+        assert difficulty_values[3].name == "reading"
+        assert difficulty_values[3].value == 1.7803497292117219
+        assert difficulty_values[4].name == "total"
+        assert difficulty_values[4].value == 6.524323005451468
 
     def test_update_performance_calculations(self, score):
         difficulty_calculation = DifficultyCalculation.objects.create(
@@ -129,32 +131,36 @@ class TestDifficultyCalculationServices:
         )
 
         difficulty_values = difficulty_calculation.difficulty_values.all()
-        assert len(difficulty_values) == 4
+        assert len(difficulty_values) == 5
         assert difficulty_values[0].name == "aim"
-        assert difficulty_values[0].value == 5.75070316633588
+        assert difficulty_values[0].value == 5.593003356550778
         assert difficulty_values[1].name == "speed"
-        assert difficulty_values[1].value == 3.0669324129154876
+        assert difficulty_values[1].value == 2.1913401312274825
         assert difficulty_values[2].name == "flashlight"
         assert difficulty_values[2].value == 0
-        assert difficulty_values[3].name == "total"
-        assert difficulty_values[3].value == 9.915939154380526
+        assert difficulty_values[3].name == "reading"
+        assert difficulty_values[3].value == 2.4916040541849767
+        assert difficulty_values[4].name == "total"
+        assert difficulty_values[4].value == 9.528765958388444
 
         performance_calculation = difficulty_calculation.performance_calculations.get(
             score_id=score.id
         )
 
         performance_values = performance_calculation.performance_values.all()
-        assert len(performance_values) == 5
+        assert len(performance_values) == 6
         assert performance_values[0].name == "aim"
-        assert performance_values[0].value == 677.3302774773628
+        assert performance_values[0].value == 628.8440218726522
         assert performance_values[1].name == "speed"
-        assert performance_values[1].value == 65.64428011108876
+        assert performance_values[1].value == 27.079187016931964
         assert performance_values[2].name == "accuracy"
-        assert performance_values[2].value == 3.1624441288609773
+        assert performance_values[2].value == 2.9281890082046083
         assert performance_values[3].name == "flashlight"
         assert performance_values[3].value == 0
-        assert performance_values[4].name == "total"
-        assert performance_values[4].value == 827.7470732906951
+        assert performance_values[4].name == "reading"
+        assert performance_values[4].value == 48.926436544789105
+        assert performance_values[5].name == "total"
+        assert performance_values[5].value == 764.5177081010385
 
     @pytest.fixture
     def difficulty_calculation(self, beatmap):
@@ -173,15 +179,17 @@ class TestDifficultyCalculationServices:
                 [difficulty_calculation], difficulty_calculator
             )
         assert len(difficulty_values) == 1
-        assert len(difficulty_values[0]) == 4
+        assert len(difficulty_values[0]) == 5
         assert difficulty_values[0][0].name == "aim"
-        assert difficulty_values[0][0].value == 5.75070316633588
+        assert difficulty_values[0][0].value == 5.593003356550778
         assert difficulty_values[0][1].name == "speed"
-        assert difficulty_values[0][1].value == 3.0669324129154876
+        assert difficulty_values[0][1].value == 2.1913401312274825
         assert difficulty_values[0][2].name == "flashlight"
         assert difficulty_values[0][2].value == 0
-        assert difficulty_values[0][3].name == "total"
-        assert difficulty_values[0][3].value == 9.915939154380526
+        assert difficulty_values[0][3].name == "reading"
+        assert difficulty_values[0][3].value == 2.4916040541849767
+        assert difficulty_values[0][4].name == "total"
+        assert difficulty_values[0][4].value == 9.528765958388444
 
     @pytest.fixture
     def performance_calculation(self, score, difficulty_calculation):
@@ -200,14 +208,16 @@ class TestDifficultyCalculationServices:
                 [performance_calculation], difficulty_calculator
             )
         assert len(performance_values) == 1
-        assert len(performance_values[0]) == 5
+        assert len(performance_values[0]) == 6
         assert performance_values[0][0].name == "aim"
-        assert performance_values[0][0].value == 677.3302774773628
+        assert performance_values[0][0].value == 628.8440218726522
         assert performance_values[0][1].name == "speed"
-        assert performance_values[0][1].value == 65.64428011108876
+        assert performance_values[0][1].value == 27.079187016931964
         assert performance_values[0][2].name == "accuracy"
-        assert performance_values[0][2].value == 3.1624441288609773
+        assert performance_values[0][2].value == 2.9281890082046083
         assert performance_values[0][3].name == "flashlight"
         assert performance_values[0][3].value == 0
-        assert performance_values[0][4].name == "total"
-        assert performance_values[0][4].value == 827.7470732906951
+        assert performance_values[0][4].name == "reading"
+        assert performance_values[0][4].value == 48.926436544789105
+        assert performance_values[0][5].name == "total"
+        assert performance_values[0][5].value == 764.5177081010385
