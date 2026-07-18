@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     "profiles.apps.ProfilesConfig",  # api for profiles
     "leaderboards.apps.LeaderboardsConfig",  # api for leaderboards
     "ppraces.apps.PPRacesConfig",  # api for ppraces
+    "events.apps.EventsConfig",  # api for events
 ]
 
 MIDDLEWARE = [
