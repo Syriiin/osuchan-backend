@@ -6,7 +6,6 @@ import os
 from datetime import timedelta
 
 from celery.schedules import crontab
-from kombu import Exchange, Queue
 from pydantic_settings import BaseSettings
 
 from common.osu.enums import Gamemode
@@ -38,6 +37,7 @@ class EnvSettings(BaseSettings):
     USE_STUB_OSU_API: bool
     USE_STUB_BEATMAP_PROVIDER: bool
     USE_STUB_OSU_OAUTH: bool
+    STUB_SUPERUSER_ID: int | None = None
     COE_API_KEY: str
 
 
@@ -142,6 +142,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 USE_STUB_OSU_OAUTH = env_settings.USE_STUB_OSU_OAUTH
+STUB_SUPERUSER_ID = env_settings.STUB_SUPERUSER_ID
 
 if USE_STUB_OSU_OAUTH:
     AUTHENTICATION_BACKENDS.append("osuauth.backends.StubOsuBackend")

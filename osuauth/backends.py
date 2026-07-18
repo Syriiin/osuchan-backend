@@ -127,6 +127,11 @@ class StubOsuBackend:
 
         user = create_or_update_django_user(osu_user)
 
+        if settings.STUB_SUPERUSER_ID == osu_user.id:
+            user.is_superuser = True
+            user.is_staff = True
+            user.save(update_fields=["is_superuser", "is_staff"])
+
         return user
 
     def get_user(self, user_id):
