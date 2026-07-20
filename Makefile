@@ -73,6 +73,7 @@ clean-dev:	## Cleans development environment containers
 
 reset-dev:	## Resets config, data and containers to default states
 	make env ENV=dev
+	make reset-ephemeral
 	$(COMPOSE_APP_DEV) down --remove-orphans --volumes
 	make migrate
 	make start-dev
@@ -82,3 +83,6 @@ checkfixup:	## Checks for fixup! in commit messages
 
 generatestubdata:	## Generates stub data
 	$(COMPOSE_RUN_TOOLING) python manage.py generatestubdata
+
+reset-ephemeral:	## Clears all ephemeral stub data
+	rm -rf common/osu/stubdata/osuapi_ephemeral
