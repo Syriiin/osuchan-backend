@@ -39,6 +39,7 @@ class EnvSettings(BaseSettings):
     USE_STUB_OSU_OAUTH: bool
     STUB_SUPERUSER_ID: int | None = None
     COE_API_KEY: str
+    DISABLE_PROFILE_UPDATE_COOLDOWN: bool = False
 
 
 env_settings = EnvSettings()
