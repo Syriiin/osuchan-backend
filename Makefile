@@ -81,8 +81,8 @@ reset-dev:	## Resets config, data and containers to default states
 checkfixup:	## Checks for fixup! in commit messages
 	scripts/checkfixup
 
-generatestubdata:	## Generates stub data
-	$(COMPOSE_RUN_TOOLING) python manage.py generatestubdata
+generate-ephemeral-stub-data:	## Generates continuous ephemeral stub data for dev
+	$(COMPOSE_RUN_TOOLING) python manage.py generateephemeralstubdata $(ARGS)
 
 reset-ephemeral:	## Clears all ephemeral stub data
 	rm -rf common/osu/stubdata/osuapi_ephemeral
