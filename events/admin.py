@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from events.models import Event, EventAttendee, EventLeaderboard, EventOrganiser
+from events.models import (
+    BeatmapChallenge,
+    BeatmapChallengeScore,
+    Event,
+    EventAttendee,
+    EventLeaderboard,
+    EventOrganiser,
+)
 
 
 class EventAdmin(admin.ModelAdmin):
@@ -47,7 +54,32 @@ class EventLeaderboardAdmin(admin.ModelAdmin):
     ]
 
 
+class BeatmapChallengeAdmin(admin.ModelAdmin):
+    model = BeatmapChallenge
+    raw_id_fields = ("event", "beatmap")
+
+    list_display = [
+        "__str__",
+        "event_id",
+        "challenge_type",
+    ]
+
+
+class BeatmapChallengeScoreAdmin(admin.ModelAdmin):
+    model = BeatmapChallengeScore
+    raw_id_fields = ("challenge", "score")
+
+    list_display = [
+        "id",
+        "challenge_id",
+        "score_id",
+        "user_id",
+    ]
+
+
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventOrganiser, EventOrganiserAdmin)
 admin.site.register(EventAttendee, EventAttendeeAdmin)
 admin.site.register(EventLeaderboard, EventLeaderboardAdmin)
+admin.site.register(BeatmapChallenge, BeatmapChallengeAdmin)
+admin.site.register(BeatmapChallengeScore, BeatmapChallengeScoreAdmin)
