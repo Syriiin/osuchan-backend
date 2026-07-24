@@ -4,14 +4,20 @@ from django.db import transaction
 
 from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import Gamemode
-from events.models import Event, EventAttendee, EventLeaderboard
-from events.tasks import refresh_event_leaderboards
+from events.enums import BeatmapChallengeType
+from events.models import (
+    BeatmapChallenge,
+    BeatmapChallengeScore,
+    Event,
+    EventAttendee,
+    EventLeaderboard,
+)
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.services import create_membership, delete_membership
-from profiles.enums import ScoreSet
-from profiles.models import OsuUser, ScoreFilter
-from profiles.tasks import update_user
+from profiles.enums import ScoreMutation, ScoreSet
+from profiles.models import OsuUser, Score, ScoreFilter
+from profiles.services import refresh_user_from_api
 
 
 @transaction.atomic
@@ -52,6 +58,9 @@ def update_event(
             if end_date is not None:
                 score_filter.newest_score_date = end_date
             score_filter.save()
+
+        # TODO: fix circular import
+        from events.tasks import refresh_event_leaderboards
 
         transaction.on_commit(lambda: refresh_event_leaderboards.delay(event.id))
 
@@ -113,7 +122,7 @@ def create_event_leaderboard(
 def add_event_attendee(event: Event, user_id: int) -> tuple[EventAttendee, bool]:
     """Add a user as an attendee and auto-subscribe them to all event leaderboards."""
     if not OsuUser.objects.filter(id=user_id).exists():
-        update_user(user_id=user_id)
+        refresh_user_from_api(user_id=user_id)
         if not OsuUser.objects.filter(id=user_id).exists():
             raise OsuUser.DoesNotExist(
                 f"User with id {user_id} not found even after attempting to update."
@@ -149,3 +158,36 @@ def delete_event_leaderboard(event_leaderboard: EventLeaderboard) -> None:
     score_filter = leaderboard.score_filter
     leaderboard.delete()
     score_filter.delete()
+
+
+@transaction.atomic
+def update_attendee_challenge_scores(
+    beatmap_challenge: BeatmapChallenge, user_id: int
+) -> None:
+    """Update the best score for a given beatmap challenge for a given attendee"""
+    scores = Score.objects.filter(
+        user_stats__user_id=user_id,
+        beatmap_id=beatmap_challenge.beatmap_id,
+        gamemode=beatmap_challenge.gamemode,
+        mutation=ScoreMutation.NONE,
+        date__gte=beatmap_challenge.event.start_date,
+        date__lte=beatmap_challenge.event.end_date,
+    )
+
+    if beatmap_challenge.challenge_type == BeatmapChallengeType.BEST_COMBO:
+        best_score = scores.order_by("-best_combo", "date").first()
+    elif beatmap_challenge.challenge_type == BeatmapChallengeType.LOWEST_MISS_COUNT:
+        best_score = scores.order_by("count_miss", "date").first()
+    else:
+        best_score = scores.order_by("-date").first()
+
+    if best_score is not None:
+        BeatmapChallengeScore.objects.update_or_create(
+            challenge=beatmap_challenge,
+            user_id=user_id,
+            defaults={"score": best_score},
+        )
+    else:
+        BeatmapChallengeScore.objects.filter(
+            challenge=beatmap_challenge, user_id=user_id
+        ).delete()
