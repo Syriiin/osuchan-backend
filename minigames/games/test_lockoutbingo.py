@@ -76,6 +76,11 @@ class TestLockoutBingo:
             assert task["row"] == expected_row
             assert task["col"] == expected_col
 
+    def test_no_duplicate_task_types(self):
+        state = LockoutBingo().get_initial_state({"grid_size": 5})
+        types = [task["type"] for task in state["tasks"]]
+        assert len(types) == len(set(types)), "Task types must be unique when grid_size <= number of type"
+
     def test_no_scores_no_changes(self):
         initial = {"tasks": [_task("accuracy_above", 95, task_id=0)]}
         result = LockoutBingo().process_scores([], {"grid_size": 1}, initial)

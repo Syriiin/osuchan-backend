@@ -29,9 +29,18 @@ class LockoutBingo(BaseGame):
         total = grid_size * grid_size
 
         task_type_names = list(task_registry.keys())
+        random.shuffle(task_type_names)
+        bag = iter(task_type_names)
+
         tasks = []
         for i in range(total):
-            type_name = random.choice(task_type_names)
+            try:
+                type_name = next(bag)
+            except StopIteration:
+                random.shuffle(task_type_names)
+                bag = iter(task_type_names)
+                type_name = next(bag)
+
             task_cls = task_registry[type_name]
             params = task_cls.generate_params()
             tasks.append(
