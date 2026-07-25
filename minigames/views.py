@@ -214,42 +214,6 @@ class MinigameRecentScoresList(APIView):
         return Response(serialiser.data)
 
 
-class MinigameTeamScoresList(APIView):
-    """List scores for a specific team in a minigame."""
-
-    def get(self, request, game_id, team_id):
-        try:
-            minigame = Minigame.objects.get(id=game_id)
-        except Minigame.DoesNotExist:
-            raise NotFound("Game not found.")
-
-        try:
-            team = minigame.teams.get(id=team_id)
-        except MinigameTeam.DoesNotExist:
-            raise NotFound("Team not found.")
-
-        try:
-            limit = min(
-                int(request.query_params.get("limit", 10)),
-                50,
-            )
-        except ValueError, TypeError:
-            limit = 10
-
-        scores = (
-            Score.objects.filter(minigame_scores__team=team)
-            .select_related("user_stats", "user_stats__user", "beatmap")
-            .prefetch_related(
-                "performance_calculations__performance_values",
-                "performance_calculations__difficulty_calculation__difficulty_values",
-            )
-            .order_by("-date")[:limit]
-        )
-
-        serialiser = MinigameScoreSerialiser(scores, many=True)
-        return Response(serialiser.data)
-
-
 class MinigameScoringScoresList(APIView):
     """List all scores with non-zero points in a minigame."""
 
