@@ -50,12 +50,50 @@ class LockoutBingo(BaseGame):
 
         return {"tasks": tasks}
 
+    @staticmethod
+    def _line_is_possible(tasks_in_line: list[dict]) -> bool:
+        team_ids = {
+            t["completed_by_team_id"]
+            for t in tasks_in_line
+            if t["completed_by_team_id"] is not None
+        }
+        return len(team_ids) <= 1
+
+    @staticmethod
+    def _line_completed_by(tasks_in_line: list[dict]) -> int | None:
+        if not all(t["completed_by_team_id"] is not None for t in tasks_in_line):
+            return None
+        team_ids = {t["completed_by_team_id"] for t in tasks_in_line}
+        return team_ids.pop() if len(team_ids) == 1 else None
+
+    @staticmethod
+    def _line_completed(tasks: list[dict], grid_size: int) -> bool:
+        for row in range(grid_size):
+            row_tasks = [t for t in tasks if t["row"] == row]
+            if LockoutBingo._line_completed_by(row_tasks) is not None:
+                return True
+        for col in range(grid_size):
+            col_tasks = [t for t in tasks if t["col"] == col]
+            if LockoutBingo._line_completed_by(col_tasks) is not None:
+                return True
+        return False
+
+    @staticmethod
+    def _check_deadlock(tasks: list[dict], grid_size: int) -> bool:
+        for row in range(grid_size):
+            row_tasks = [t for t in tasks if t["row"] == row]
+            if LockoutBingo._line_is_possible(row_tasks):
+                return False
+        for col in range(grid_size):
+            col_tasks = [t for t in tasks if t["col"] == col]
+            if LockoutBingo._line_is_possible(col_tasks):
+                return False
+        return True
+
     def process_scores(
         self, scores: list[GameScore], config: dict, initial_state: dict
     ) -> dict:
         grid_size = config["grid_size"]
-        total = grid_size * grid_size
-        win_threshold = total // 2 + 1
 
         tasks = copy.deepcopy(initial_state["tasks"])
 
@@ -64,7 +102,8 @@ class LockoutBingo(BaseGame):
         team_points: dict[int, int] = {}
         team_score_counts: dict[int, int] = {}
         score_points: dict[int, int] = {}
-        win_condition_reached: bool = False
+
+        win_condition_reached = False
 
         for game_score in scores:
             points_earned = 0
@@ -94,9 +133,12 @@ class LockoutBingo(BaseGame):
                     team_score_counts.get(game_score.team_id, 0) + 1
                 )
 
-                if team_points[game_score.team_id] >= win_threshold:
+                if self._line_completed(tasks, grid_size):
                     win_condition_reached = True
                     break
+
+        if not win_condition_reached:
+            win_condition_reached = self._check_deadlock(tasks, grid_size)
 
         return {
             "state": {"tasks": tasks},
