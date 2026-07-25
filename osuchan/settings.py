@@ -409,5 +409,6 @@ MINIGAMES = {
 }
 
 MINIGAMES_BETA_WHITELIST: list[int] = [
+    5701575
     # TODO: add whitelisted beta tester osu user IDs
 ]
