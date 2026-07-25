@@ -5,9 +5,18 @@ from django.urls import reverse
 from rest_framework.test import force_authenticate
 
 from common.osu.enums import Gamemode
-from events.models import Event, EventAttendee, EventLeaderboard, EventOrganiser
-from events.services import create_event_leaderboard
+from events.enums import BeatmapChallengeType
+from events.models import (
+    BeatmapChallenge,
+    Event,
+    EventAttendee,
+    EventLeaderboard,
+    EventOrganiser,
+)
+from events.services import create_event_leaderboard, update_attendee_challenge_scores
 from events.views import (
+    BeatmapChallengeList,
+    BeatmapChallengeScoreList,
     EventAttendeeDetail,
     EventAttendeeList,
     EventDetail,
@@ -19,7 +28,7 @@ from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
 from osuauth.models import User
 from profiles.enums import AllowedBeatmapStatus, ScoreSet
-from profiles.models import OsuUser, ScoreFilter
+from profiles.models import OsuUser, Score, ScoreFilter, UserStats
 
 
 @pytest.fixture
@@ -394,3 +403,279 @@ class TestEventLeaderboardDetail:
             event_leaderboard_id=event_leaderboard.id,
         )
         assert response.status_code == 403
+
+
+def _create_score(user_stats, beatmap, best_combo, count_miss, date):
+    return Score.objects.create(
+        score=1000000,
+        count_300=1000,
+        count_100=0,
+        count_50=0,
+        count_miss=count_miss,
+        count_geki=0,
+        count_katu=0,
+        statistics={"great": 1000, "ok": 0, "meh": 0, "miss": count_miss},
+        best_combo=best_combo,
+        perfect=False,
+        mods=0,
+        mods_json={},
+        is_stable=True,
+        rank="S",
+        date=date,
+        beatmap=beatmap,
+        user_stats=user_stats,
+        gamemode=Gamemode.STANDARD,
+        accuracy=100.0,
+        bpm=180,
+        length=368,
+        circle_size=4,
+        approach_rate=9.7,
+        overall_difficulty=8.4,
+        result=0,
+        mutation=0,
+    )
+
+
+@pytest.fixture
+def other_user_stats(other_osu_user):
+    return UserStats.objects.create(
+        gamemode=Gamemode.STANDARD,
+        playcount=1000,
+        playtime=100000,
+        level=50,
+        ranked_score=1000000,
+        total_score=5000000,
+        rank=50000,
+        country_rank=2000,
+        pp=2000,
+        accuracy=95.0,
+        count_300=5000,
+        count_100=500,
+        count_50=50,
+        count_rank_ss=10,
+        count_rank_ssh=5,
+        count_rank_s=100,
+        count_rank_sh=50,
+        count_rank_a=200,
+        extra_pp=0,
+        score_style_accuracy=0,
+        score_style_bpm=0,
+        score_style_cs=0,
+        score_style_ar=0,
+        score_style_od=0,
+        score_style_length=0,
+        user=other_osu_user,
+        last_updated=datetime(2025, 7, 14, tzinfo=timezone.utc),
+    )
+
+
+@pytest.fixture
+def beatmap_challenge(event, beatmap):
+    return BeatmapChallenge.objects.create(
+        description="$100 USD bounty for first FC",
+        gamemode=Gamemode.STANDARD,
+        challenge_type=BeatmapChallengeType.BEST_COMBO,
+        event=event,
+        beatmap=beatmap,
+    )
+
+
+@pytest.mark.django_db
+class TestBeatmapChallengeList:
+    @pytest.fixture
+    def view(self):
+        return BeatmapChallengeList.as_view()
+
+    def test_get(self, arf, view, event, beatmap_challenge):
+        request = arf.get(
+            reverse("beatmap-challenge-list", kwargs={"slug": event.slug})
+        )
+        response = view(request, slug=event.slug)
+        assert response.status_code == 200
+        assert len(response.data) == 1
+        assert response.data[0]["description"] == beatmap_challenge.description
+        assert response.data[0]["beatmap"]["id"] == beatmap_challenge.beatmap_id
+
+    def test_get_empty(self, arf, view, event):
+        request = arf.get(
+            reverse("beatmap-challenge-list", kwargs={"slug": event.slug})
+        )
+        response = view(request, slug=event.slug)
+        assert response.status_code == 200
+        assert response.data == []
+
+    def test_get_event_not_found(self, arf, view):
+        request = arf.get(
+            reverse("beatmap-challenge-list", kwargs={"slug": "nonexistent"})
+        )
+        response = view(request, slug="nonexistent")
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestBeatmapChallengeScoreList:
+    @pytest.fixture
+    def view(self):
+        return BeatmapChallengeScoreList.as_view()
+
+    def test_get(self, arf, view, event, beatmap_challenge, user, user_stats, beatmap):
+        EventAttendee.objects.create(event=event, user_id=user.osu_user.id)
+        _create_score(
+            user_stats,
+            beatmap,
+            best_combo=2757,
+            count_miss=0,
+            date=datetime(2024, 6, 15, tzinfo=timezone.utc),
+        )
+        update_attendee_challenge_scores(beatmap_challenge, user.osu_user.id)
+
+        request = arf.get(
+            reverse(
+                "beatmap-challenge-score-list",
+                kwargs={"slug": event.slug, "challenge_id": beatmap_challenge.id},
+            )
+        )
+        response = view(request, slug=event.slug, challenge_id=beatmap_challenge.id)
+        assert response.status_code == 200
+        assert len(response.data) == 1
+
+    def test_get_event_not_found(self, arf, view, beatmap_challenge):
+        request = arf.get(
+            reverse(
+                "beatmap-challenge-score-list",
+                kwargs={"slug": "nonexistent", "challenge_id": beatmap_challenge.id},
+            )
+        )
+        response = view(request, slug="nonexistent", challenge_id=beatmap_challenge.id)
+        assert response.status_code == 404
+
+    def test_get_challenge_not_found(self, arf, view, event):
+        request = arf.get(
+            reverse(
+                "beatmap-challenge-score-list",
+                kwargs={"slug": event.slug, "challenge_id": 999},
+            )
+        )
+        response = view(request, slug=event.slug, challenge_id=999)
+        assert response.status_code == 404
+
+    def test_order_best_combo(
+        self, arf, view, event, beatmap_challenge, user, user_stats, beatmap
+    ):
+        EventAttendee.objects.create(event=event, user_id=user.osu_user.id)
+
+        _create_score(
+            user_stats,
+            beatmap,
+            best_combo=2000,
+            count_miss=0,
+            date=datetime(2024, 6, 10, tzinfo=timezone.utc),
+        )
+        _create_score(
+            user_stats,
+            beatmap,
+            best_combo=2500,
+            count_miss=0,
+            date=datetime(2024, 6, 11, tzinfo=timezone.utc),
+        )
+        best = _create_score(
+            user_stats,
+            beatmap,
+            best_combo=2500,
+            count_miss=0,
+            date=datetime(2024, 6, 9, tzinfo=timezone.utc),
+        )
+
+        update_attendee_challenge_scores(beatmap_challenge, user.osu_user.id)
+
+        request = arf.get(
+            reverse(
+                "beatmap-challenge-score-list",
+                kwargs={"slug": event.slug, "challenge_id": beatmap_challenge.id},
+            )
+        )
+        response = view(request, slug=event.slug, challenge_id=beatmap_challenge.id)
+        assert response.status_code == 200
+        assert len(response.data) == 1
+        assert response.data[0]["id"] == best.id
+
+    def test_order_lowest_miss_count(self, arf, view, user, user_stats, beatmap, event):
+        challenge = BeatmapChallenge.objects.create(
+            description="Zero misses challenge",
+            gamemode=Gamemode.STANDARD,
+            challenge_type=BeatmapChallengeType.LOWEST_MISS_COUNT,
+            event=event,
+            beatmap=beatmap,
+        )
+        EventAttendee.objects.create(event=event, user_id=user.osu_user.id)
+
+        _create_score(
+            user_stats,
+            beatmap,
+            best_combo=2800,
+            count_miss=2,
+            date=datetime(2024, 6, 10, tzinfo=timezone.utc),
+        )
+        _create_score(
+            user_stats,
+            beatmap,
+            best_combo=2700,
+            count_miss=0,
+            date=datetime(2024, 6, 12, tzinfo=timezone.utc),
+        )
+        best = _create_score(
+            user_stats,
+            beatmap,
+            best_combo=2600,
+            count_miss=0,
+            date=datetime(2024, 6, 9, tzinfo=timezone.utc),
+        )
+
+        update_attendee_challenge_scores(challenge, user.osu_user.id)
+
+        request = arf.get(
+            reverse(
+                "beatmap-challenge-score-list",
+                kwargs={"slug": event.slug, "challenge_id": challenge.id},
+            )
+        )
+        response = view(request, slug=event.slug, challenge_id=challenge.id)
+        assert response.status_code == 200
+        assert len(response.data) == 1
+        assert response.data[0]["id"] == best.id
+
+    def test_get_limit(
+        self,
+        arf,
+        view,
+        event,
+        beatmap_challenge,
+        user,
+        other_user,
+        user_stats,
+        beatmap,
+        other_user_stats,
+    ):
+        EventAttendee.objects.create(event=event, user_id=user.osu_user.id)
+        EventAttendee.objects.create(event=event, user_id=other_user.osu_user.id)
+
+        for u_stats, usr in [(user_stats, user), (other_user_stats, other_user)]:
+            _create_score(
+                u_stats,
+                beatmap,
+                best_combo=2000,
+                count_miss=0,
+                date=datetime(2024, 6, 10, tzinfo=timezone.utc),
+            )
+            update_attendee_challenge_scores(beatmap_challenge, usr.osu_user.id)
+
+        request = arf.get(
+            reverse(
+                "beatmap-challenge-score-list",
+                kwargs={"slug": event.slug, "challenge_id": beatmap_challenge.id},
+            )
+            + "?limit=1"
+        )
+        response = view(request, slug=event.slug, challenge_id=beatmap_challenge.id)
+        assert response.status_code == 200
+        assert len(response.data) == 1
