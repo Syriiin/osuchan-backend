@@ -404,7 +404,7 @@ else:
 COE_API_KEY = env_settings.COE_API_KEY
 
 MINIGAMES = {
-    "first_to_n": "minigames.games.FirstToN",
+    # "first_to_n": "minigames.games.FirstToN",
     "lockout_bingo": "minigames.games.LockoutBingo",
 }
 
