@@ -10,6 +10,7 @@ class GameScore(NamedTuple):
     score_id: int
     points: float
 
+    score_score: int
     score_count_300: int
     score_count_100: int
     score_count_50: int
@@ -24,6 +25,16 @@ class GameScore(NamedTuple):
     beatmap_id: int
     beatmap_creator_name: str
     beatmap_status: int
+    beatmap_title: str
+    beatmap_artist: str
+    beatmap_difficulty_name: str
+    beatmap_approval_date: datetime | None
+    beatmap_hitobject_counts: dict
+
+    score_bpm: float
+    score_length: float
+    score_overall_difficulty: float
+    score_approach_rate: float
 
     score_performance_total: float | None = None
     score_difficulty_total: float | None = None
