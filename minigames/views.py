@@ -10,8 +10,8 @@ from minigames.games import game_registry
 from minigames.models import Minigame, MinigamePlayer, MinigameScore, MinigameTeam
 from minigames.serialisers import (
     MinigamePlayerSerialiser,
-    MinigameScoringScoreSerialiser,
     MinigameScoreSerialiser,
+    MinigameScoringScoreSerialiser,
     MinigameSerialiser,
 )
 from minigames.services import (

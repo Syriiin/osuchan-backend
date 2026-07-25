@@ -55,7 +55,9 @@ class Command(BaseCommand):
 
         mod_acronyms = random.choice(MOD_COMBOS)
         score["mods"] = get_bitwise_mods(mod_acronyms)
-        score["mods_json"] = get_json_mods(score["mods"], add_classic=score.get("is_stable", True))
+        score["mods_json"] = get_json_mods(
+            score["mods"], add_classic=score.get("is_stable", True)
+        )
 
         os.makedirs(EPHEMERAL_DIR, exist_ok=True)
 

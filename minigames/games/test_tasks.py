@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from minigames.games.test_helpers import _game_score
 from minigames.games.tasks import task_registry
+from minigames.games.test_helpers import _game_score
 
 
 class TestAllTasks:
@@ -55,7 +55,9 @@ class TestAllTasks:
 
     def test_map_by_creator(self):
         score = _game_score(beatmap_creator_name="Hollow Wings")
-        assert task_registry["map_by_creator"].check(score, {"creator_name": "Hollow Wings"})
+        assert task_registry["map_by_creator"].check(
+            score, {"creator_name": "Hollow Wings"}
+        )
 
     def test_more_sliders_than_circles(self):
         score = _game_score(beatmap_hitobject_counts={"sliders": 10, "circles": 5})
@@ -70,7 +72,9 @@ class TestAllTasks:
         assert task_registry["zero_circles"].check(score, {})
 
     def test_only_circles(self):
-        score = _game_score(beatmap_hitobject_counts={"circles": 10, "sliders": 0, "spinners": 0})
+        score = _game_score(
+            beatmap_hitobject_counts={"circles": 10, "sliders": 0, "spinners": 0}
+        )
         assert task_registry["only_circles"].check(score, {})
 
     def test_od_higher_than_ar(self):
@@ -78,7 +82,11 @@ class TestAllTasks:
         assert task_registry["od_higher_than_ar"].check(score, {})
 
     def test_longer_diff_than_artist_title(self):
-        score = _game_score(beatmap_difficulty_name="Very Long Difficulty Name", beatmap_artist="a", beatmap_title="b")
+        score = _game_score(
+            beatmap_difficulty_name="Very Long Difficulty Name",
+            beatmap_artist="a",
+            beatmap_title="b",
+        )
         assert task_registry["longer_diff_than_artist_title"].check(score, {})
 
     def test_results_screen_727(self):
@@ -90,8 +98,12 @@ class TestAllTasks:
         assert task_registry["fc_with_max_acc"].check(score, {"max_accuracy": 60})
 
     def test_long_play_low_combo(self):
-        score = _game_score(score_length=3601, score_best_combo=50, score_count_100=0, score_count_50=0)
-        assert task_registry["long_play_low_combo"].check(score, {"min_minutes": 60, "max_combo": 100})
+        score = _game_score(
+            score_length=3601, score_best_combo=50, score_count_100=0, score_count_50=0
+        )
+        assert task_registry["long_play_low_combo"].check(
+            score, {"min_minutes": 60, "max_combo": 100}
+        )
 
     def test_more_50s_than_300s(self):
         score = _game_score(score_count_50=10, score_count_300=5)

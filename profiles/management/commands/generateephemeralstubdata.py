@@ -8,16 +8,15 @@ from django.core.management.base import BaseCommand
 
 from common.osu.enums import Gamemode
 from common.osu.utils import get_bitwise_mods, get_json_mods
-
-from profiles.management.commands.addstubuser import (
-    _generate_user,
-    _merge_ephemeral_stub_data,
-)
 from profiles.management.commands.addstubscore import (
-    _get_random_source_score,
     EPHEMERAL_DIR,
     GAMEMODE,
     MOD_COMBOS,
+    _get_random_source_score,
+)
+from profiles.management.commands.addstubuser import (
+    _generate_user,
+    _merge_ephemeral_stub_data,
 )
 
 MIN_USERS = 10

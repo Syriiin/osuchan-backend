@@ -7,11 +7,31 @@ urlpatterns = [
     path("history", views.MinigameHistoryList.as_view(), name="minigame-history"),
     path("<int:game_id>", views.MinigameDetail.as_view(), name="minigame-detail"),
     path("<int:game_id>/start", views.MinigameStart.as_view(), name="minigame-start"),
-    path("<int:game_id>/scores", views.MinigameRecentScoresList.as_view(), name="minigame-scores"),
-    path("<int:game_id>/scoring-scores", views.MinigameScoringScoresList.as_view(), name="minigame-scoring-scores"),
-    path("<int:game_id>/teams/<int:team_id>/scores", views.MinigameTeamScoresList.as_view(), name="team-scores"),
+    path(
+        "<int:game_id>/scores",
+        views.MinigameRecentScoresList.as_view(),
+        name="minigame-scores",
+    ),
+    path(
+        "<int:game_id>/scoring-scores",
+        views.MinigameScoringScoresList.as_view(),
+        name="minigame-scoring-scores",
+    ),
+    path(
+        "<int:game_id>/teams/<int:team_id>/scores",
+        views.MinigameTeamScoresList.as_view(),
+        name="team-scores",
+    ),
     path("<int:game_id>/join", views.MinigameJoin.as_view(), name="minigame-join"),
     path("<int:game_id>/leave", views.MinigameLeave.as_view(), name="minigame-leave"),
-    path("<int:game_id>/settings", views.MinigameUpdateSettings.as_view(), name="minigame-settings"),
-    path("<int:game_id>/move-team", views.MinigameMoveTeam.as_view(), name="minigame-move-team"),
+    path(
+        "<int:game_id>/settings",
+        views.MinigameUpdateSettings.as_view(),
+        name="minigame-settings",
+    ),
+    path(
+        "<int:game_id>/move-team",
+        views.MinigameMoveTeam.as_view(),
+        name="minigame-move-team",
+    ),
 ]

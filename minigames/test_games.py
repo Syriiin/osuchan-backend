@@ -1,5 +1,5 @@
-from minigames.games.test_helpers import _game_score
 from minigames.games import FirstToN
+from minigames.games.test_helpers import _game_score
 
 
 class TestFirstToN:

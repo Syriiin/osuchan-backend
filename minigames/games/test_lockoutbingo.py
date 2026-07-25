@@ -21,7 +21,11 @@ def _task(type, value, row=0, col=0, task_id=0):
         "id": task_id,
         "type": type,
         "params": {param_keys.get(type, "value"): value},
-        "description": t.get(type, type).format(int(value)) if isinstance(value, (int, float)) else t.get(type, type).format(value),
+        "description": (
+            t.get(type, type).format(int(value))
+            if isinstance(value, (int, float))
+            else t.get(type, type).format(value)
+        ),
         "row": row,
         "col": col,
         "completed_by_score_id": None,
@@ -36,7 +40,13 @@ MOD_TASKS = ["HD", "HR", "DT", "FL", "SD", "NF", "HT", "NC", "SO"]
 def _grid_tasks(grid_size: int):
     """Create a list of tasks using requires_mod with distinct mods so scores never cross-match."""
     return [
-        _task("requires_mod", MOD_TASKS[i], row=i // grid_size, col=i % grid_size, task_id=i)
+        _task(
+            "requires_mod",
+            MOD_TASKS[i],
+            row=i // grid_size,
+            col=i % grid_size,
+            task_id=i,
+        )
         for i in range(grid_size * grid_size)
     ]
 
@@ -44,8 +54,11 @@ def _grid_tasks(grid_size: int):
 def _score_for_task(task_index: int, team_id: int = 1, player_id: int = 1):
     """Create a score that matches exactly the requires_mod task at task_index."""
     return _game_score(
-        id=task_index, player_id=player_id, team_id=team_id,
-        score_id=task_index, score_mods_json={MOD_TASKS[task_index]: {}},
+        id=task_index,
+        player_id=player_id,
+        team_id=team_id,
+        score_id=task_index,
+        score_mods_json={MOD_TASKS[task_index]: {}},
     )
 
 
@@ -79,7 +92,9 @@ class TestLockoutBingo:
     def test_no_duplicate_task_types(self):
         state = LockoutBingo().get_initial_state({"grid_size": 5})
         types = [task["type"] for task in state["tasks"]]
-        assert len(types) == len(set(types)), "Task types must be unique when grid_size <= number of type"
+        assert len(types) == len(
+            set(types)
+        ), "Task types must be unique when grid_size <= number of type"
 
     def test_no_scores_no_changes(self):
         initial = {"tasks": [_task("accuracy_above", 95, task_id=0)]}

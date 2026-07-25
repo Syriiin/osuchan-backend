@@ -5,8 +5,6 @@ from typing import Iterable
 from django.db import transaction
 from prometheus_client import Counter
 
-from osuchan.settings import env_settings
-
 from common.error_reporter import ErrorReporter
 from common.osu import utils
 from common.osu.difficultycalculator import (
@@ -20,6 +18,7 @@ from common.osu.difficultycalculator import (
 from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import OsuApi, ScoreData
 from leaderboards.models import Leaderboard, Membership
+from osuchan.settings import env_settings
 from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import (
     Beatmap,

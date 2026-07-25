@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
 import random
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from typing import Any
 
 from minigames.games.base import GameScore
