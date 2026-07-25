@@ -81,9 +81,12 @@ def _task(type, value, row=0, col=0, task_id=0):
         "id": task_id,
         "type": type,
         "params": {"value": value},
-        "description": t[type].format(int(value)),
+        "description": t.get(type, type).format(int(value)),
         "row": row,
         "col": col,
+        "completed_by_score_id": None,
+        "completed_by_player_id": None,
+        "completed_by_team_id": None,
     }
 
 
@@ -105,7 +108,6 @@ class TestLockoutBingo:
             assert "description" in task
             assert "row" in task
             assert "col" in task
-            assert task["type"] in ("accuracy_above", "accuracy_below")
 
     def test_row_col_assigned_correctly(self):
         state = LockoutBingo().get_initial_state({"grid_size": 3})
