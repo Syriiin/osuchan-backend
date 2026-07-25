@@ -69,6 +69,9 @@ class MinigameList(APIView):
         except ValueError, TypeError:
             raise ParseError("Invalid gamemode parameter.")
 
+        if gamemode_enum != Gamemode.STANDARD:
+            raise ParseError("Only standard gamemode is supported for minigames.")
+
         is_free_for_all = request.data.get("is_free_for_all", False)
 
         if not isinstance(is_free_for_all, bool):
