@@ -16,8 +16,8 @@ from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
 from leaderboards.services import create_membership, delete_membership
 from profiles.enums import ScoreMutation, ScoreSet
-from profiles.models import OsuUser, Score, ScoreFilter
-from profiles.services import refresh_user_from_api
+from profiles.models import Beatmap, OsuUser, Score, ScoreFilter
+from profiles.services import refresh_user_from_api, store_beatmap
 
 
 @transaction.atomic
@@ -191,3 +191,28 @@ def update_attendee_challenge_scores(
         BeatmapChallengeScore.objects.filter(
             challenge=beatmap_challenge, user_id=user_id
         ).delete()
+
+
+@transaction.atomic
+def create_beatmap_challenge(
+    event: Event,
+    beatmap_id: int,
+    description: str,
+    gamemode: int,
+    challenge_type: BeatmapChallengeType,
+) -> BeatmapChallenge:
+    """Create a beatmap challenge, storing the beatmap first if it doesn't exist."""
+    if not Beatmap.objects.filter(id=beatmap_id).exists():
+        beatmap = store_beatmap(beatmap_id)
+        if beatmap is None:
+            raise Beatmap.DoesNotExist(
+                f"Beatmap with id {beatmap_id} not found on osu!"
+            )
+
+    return BeatmapChallenge.objects.create(
+        event=event,
+        beatmap_id=beatmap_id,
+        description=description,
+        gamemode=gamemode,
+        challenge_type=challenge_type,
+    )
