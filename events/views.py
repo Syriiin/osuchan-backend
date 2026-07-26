@@ -18,12 +18,13 @@ from events.serialisers import (
 )
 from events.services import (
     add_event_attendee,
+    create_beatmap_challenge,
     create_event_leaderboard,
     delete_event_leaderboard,
     remove_event_attendee,
     update_event,
 )
-from profiles.models import OsuUser, Score
+from profiles.models import Beatmap, OsuUser, Score
 
 
 class EventList(APIView):
@@ -224,6 +225,57 @@ class BeatmapChallengeList(APIView):
 
         serialiser = BeatmapChallengeSerialiser(challenges, many=True)
         return Response(serialiser.data)
+
+    def post(self, request, slug):
+        """Create a beatmap challenge for an event."""
+        osu_user_id = request.user.osu_user_id
+        if osu_user_id is None:
+            raise PermissionDenied("Must be authenticated with an osu! account.")
+
+        try:
+            event = Event.objects.get(slug=slug)
+        except Event.DoesNotExist:
+            raise NotFound("Event not found.")
+
+        if not event.is_organiser(osu_user_id):
+            raise PermissionDenied("Must be an organiser to manage challenges.")
+
+        beatmap_id = request.data.get("beatmap_id")
+        if beatmap_id is None:
+            raise ParseError("Missing beatmap_id parameter.")
+
+        description = request.data.get("description")
+        if description is None:
+            raise ParseError("Missing description parameter.")
+
+        gamemode = request.data.get("gamemode")
+        if gamemode is None:
+            raise ParseError("Missing gamemode parameter.")
+
+        challenge_type = request.data.get("challenge_type")
+        if challenge_type is None:
+            raise ParseError("Missing challenge_type parameter.")
+
+        try:
+            challenge_type = BeatmapChallengeType(challenge_type)
+        except ValueError:
+            raise ParseError(
+                f"Invalid challenge_type. Must be one of: {BeatmapChallengeType.BEST_COMBO.value}, {BeatmapChallengeType.LOWEST_MISS_COUNT.value}"
+            )
+
+        try:
+            challenge = create_beatmap_challenge(
+                event,
+                beatmap_id=beatmap_id,
+                description=description,
+                gamemode=gamemode,
+                challenge_type=challenge_type,
+            )
+        except Beatmap.DoesNotExist:
+            raise NotFound("Beatmap not found.")
+
+        serialiser = BeatmapChallengeSerialiser(challenge)
+        return Response(serialiser.data, status=status.HTTP_201_CREATED)
 
 
 class BeatmapChallengeScoreList(APIView):
