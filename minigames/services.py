@@ -229,6 +229,7 @@ def update_minigame_player_scores(player: MinigamePlayer) -> MinigamePlayer:
     """
     Updates scores for a single minigame player.
     """
+    player = MinigamePlayer.objects.select_for_update().get(id=player.id)
     team = player.team
     minigame = team.minigame
 
