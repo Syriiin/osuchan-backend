@@ -18,6 +18,7 @@ from common.osu.difficultycalculator import (
 from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import OsuApi, ScoreData
 from leaderboards.models import Leaderboard, Membership
+from osuchan.settings import env_settings
 from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import (
     Beatmap,
@@ -81,9 +82,14 @@ def refresh_user_from_api(
         # TODO: refactor user updating flow to replace this with a properly readable and maintainable locking mechanism
         UserStats.objects.select_for_update().get(id=user_stats.id)
 
-    if user_stats is not None and user_stats.last_updated > (
-        datetime.utcnow().replace(tzinfo=timezone.utc)
-        - timedelta(seconds=cooldown_seconds)
+    if (
+        not env_settings.DISABLE_PROFILE_UPDATE_COOLDOWN
+        and user_stats is not None
+        and user_stats.last_updated
+        > (
+            datetime.utcnow().replace(tzinfo=timezone.utc)
+            - timedelta(seconds=cooldown_seconds)
+        )
     ):
         # User was last updated less than 5 minutes ago, so just return it
         return user_stats, False
@@ -244,7 +250,7 @@ def refresh_user_recent_from_api(
         # User does not exist in the db, so return None
         return None, False
 
-    if user_stats.last_updated > (
+    if not env_settings.DISABLE_PROFILE_UPDATE_COOLDOWN and user_stats.last_updated > (
         datetime.utcnow().replace(tzinfo=timezone.utc)
         - timedelta(seconds=cooldown_seconds)
     ):

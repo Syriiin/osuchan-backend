@@ -6,7 +6,6 @@ import os
 from datetime import timedelta
 
 from celery.schedules import crontab
-from kombu import Exchange, Queue
 from pydantic_settings import BaseSettings
 
 from common.osu.enums import Gamemode
@@ -38,7 +37,9 @@ class EnvSettings(BaseSettings):
     USE_STUB_OSU_API: bool
     USE_STUB_BEATMAP_PROVIDER: bool
     USE_STUB_OSU_OAUTH: bool
+    STUB_SUPERUSER_ID: int | None = None
     COE_API_KEY: str
+    DISABLE_PROFILE_UPDATE_COOLDOWN: bool = False
 
 
 env_settings = EnvSettings()
@@ -94,6 +95,7 @@ INSTALLED_APPS = [
     "profiles.apps.ProfilesConfig",  # api for profiles
     "leaderboards.apps.LeaderboardsConfig",  # api for leaderboards
     "ppraces.apps.PPRacesConfig",  # api for ppraces
+    "minigames.apps.MinigamesConfig",  # api for minigames
     "events.apps.EventsConfig",  # api for events
 ]
 
@@ -141,6 +143,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 USE_STUB_OSU_OAUTH = env_settings.USE_STUB_OSU_OAUTH
+STUB_SUPERUSER_ID = env_settings.STUB_SUPERUSER_ID
 
 if USE_STUB_OSU_OAUTH:
     AUTHENTICATION_BACKENDS.append("osuauth.backends.StubOsuBackend")
@@ -236,6 +239,10 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-ppraces-every-minute": {
         "task": "ppraces.tasks.dispatch_update_all_ppraces",
+        "schedule": crontab(minute="*"),  # every minute
+    },
+    "update-minigames-every-minute": {
+        "task": "minigames.tasks.dispatch_minigame_updates",
         "schedule": crontab(minute="*"),  # every minute
     },
 }
@@ -395,3 +402,13 @@ else:
     )
 
 COE_API_KEY = env_settings.COE_API_KEY
+
+MINIGAMES = {
+    # "first_to_n": "minigames.games.FirstToN",
+    "lockout_bingo": "minigames.games.LockoutBingo",
+}
+
+MINIGAMES_BETA_WHITELIST: list[int] = [
+    5701575
+    # TODO: add whitelisted beta tester osu user IDs
+]

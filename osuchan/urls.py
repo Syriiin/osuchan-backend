@@ -31,6 +31,7 @@ urlpatterns = [
     path("api/leaderboards/", include("leaderboards.urls")),
     path("api/events/", include("events.urls")),
     path("api/ppraces/", include("ppraces.urls")),
+    path("api/minigames/", include("minigames.urls")),
     path("osuauth/", include("osuauth.urls")),
     path("beatmapfiles/<int:beatmap_id>", getBeatmapFile),
 ]

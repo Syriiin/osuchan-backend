@@ -1,7 +1,7 @@
 ENV ?= dev
 DOCKER_UID = $(shell id -u)
 DOCKER_GID = $(shell id -g)
-COMPOSE_RUN_TOOLING = DOCKER_UID=${DOCKER_UID} DOCKER_GID=${DOCKER_GID} docker compose -f compose.yaml -f compose.override.yaml -f compose.tooling.yaml run --rm --build tooling
+COMPOSE_RUN_TOOLING = DOCKER_UID=${DOCKER_UID} DOCKER_GID=${DOCKER_GID} docker compose -f compose.yaml -f compose.override.yaml -f compose.tooling.yaml run --rm tooling
 COMPOSE_APP_DEV = docker compose -f compose.yaml -f compose.override.yaml
 
 help:	## Show this help
@@ -73,6 +73,7 @@ clean-dev:	## Cleans development environment containers
 
 reset-dev:	## Resets config, data and containers to default states
 	make env ENV=dev
+	make reset-ephemeral
 	$(COMPOSE_APP_DEV) down --remove-orphans --volumes
 	make migrate
 	make start-dev
@@ -80,5 +81,8 @@ reset-dev:	## Resets config, data and containers to default states
 checkfixup:	## Checks for fixup! in commit messages
 	scripts/checkfixup
 
-generatestubdata:	## Generates stub data
-	$(COMPOSE_RUN_TOOLING) python manage.py generatestubdata
+generate-ephemeral-stub-data:	## Generates continuous ephemeral stub data for dev
+	$(COMPOSE_RUN_TOOLING) python manage.py generateephemeralstubdata $(ARGS)
+
+reset-ephemeral:	## Clears all ephemeral stub data
+	rm -rf common/osu/stubdata/osuapi_ephemeral

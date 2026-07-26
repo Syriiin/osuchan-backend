@@ -90,7 +90,7 @@ class PPRaceStart(APIView):
         if api_key != settings.COE_API_KEY:
             raise PermissionDenied("Invalid API key.")
 
-        race_length = request.query_params.get("race_length")
+        race_length = request.data.get("race_length")
         if race_length is None:
             race_length = 60 * 60  # Default to 1 hour
         else:
@@ -99,7 +99,7 @@ class PPRaceStart(APIView):
             except ValueError:
                 raise ParseError("Invalid race_length parameter.")
 
-        countdown = request.query_params.get("countdown")
+        countdown = request.data.get("countdown")
         if countdown is None:
             countdown = 60  # Default to 1 minute
         else:
@@ -187,7 +187,7 @@ class PPRacePlayerTriggerUpdate(APIView):
         if api_key != settings.COE_API_KEY:
             raise PermissionDenied("Invalid API key.")
 
-        user_id = request.query_params.get("user_id")
+        user_id = request.data.get("user_id")
         if user_id is None:
             raise ParseError("Missing user_id parameter.")
         try:
@@ -195,7 +195,7 @@ class PPRacePlayerTriggerUpdate(APIView):
         except ValueError:
             raise ParseError("Invalid user_id parameter.")
 
-        gamemode = request.query_params.get("gamemode")
+        gamemode = request.data.get("gamemode")
         if gamemode is None:
             raise ParseError("Missing gamemode parameter.")
         try:
