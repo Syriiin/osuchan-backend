@@ -1,10 +1,12 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from celery import shared_task
 
+from common.osu.enums import Gamemode
 from events.models import Event
 from events.services import update_attendee_challenge_scores
 from leaderboards.services import update_membership
+from profiles.models import UserStats
 
 
 @shared_task
@@ -36,3 +38,40 @@ def update_user_event_challenge_scores(user_id: int) -> None:
     for event in current_events:
         for challenge in event.beatmap_challenges.all():
             update_attendee_challenge_scores(challenge, user_id)
+
+
+@shared_task(priority=7)
+def dispatch_update_all_current_event_attendees():
+    # TODO: fix circular dependency
+    from profiles.tasks import update_user_recent
+
+    now = datetime.now(tz=timezone.utc)
+    current_events = Event.objects.filter(
+        start_date__lte=now,
+        end_date__gte=now,
+    )
+
+    for event in current_events:
+        for attendee in event.attendees:
+            for gamemode in Gamemode:
+                update_user_recent.delay(attendee.id, gamemode)
+
+
+@shared_task(priority=7)
+def dispatch_update_all_current_event_active_attendees():
+    # TODO: fix circular dependency
+    from profiles.tasks import update_user_recent
+
+    now = datetime.now(tz=timezone.utc)
+    current_events = Event.objects.filter(
+        start_date__lte=now,
+        end_date__gte=now,
+    )
+
+    for event in current_events:
+        active_attendees_stats = UserStats.objects.filter(
+            user_id__in=event.attendees.values_list("id"),
+            scores__date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=30),
+        ).distinct()
+        for user_stats in active_attendees_stats:
+            update_user_recent.delay(user_stats.user_id, user_stats.gamemode)
