@@ -116,7 +116,7 @@ class TestEventLeaderboardServices:
         leaderboard = event_leaderboard.leaderboard
         assert leaderboard.is_event is True
         assert leaderboard.owner is None
-        assert leaderboard.access_type == LeaderboardAccessType.PUBLIC
+        assert leaderboard.access_type == LeaderboardAccessType.PUBLIC_INVITE_ONLY
         assert leaderboard.custom_colours == event.theme_colours
         assert leaderboard.icon_url == event.logo
         assert leaderboard.score_set == ScoreSet.NORMAL
