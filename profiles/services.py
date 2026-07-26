@@ -17,6 +17,7 @@ from common.osu.difficultycalculator import (
 )
 from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import OsuApi, ScoreData
+from events.models import Event
 from leaderboards.models import Leaderboard, Membership
 from osuchan.settings import env_settings
 from profiles.enums import ScoreMutation, ScoreResult
@@ -329,6 +330,23 @@ def refresh_beatmaps_from_api(beatmap_ids: Iterable[int]):
                 update_difficulty_calculations(beatmaps, difficulty_calculator)
 
     return beatmaps
+
+
+@transaction.atomic
+def store_beatmap(beatmap_id: int) -> Beatmap | None:
+    """Fetch and store a beatmap from the osu API regardless of its status."""
+    osu_api = OsuApi()
+    beatmap_data = osu_api.get_beatmap(beatmap_id)
+    if beatmap_data is None:
+        return None
+    beatmap = Beatmap.from_data(beatmap_data)
+    beatmap.save()
+    for difficulty_calculator_class in get_difficulty_calculators_for_gamemode(
+        beatmap.gamemode
+    ):
+        with difficulty_calculator_class() as difficulty_calculator:
+            update_difficulty_calculations([beatmap], difficulty_calculator)
+    return beatmap
 
 
 @transaction.atomic
