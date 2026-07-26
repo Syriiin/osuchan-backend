@@ -52,7 +52,7 @@ def dispatch_update_all_current_event_attendees():
     )
 
     for event in current_events:
-        for attendee in event.attendees:
+        for attendee in event.attendees.all():
             for gamemode in Gamemode:
                 update_user_recent.delay(attendee.id, gamemode)
 
