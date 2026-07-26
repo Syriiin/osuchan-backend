@@ -83,7 +83,7 @@ def create_event_leaderboard(
     leaderboard = Leaderboard(
         gamemode=gamemode,
         score_set=ScoreSet.NORMAL,
-        access_type=LeaderboardAccessType.PUBLIC,
+        access_type=LeaderboardAccessType.PUBLIC_INVITE_ONLY,
         name=name,
         description="",
         icon_url=event.logo,

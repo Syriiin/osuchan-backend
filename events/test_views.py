@@ -296,7 +296,10 @@ class TestEventLeaderboardList:
         # event_leaderboard.leaderboard.score_filter.refresh_from_db()
         assert event_leaderboard.leaderboard.is_event is True
         assert event_leaderboard.leaderboard.owner is None
-        assert event_leaderboard.leaderboard.access_type == LeaderboardAccessType.PUBLIC
+        assert (
+            event_leaderboard.leaderboard.access_type
+            == LeaderboardAccessType.PUBLIC_INVITE_ONLY
+        )
         assert event_leaderboard.leaderboard.custom_colours == event.theme_colours
         assert event_leaderboard.leaderboard.icon_url == event.logo
         assert event_leaderboard.leaderboard.score_set == ScoreSet.NORMAL
