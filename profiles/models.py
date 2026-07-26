@@ -179,7 +179,9 @@ class Beatmap(models.Model):
     approach_rate = models.FloatField()
     health_drain = models.FloatField()
     submission_date = models.DateTimeField()
-    approval_date = models.DateTimeField()
+    approval_date = models.DateTimeField(
+        null=True, blank=True
+    )  # null for unranked maps
     last_updated = models.DateTimeField()
     hitobject_counts = models.JSONField()
 
