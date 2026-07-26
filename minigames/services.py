@@ -238,7 +238,7 @@ def update_minigame_player_scores(player: MinigamePlayer) -> MinigamePlayer:
         mutation=ScoreMutation.NONE,
         date__gte=minigame.start_time,
         date__lte=minigame.end_time,
-        beatmap__status=BeatmapStatus.RANKED,
+        beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED],
     )
 
     minigame_scores = [
