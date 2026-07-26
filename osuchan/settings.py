@@ -245,6 +245,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "minigames.tasks.dispatch_minigame_updates",
         "schedule": crontab(minute="*"),  # every minute
     },
+    "update-event-attendees-every-hour": {
+        "task": "events.tasks.dispatch_update_all_current_event_attendees",
+        "schedule": crontab(minute="0"),  # every hour
+    },
+    "update-event-active-attendees-every-5-minutes": {
+        "task": "events.tasks.dispatch_update_all_current_event_active_attendees",
+        "schedule": crontab(minute="*/5"),  # every 5 minutes
+    },
 }
 
 
