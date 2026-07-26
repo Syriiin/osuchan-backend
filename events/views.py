@@ -7,8 +7,11 @@ from rest_framework.views import APIView
 
 from common.osu.enums import Gamemode
 from common.utils import parse_int_or_none
-from events.models import Event, EventLeaderboard
+from events.enums import BeatmapChallengeType
+from events.models import BeatmapChallenge, Event, EventLeaderboard
 from events.serialisers import (
+    BeatmapChallengeScoreSerialiser,
+    BeatmapChallengeSerialiser,
     EventAttendeeSerialiser,
     EventLeaderboardSerialiser,
     EventSerialiser,
@@ -20,7 +23,7 @@ from events.services import (
     remove_event_attendee,
     update_event,
 )
-from profiles.models import OsuUser
+from profiles.models import OsuUser, Score
 
 
 class EventList(APIView):
@@ -207,3 +210,59 @@ class EventLeaderboardDetail(APIView):
         delete_event_leaderboard(event_leaderboard)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BeatmapChallengeList(APIView):
+    def get(self, request, slug):
+        """List all beatmap challenges for an event."""
+        try:
+            event = Event.objects.get(slug=slug)
+        except Event.DoesNotExist:
+            raise NotFound("Event not found.")
+
+        challenges = event.beatmap_challenges.select_related("beatmap")
+
+        serialiser = BeatmapChallengeSerialiser(challenges, many=True)
+        return Response(serialiser.data)
+
+
+class BeatmapChallengeScoreList(APIView):
+    def get(self, request, slug, challenge_id):
+        """List top scores for a challenge."""
+        try:
+            event = Event.objects.get(slug=slug)
+        except Event.DoesNotExist:
+            raise NotFound("Event not found.")
+
+        try:
+            challenge = BeatmapChallenge.objects.get(id=challenge_id, event=event)
+        except BeatmapChallenge.DoesNotExist:
+            raise NotFound("Game not found.")
+
+        try:
+            limit = min(
+                int(request.query_params.get("limit", 10)),
+                50,
+            )
+        except ValueError, TypeError:
+            limit = 10
+
+        if challenge.challenge_type == BeatmapChallengeType.BEST_COMBO:
+            order_fields = ("-best_combo", "date")
+        elif challenge.challenge_type == BeatmapChallengeType.LOWEST_MISS_COUNT:
+            order_fields = ("count_miss", "date")
+        else:
+            order_fields = ("-date",)
+
+        scores = (
+            Score.objects.filter(beatmap_challenge_scores__challenge=challenge)
+            .select_related("user_stats", "user_stats__user")
+            .prefetch_related(
+                "performance_calculations__performance_values",
+                "performance_calculations__difficulty_calculation__difficulty_values",
+            )
+            .order_by(*order_fields)[:limit]
+        )
+
+        serialiser = BeatmapChallengeScoreSerialiser(scores, many=True)
+        return Response(serialiser.data)

@@ -25,4 +25,14 @@ urlpatterns = [
         views.EventLeaderboardDetail.as_view(),
         name="event-leaderboard-detail",
     ),
+    path(
+        "<slug:slug>/challenges",
+        views.BeatmapChallengeList.as_view(),
+        name="beatmap-challenge-list",
+    ),
+    path(
+        "<slug:slug>/challenges/<int:challenge_id>/scores",
+        views.BeatmapChallengeScoreList.as_view(),
+        name="beatmap-challenge-score-list",
+    ),
 ]

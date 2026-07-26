@@ -5,6 +5,7 @@ from celery import shared_task
 
 from common.osu.beatmap_provider import BeatmapProvider
 from common.osu.enums import BeatmapStatus, Gamemode
+from events.tasks import update_user_event_challenge_scores
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
@@ -85,6 +86,7 @@ def update_user(
         update_minigame_players_scores.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
+        update_user_event_challenge_scores.delay(user_id=user_stats.user_id)
     return user_stats
 
 
@@ -106,6 +108,7 @@ def update_user_by_username(username: str, gamemode: int = Gamemode.STANDARD):
         update_minigame_players_scores.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
+        update_user_event_challenge_scores.delay(user_id=user_stats.user_id)
     return user_stats
 
 
@@ -129,6 +132,7 @@ def update_user_recent(
         update_minigame_players_scores.delay(
             user_id=user_stats.user_id, gamemode=user_stats.gamemode
         )
+        update_user_event_challenge_scores.delay(user_id=user_stats.user_id)
     return user_stats
 
 

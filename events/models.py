@@ -1,7 +1,8 @@
 from django.db import models
 
+from events.enums import BeatmapChallengeType
 from leaderboards.models import Leaderboard
-from profiles.models import OsuUser
+from profiles.models import Beatmap, OsuUser, Score
 
 
 class Event(models.Model):
@@ -100,3 +101,47 @@ class EventLeaderboard(models.Model):
 
     def __str__(self):
         return f"{self.event.name}: {self.leaderboard.name}"
+
+
+class BeatmapChallenge(models.Model):
+    """Model representing a beatmap challenge for an event"""
+
+    id = models.BigAutoField(primary_key=True)
+
+    description = models.CharField()
+    gamemode = models.IntegerField()
+    challenge_type = models.CharField(
+        choices=[
+            (BeatmapChallengeType.BEST_COMBO, "Best Combo"),
+            (BeatmapChallengeType.LOWEST_MISS_COUNT, "Lowest Miss Count"),
+        ]
+    )
+
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="beatmap_challenges"
+    )
+    beatmap = models.ForeignKey(Beatmap, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"[{self.event.name}] {self.description}"
+
+
+class BeatmapChallengeScore(models.Model):
+    """Through model linking a score to a beatmap challenge"""
+
+    id = models.BigAutoField(primary_key=True)
+
+    challenge = models.ForeignKey(BeatmapChallenge, on_delete=models.CASCADE)
+    score = models.ForeignKey(
+        Score, on_delete=models.CASCADE, related_name="beatmap_challenge_scores"
+    )
+    user = models.ForeignKey(
+        OsuUser, on_delete=models.CASCADE, related_name="beatmap_challenge_scores"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["challenge", "user"], name="unique_challenge_user"
+            )
+        ]
