@@ -253,6 +253,26 @@ CELERY_BEAT_SCHEDULE = {
         "task": "events.tasks.dispatch_update_all_current_event_active_attendees",
         "schedule": crontab(minute="*/5"),  # every 5 minutes
     },
+    "send-coe-podium-osu-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="16"),  # 18:00 netherlands time
+        "args": (864,),
+    },
+    "send-coe-podium-taiko-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="16"),  # 18:00 netherlands time
+        "args": (865,),
+    },
+    "send-coe-podium-catch-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="16"),  # 18:00 netherlands time
+        "args": (866,),
+    },
+    "send-coe-podium-mania-every-day": {
+        "task": "leaderboards.tasks.send_leaderboard_podium_notification",
+        "schedule": crontab(minute="0", hour="16"),  # 18:00 netherlands time
+        "args": (867,),
+    },
 }
 
 
