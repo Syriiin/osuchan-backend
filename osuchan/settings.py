@@ -436,7 +436,4 @@ MINIGAMES = {
     "lockout_bingo": "minigames.games.LockoutBingo",
 }
 
-MINIGAMES_BETA_WHITELIST: list[int] = [
-    5701575
-    # TODO: add whitelisted beta tester osu user IDs
-]
+MINIGAME_BETA_EVENT_ID: int | None = 1
