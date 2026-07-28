@@ -15,11 +15,11 @@ class FirstToN(BaseGame):
         settings["scores_to_win"] = int(data.get("scores_to_win", 10))
         return settings
 
-    def get_initial_state(self, config: dict) -> dict:
+    def get_initial_state(self, config, players, teams, start_time):
         return {}
 
     def process_scores(
-        self, scores: list[GameScore], config: dict, initial_state: dict
+        self, scores, config, initial_state, current_time
     ) -> dict:
         scores_to_win = config["scores_to_win"]
 

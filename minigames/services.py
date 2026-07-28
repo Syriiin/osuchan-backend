@@ -216,7 +216,12 @@ def start_minigame(minigame: Minigame, countdown: int) -> Minigame:
     minigame.end_time = minigame.start_time + timedelta(
         seconds=minigame.config["game_length"]
     )
-    initial_state = game_registry[minigame.game_type].get_initial_state(minigame.config)
+    initial_state = game_registry[minigame.game_type].get_initial_state(
+        config=minigame.config,
+        players=minigame.get_players_info(),
+        teams=minigame.get_teams_info(),
+        start_time=minigame.start_time,
+    )
     minigame.initial_state = initial_state
     minigame.state = initial_state
     minigame.status = MinigameStatus.WAITING_TO_START
@@ -384,7 +389,12 @@ def recompute_minigame(minigame: Minigame) -> bool:
     ]
 
     game = game_registry[minigame.game_type]
-    result = game.process_scores(game_scores, minigame.config, minigame.initial_state)
+    result = game.process_scores(
+        scores=game_scores,
+        config=minigame.config,
+        initial_state=minigame.initial_state,
+        current_time=datetime.now(tz=timezone.utc),
+    )
 
     minigame.state = result["state"]
     minigame.save(update_fields=["state"])

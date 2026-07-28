@@ -24,7 +24,7 @@ class LockoutBingo(BaseGame):
 
         return settings
 
-    def get_initial_state(self, config: dict) -> dict:
+    def get_initial_state(self, config, players, teams, start_time):
         grid_size = config["grid_size"]
         total = grid_size * grid_size
 
@@ -100,7 +100,7 @@ class LockoutBingo(BaseGame):
         return True
 
     def process_scores(
-        self, scores: list[GameScore], config: dict, initial_state: dict
+        self, scores, config, initial_state, current_time
     ) -> dict:
         grid_size = config["grid_size"]
 

@@ -40,6 +40,17 @@ class GameScore(NamedTuple):
     score_difficulty_total: float | None = None
 
 
+class Player(NamedTuple):
+    id: int
+    user_id: int
+    team_id: int
+
+
+class Team(NamedTuple):
+    id: int
+    name: str
+
+
 class BaseGame(ABC):
     @property
     @abstractmethod
@@ -53,11 +64,13 @@ class BaseGame(ABC):
         game_length = int(data.get("game_length", 60 * 60))
         return {"game_length": min(game_length, 60 * 60 * 2)}
 
-    def get_initial_state(self, config: dict) -> dict:
+    def get_initial_state(
+        self, config: dict, players: list[Player], teams: list[Team], start_time: datetime
+    ) -> dict:
         return {}
 
     def process_scores(
-        self, scores: list[GameScore], config: dict, initial_state: dict
+        self, scores: list[GameScore], config: dict, initial_state: dict, current_time: datetime
     ) -> dict:
         return {
             "state": {},

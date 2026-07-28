@@ -1,5 +1,10 @@
+from datetime import datetime
+
 from minigames.games import LockoutBingo
 from minigames.games.test_helpers import _game_score
+
+
+_TEST_TIME = datetime(2026, 1, 1, 12, 0, 0)
 
 
 def _task(type, value, row=0, col=0, task_id=0):
@@ -63,16 +68,17 @@ def _score_for_task(task_index: int, team_id: int = 1, player_id: int = 1):
 
 
 class TestLockoutBingo:
+
     def test_grid_3x3_produces_9_tasks(self):
-        state = LockoutBingo().get_initial_state({"grid_size": 3})
+        state = LockoutBingo().get_initial_state({"grid_size": 3}, [], [], _TEST_TIME)
         assert len(state["tasks"]) == 9
 
     def test_grid_5x5_produces_25_tasks(self):
-        state = LockoutBingo().get_initial_state({"grid_size": 5})
+        state = LockoutBingo().get_initial_state({"grid_size": 5}, [], [], _TEST_TIME)
         assert len(state["tasks"]) == 25
 
     def test_tasks_have_required_fields(self):
-        state = LockoutBingo().get_initial_state({"grid_size": 3})
+        state = LockoutBingo().get_initial_state({"grid_size": 3}, [], [], _TEST_TIME)
         for task in state["tasks"]:
             assert "id" in task
             assert "type" in task
@@ -82,7 +88,7 @@ class TestLockoutBingo:
             assert "col" in task
 
     def test_row_col_assigned_correctly(self):
-        state = LockoutBingo().get_initial_state({"grid_size": 3})
+        state = LockoutBingo().get_initial_state({"grid_size": 3}, [], [], _TEST_TIME)
         for task in state["tasks"]:
             expected_row = task["id"] // 3
             expected_col = task["id"] % 3
@@ -90,7 +96,7 @@ class TestLockoutBingo:
             assert task["col"] == expected_col
 
     def test_no_duplicate_task_types(self):
-        state = LockoutBingo().get_initial_state({"grid_size": 5})
+        state = LockoutBingo().get_initial_state({"grid_size": 5}, [], [], _TEST_TIME)
         types = [task["type"] for task in state["tasks"]]
         assert len(types) == len(
             set(types)
@@ -98,7 +104,7 @@ class TestLockoutBingo:
 
     def test_no_scores_no_changes(self):
         initial = {"tasks": [_task("accuracy_above", 95, task_id=0)]}
-        result = LockoutBingo().process_scores([], {"grid_size": 1}, initial)
+        result = LockoutBingo().process_scores([], {"grid_size": 1}, initial, _TEST_TIME)
 
         assert result["state"]["tasks"][0]["completed_by_score_id"] is None
         assert result["win_condition_reached"] is False
@@ -109,7 +115,7 @@ class TestLockoutBingo:
     def test_single_task_completes_row_and_wins(self):
         initial = {"tasks": [_task("accuracy_above", 95, task_id=0)]}
         score = _game_score(id=1, player_id=1, team_id=1, score_id=1, score_accuracy=97)
-        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial)
+        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial, _TEST_TIME)
 
         assert result["state"]["tasks"][0]["completed_by_score_id"] == 1
         assert result["state"]["tasks"][0]["completed_by_player_id"] == 1
@@ -119,7 +125,7 @@ class TestLockoutBingo:
     def test_score_matches_accuracy_below_task(self):
         initial = {"tasks": [_task("accuracy_below", 80, task_id=0)]}
         score = _game_score(id=1, player_id=1, team_id=1, score_id=1, score_accuracy=75)
-        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial)
+        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial, _TEST_TIME)
 
         assert result["state"]["tasks"][0]["completed_by_score_id"] == 1
         assert result["win_condition_reached"] is True
@@ -131,7 +137,7 @@ class TestLockoutBingo:
         ]
         initial = {"tasks": tasks}
         score = _game_score(id=1, player_id=1, team_id=1, score_id=1, score_accuracy=97)
-        result = LockoutBingo().process_scores([score], {"grid_size": 2}, initial)
+        result = LockoutBingo().process_scores([score], {"grid_size": 2}, initial, _TEST_TIME)
 
         assert result["state"]["tasks"][0]["completed_by_score_id"] == 1
         assert result["state"]["tasks"][1]["completed_by_score_id"] == 1
@@ -144,7 +150,7 @@ class TestLockoutBingo:
             _game_score(id=1, player_id=1, team_id=1, score_id=1, score_accuracy=97),
             _game_score(id=2, player_id=2, team_id=2, score_id=2, score_accuracy=98),
         ]
-        result = LockoutBingo().process_scores(scores, {"grid_size": 1}, initial)
+        result = LockoutBingo().process_scores(scores, {"grid_size": 1}, initial, _TEST_TIME)
 
         assert result["state"]["tasks"][0]["completed_by_score_id"] == 1
         assert result["state"]["tasks"][0]["completed_by_player_id"] == 1
@@ -154,7 +160,7 @@ class TestLockoutBingo:
         tasks = _grid_tasks(3)
         initial = {"tasks": tasks}
         scores = [_score_for_task(i) for i in [0, 1, 2]]
-        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial)
+        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial, _TEST_TIME)
 
         assert result["win_condition_reached"] is True
 
@@ -163,7 +169,7 @@ class TestLockoutBingo:
         initial = {"tasks": tasks}
         # Complete tasks 0, 3, 6 — column 0
         scores = [_score_for_task(i) for i in [0, 3, 6]]
-        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial)
+        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial, _TEST_TIME)
 
         assert result["win_condition_reached"] is True
 
@@ -172,7 +178,7 @@ class TestLockoutBingo:
         initial = {"tasks": tasks}
         # Complete tasks 0, 1, 3, 4 — no full row or column
         scores = [_score_for_task(i) for i in [0, 1, 3, 4]]
-        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial)
+        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial, _TEST_TIME)
 
         assert result["win_condition_reached"] is False
 
@@ -193,7 +199,7 @@ class TestLockoutBingo:
             _score_for_task(7, team_id=2),
             _score_for_task(8, team_id=1),
         ]
-        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial)
+        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial, _TEST_TIME)
 
         assert result["win_condition_reached"] is True
         assert result["teams"][1]["points"] == 5
@@ -204,14 +210,14 @@ class TestLockoutBingo:
         initial = {"tasks": tasks}
         # Team 1 completes tasks 0, 1, 2 — full row 0, declares winner
         scores = [_score_for_task(i) for i in [0, 1, 2]]
-        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial)
+        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial, _TEST_TIME)
 
         assert result["win_condition_reached"] is True
 
     def test_accuracy_below_task_does_not_match_high_accuracy(self):
         initial = {"tasks": [_task("accuracy_below", 80, task_id=0)]}
         score = _game_score(id=1, player_id=1, team_id=1, score_id=1, score_accuracy=95)
-        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial)
+        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial, _TEST_TIME)
 
         assert result["state"]["tasks"][0]["completed_by_score_id"] is None
         assert result["win_condition_reached"] is False
@@ -219,7 +225,7 @@ class TestLockoutBingo:
     def test_accuracy_above_task_does_not_match_low_accuracy(self):
         initial = {"tasks": [_task("accuracy_above", 95, task_id=0)]}
         score = _game_score(id=1, player_id=1, team_id=1, score_id=1, score_accuracy=80)
-        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial)
+        result = LockoutBingo().process_scores([score], {"grid_size": 1}, initial, _TEST_TIME)
 
         assert result["state"]["tasks"][0]["completed_by_score_id"] is None
         assert result["win_condition_reached"] is False
@@ -239,6 +245,6 @@ class TestLockoutBingo:
             _score_for_task(3, team_id=1),
             _score_for_task(4, team_id=2),
         ]
-        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial)
+        result = LockoutBingo().process_scores(scores, {"grid_size": 3}, initial, _TEST_TIME)
 
         assert result["win_condition_reached"] is False
