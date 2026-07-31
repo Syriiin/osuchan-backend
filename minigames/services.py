@@ -32,7 +32,7 @@ def create_minigame(
     Create a new minigame lobby.
     """
     game = game_registry[game_type]
-    config = game.get_settings(settings_data)
+    config = game.get_settings(settings_data, gamemode)
 
     minigame = Minigame.objects.create(
         game_type=game_type,
@@ -160,7 +160,7 @@ def update_minigame_settings(minigame: Minigame, settings_data: dict) -> Minigam
     assert minigame.status == MinigameStatus.LOBBY, "Minigame must be in lobby"
 
     game_plugin = game_registry[minigame.game_type]
-    minigame.config = game_plugin.get_settings(settings_data)
+    minigame.config = game_plugin.get_settings(settings_data, minigame.gamemode)
     minigame.save(update_fields=["config"])
 
     return minigame

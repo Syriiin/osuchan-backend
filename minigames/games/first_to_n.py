@@ -1,3 +1,4 @@
+from common.osu.enums import Gamemode
 from minigames.games.base import BaseGame, GameScore
 
 
@@ -10,8 +11,10 @@ class FirstToN(BaseGame):
     def display_name(self) -> str:
         return "First to N Scores (test)"
 
-    def get_settings(self, data: dict) -> dict:
-        settings = super().get_settings(data)
+    def get_settings(
+        self, data: dict, gamemode: Gamemode | None = None
+    ) -> dict:
+        settings = super().get_settings(data, gamemode)
         settings["scores_to_win"] = int(data.get("scores_to_win", 10))
         return settings
 

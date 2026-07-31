@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import NamedTuple
 
+from common.osu.enums import Gamemode
+
 
 class MinigameConfigError(Exception):
     """
@@ -69,7 +71,9 @@ class BaseGame(ABC):
     @abstractmethod
     def display_name(self) -> str: ...
 
-    def get_settings(self, data: dict) -> dict:
+    def get_settings(
+        self, data: dict, gamemode: Gamemode | None = None
+    ) -> dict:
         game_length = int(data.get("game_length", 60 * 60))
         return {"game_length": min(game_length, 60 * 60 * 2)}
 

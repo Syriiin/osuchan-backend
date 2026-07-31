@@ -218,7 +218,7 @@ class TestFinishMinigame:
 
 @pytest.mark.django_db
 class TestCreateMinigame:
-    def test_battle_royale_requires_beatmaps(self, osu_user):
+    def test_battle_royale_no_beatmaps_no_available_maps_raises(self, osu_user):
         with pytest.raises(MinigameConfigError):
             create_minigame(
                 game_type="battle_royale",
@@ -228,6 +228,19 @@ class TestCreateMinigame:
                 settings_data={},
                 teams=["A", "B"],
             )
+
+    def test_battle_royale_no_beatmaps_picks_random(self, osu_user, loved_beatmap):
+        minigame = create_minigame(
+            game_type="battle_royale",
+            name="test minigame",
+            gamemode=Gamemode.STANDARD,
+            host=osu_user,
+            settings_data={},
+            teams=["A", "B"],
+        )
+        assert minigame.config["beatmaps"] == [
+            {"beatmap_id": 100, "allowed_mods": []}
+        ]
 
     def test_battle_royale_unknown_beatmap_raises(self, osu_user):
         with pytest.raises(MinigameConfigError):
@@ -255,6 +268,8 @@ class TestCreateMinigame:
 
 @pytest.mark.django_db
 class TestUpdateMinigameSettings:
-    def test_battle_royale_rejects_empty_beatmaps(self, lobby_minigame):
-        with pytest.raises(MinigameConfigError):
-            update_minigame_settings(lobby_minigame, {"beatmaps": []})
+    def test_battle_royale_empty_beatmaps_picks_random(self, lobby_minigame, loved_beatmap):
+        minigame = update_minigame_settings(lobby_minigame, {"beatmaps": []})
+        assert minigame.config["beatmaps"] == [
+            {"beatmap_id": 100, "allowed_mods": []}
+        ]

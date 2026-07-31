@@ -2,6 +2,7 @@ import copy
 import enum
 from datetime import datetime, timedelta
 
+from common.osu.enums import BeatmapStatus, Gamemode
 from minigames.games.base import BaseGame, GameScore, MinigameConfigError, Player, Team
 from profiles.models import Beatmap
 
@@ -22,10 +23,10 @@ class BattleRoyale(BaseGame):
     def display_name(self) -> str:
         return "Battle Royale"
 
-    def get_settings(self, data: dict) -> dict:
+    def get_settings(self, data: dict, gamemode: Gamemode | None = None) -> dict:
         beatmaps = data.get("beatmaps", [])
         if not isinstance(beatmaps, list) or len(beatmaps) == 0:
-            raise MinigameConfigError("At least one beatmap is required.")
+            beatmaps = self._get_random_beatmaps(gamemode)
 
         beatmap_ids = []
         for beatmap in beatmaps:
@@ -103,6 +104,27 @@ class BattleRoyale(BaseGame):
         )
 
         return settings
+
+    @staticmethod
+    def _get_random_beatmaps(gamemode: Gamemode | None) -> list[dict]:
+        beatmap_ids = list(
+            Beatmap.objects.filter(
+                gamemode=gamemode if gamemode is not None else Gamemode.STANDARD,
+                status__in=[
+                    BeatmapStatus.RANKED,
+                    BeatmapStatus.APPROVED,
+                    BeatmapStatus.LOVED,
+                ],
+            )
+            .order_by("?")
+            .values_list("id", flat=True)[:3]
+        )
+        if len(beatmap_ids) == 0:
+            raise MinigameConfigError("At least one beatmap is required.")
+        return [
+            {"beatmap_id": beatmap_id, "allowed_mods": []}
+            for beatmap_id in beatmap_ids
+        ]
 
     def get_initial_state(
         self,

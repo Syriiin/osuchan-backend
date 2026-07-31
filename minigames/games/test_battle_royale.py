@@ -64,6 +64,29 @@ def br_beatmaps():
             hitobject_counts={"circles": 1739, "sliders": 360, "spinners": 1},
             creator_id=1,
         ),
+        Beatmap.objects.create(
+            id=102,
+            set_id=10,
+            artist="test artist",
+            title="test title 3",
+            difficulty_name="test difficulty",
+            gamemode=Gamemode.STANDARD,
+            status=1,
+            creator_name="test creator",
+            bpm=180,
+            drain_time=556,
+            total_time=240,
+            max_combo=2843,
+            circle_size=4,
+            overall_difficulty=6,
+            approach_rate=8,
+            health_drain=5,
+            submission_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+            approval_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+            last_updated=datetime(2023, 1, 1, tzinfo=timezone.utc),
+            hitobject_counts={"circles": 1739, "sliders": 360, "spinners": 1},
+            creator_id=1,
+        ),
     ]
 
 FOUR_TEAMS_CONFIG = {
@@ -123,12 +146,22 @@ def _score(id, player_id, team_id, beatmap_id, score_date, score_score=1_000_000
 
 @pytest.mark.django_db
 class TestGetSettings:
-    def test_beatmap_list_required(self):
+    def test_no_beatmaps_and_no_available_maps_raises(self):
         with pytest.raises(MinigameConfigError):
             BattleRoyale().get_settings({})
 
         with pytest.raises(MinigameConfigError):
             BattleRoyale().get_settings({"beatmaps": []})
+
+    def test_no_beatmaps_picks_random_beatmaps(self, br_beatmaps):
+        result = BattleRoyale().get_settings({})
+        assert len(result["beatmaps"]) == 3
+        assert {beatmap["beatmap_id"] for beatmap in result["beatmaps"]} <= {100, 101, 102}
+        assert all(beatmap["allowed_mods"] == [] for beatmap in result["beatmaps"])
+
+    def test_random_beatmaps_filtered_by_gamemode(self, br_beatmaps):
+        with pytest.raises(MinigameConfigError):
+            BattleRoyale().get_settings({}, Gamemode.TAIKO)
 
     def test_unknown_beatmap_raises(self):
         with pytest.raises(MinigameConfigError):

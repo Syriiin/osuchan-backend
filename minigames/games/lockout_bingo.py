@@ -1,6 +1,7 @@
 import copy
 import random
 
+from common.osu.enums import Gamemode
 from minigames.games.base import BaseGame, GameScore
 from minigames.games.tasks import task_registry
 
@@ -14,8 +15,10 @@ class LockoutBingo(BaseGame):
     def display_name(self) -> str:
         return "Lockout Bingo"
 
-    def get_settings(self, data: dict) -> dict:
-        settings = super().get_settings(data)
+    def get_settings(
+        self, data: dict, gamemode: Gamemode | None = None
+    ) -> dict:
+        settings = super().get_settings(data, gamemode)
 
         requested_grid_size = int(data.get("grid_size", 3))
         settings["grid_size"] = (
