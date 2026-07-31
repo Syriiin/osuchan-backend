@@ -54,7 +54,13 @@ def dispatch_update_all_current_event_attendees():
     for event in current_events:
         for attendee in event.attendees.all():
             for gamemode in Gamemode:
-                update_user_recent.delay(attendee.id, gamemode)
+                update_user_recent.apply_async(
+                    kwargs={
+                        "user_id": attendee.id,
+                        "gamemode": gamemode,
+                    },
+                    priority=6,
+                )
 
 
 @shared_task(priority=7)
@@ -74,4 +80,10 @@ def dispatch_update_all_current_event_active_attendees():
             scores__date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=30),
         ).distinct()
         for user_stats in active_attendees_stats:
-            update_user_recent.delay(user_stats.user_id, user_stats.gamemode)
+            update_user_recent.apply_async(
+                kwargs={
+                    "user_id": user_stats.user_id,
+                    "gamemode": user_stats.gamemode,
+                },
+                priority=6,
+            )
