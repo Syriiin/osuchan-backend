@@ -1,3 +1,4 @@
+from common.osu.enums import Gamemode
 from minigames.games.base import BaseGame, GameScore
 
 
@@ -10,17 +11,15 @@ class FirstToN(BaseGame):
     def display_name(self) -> str:
         return "First to N Scores (test)"
 
-    def get_settings(self, data: dict) -> dict:
-        settings = super().get_settings(data)
+    def get_settings(self, data: dict, gamemode: Gamemode | None = None) -> dict:
+        settings = super().get_settings(data, gamemode)
         settings["scores_to_win"] = int(data.get("scores_to_win", 10))
         return settings
 
-    def get_initial_state(self, config: dict) -> dict:
+    def get_initial_state(self, config, players, teams, start_time):
         return {}
 
-    def process_scores(
-        self, scores: list[GameScore], config: dict, initial_state: dict
-    ) -> dict:
+    def process_scores(self, scores, config, initial_state, current_time) -> dict:
         scores_to_win = config["scores_to_win"]
 
         team_points: dict[int, int] = {}

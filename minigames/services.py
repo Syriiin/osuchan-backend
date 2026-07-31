@@ -32,7 +32,7 @@ def create_minigame(
     Create a new minigame lobby.
     """
     game = game_registry[game_type]
-    config = game.get_settings(settings_data)
+    config = game.get_settings(settings_data, gamemode)
 
     minigame = Minigame.objects.create(
         game_type=game_type,
@@ -160,7 +160,7 @@ def update_minigame_settings(minigame: Minigame, settings_data: dict) -> Minigam
     assert minigame.status == MinigameStatus.LOBBY, "Minigame must be in lobby"
 
     game_plugin = game_registry[minigame.game_type]
-    minigame.config = game_plugin.get_settings(settings_data)
+    minigame.config = game_plugin.get_settings(settings_data, minigame.gamemode)
     minigame.save(update_fields=["config"])
 
     return minigame
@@ -186,7 +186,7 @@ def update_minigame_status(minigame: Minigame) -> Minigame:
     else:
         minigame.status = MinigameStatus.FINALISING
 
-    minigame.save()
+    minigame.save(update_fields=["status"])
     return minigame
 
 
@@ -216,7 +216,12 @@ def start_minigame(minigame: Minigame, countdown: int) -> Minigame:
     minigame.end_time = minigame.start_time + timedelta(
         seconds=minigame.config["game_length"]
     )
-    initial_state = game_registry[minigame.game_type].get_initial_state(minigame.config)
+    initial_state = game_registry[minigame.game_type].get_initial_state(
+        config=minigame.config,
+        players=minigame.get_players_info(),
+        teams=minigame.get_teams_info(),
+        start_time=minigame.start_time,
+    )
     minigame.initial_state = initial_state
     minigame.state = initial_state
     minigame.status = MinigameStatus.WAITING_TO_START
@@ -239,7 +244,11 @@ def update_minigame_player_scores(player: MinigamePlayer) -> MinigamePlayer:
         mutation=ScoreMutation.NONE,
         date__gte=minigame.start_time,
         date__lte=minigame.end_time,
-        beatmap__status__in=[BeatmapStatus.RANKED, BeatmapStatus.APPROVED],
+        beatmap__status__in=[
+            BeatmapStatus.RANKED,
+            BeatmapStatus.APPROVED,
+            BeatmapStatus.LOVED,
+        ],
     )
 
     minigame_scores = [
@@ -384,7 +393,12 @@ def recompute_minigame(minigame: Minigame) -> bool:
     ]
 
     game = game_registry[minigame.game_type]
-    result = game.process_scores(game_scores, minigame.config, minigame.initial_state)
+    result = game.process_scores(
+        scores=game_scores,
+        config=minigame.config,
+        initial_state=minigame.initial_state,
+        current_time=datetime.now(tz=timezone.utc),
+    )
 
     minigame.state = result["state"]
     minigame.save(update_fields=["state"])
@@ -432,6 +446,11 @@ def finish_minigame(minigame: Minigame) -> Minigame:
     """
     Finalise a minigame and declare the winner.
     """
+    if minigame.winning_team is not None:
+        minigame.status = MinigameStatus.FINISHED
+        minigame.save(update_fields=["status"])
+        return minigame
+
     players = MinigamePlayer.objects.filter(team__minigame=minigame)
     for player in players:
         update_minigame_player_scores(player)

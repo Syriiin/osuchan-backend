@@ -434,6 +434,7 @@ COE_API_KEY = env_settings.COE_API_KEY
 MINIGAMES = {
     # "first_to_n": "minigames.games.FirstToN",
     "lockout_bingo": "minigames.games.LockoutBingo",
+    "battle_royale": "minigames.games.BattleRoyale",
 }
 
 MINIGAME_BETA_EVENT_ID: int | None = 1

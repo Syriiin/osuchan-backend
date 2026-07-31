@@ -8,6 +8,7 @@ from common.osu.enums import Gamemode
 from events.models import EventAttendee
 from minigames.enums import MinigameStatus
 from minigames.games import game_registry
+from minigames.games.base import MinigameConfigError
 from minigames.models import Minigame, MinigamePlayer, MinigameScore, MinigameTeam
 from minigames.serialisers import (
     MinigamePlayerSerialiser,
@@ -101,15 +102,19 @@ class MinigameList(APIView):
 
         game_settings = request.data.get("settings", {})
 
-        minigame = create_minigame(
-            game_type=game_type,
-            name=name,
-            gamemode=gamemode_enum,
-            host=request.user.osu_user,
-            settings_data=game_settings,
-            teams=teams,
-            is_free_for_all=is_free_for_all,
-        )
+        try:
+            minigame = create_minigame(
+                game_type=game_type,
+                name=name,
+                gamemode=gamemode_enum,
+                host=request.user.osu_user,
+                settings_data=game_settings,
+                teams=teams,
+                is_free_for_all=is_free_for_all,
+            )
+        except MinigameConfigError as e:
+            raise ParseError(str(e))
+
         serialiser = MinigameSerialiser(minigame)
         return Response(serialiser.data)
 
@@ -349,7 +354,10 @@ class MinigameUpdateSettings(APIView):
 
         game_settings = request.data.get("settings", {})
 
-        minigame = update_minigame_settings(minigame, game_settings)
+        try:
+            minigame = update_minigame_settings(minigame, game_settings)
+        except MinigameConfigError as e:
+            raise ParseError(str(e))
 
         serialiser = MinigameSerialiser(minigame)
         return Response(serialiser.data)

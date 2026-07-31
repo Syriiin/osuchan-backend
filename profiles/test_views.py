@@ -7,6 +7,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from common.osu.enums import Gamemode
 from leaderboards.services import create_membership
+from profiles.models import Beatmap
 from profiles.views import (
     BeatmapDetail,
     UserMembershipList,
@@ -125,3 +126,25 @@ class TestBeatmapDetail:
 
         assert response.status_code == HTTPStatus.OK
         assert response.data["title"] == beatmap.title
+
+    def test_get_fetches_and_stores_missing_beatmap(self, arf: APIRequestFactory, view):
+        kwargs = {"beatmap_id": 362949}
+        url = reverse("beatmap-detail", kwargs=kwargs)
+        request = arf.get(url)
+
+        response: Response = view(request, **kwargs)
+
+        assert response.status_code == HTTPStatus.OK
+        assert (
+            response.data["title"] == "Mezameta Asa ni wa Kimi ga Tonari ni (TV Size)"
+        )
+        assert Beatmap.objects.filter(id=362949).exists()
+
+    def test_get_unknown_beatmap_not_found(self, arf: APIRequestFactory, view):
+        kwargs = {"beatmap_id": 99999999}
+        url = reverse("beatmap-detail", kwargs=kwargs)
+        request = arf.get(url)
+
+        response: Response = view(request, **kwargs)
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
