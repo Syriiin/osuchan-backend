@@ -32,6 +32,9 @@ def update_minigame(minigame_id: int):
     """Run a minigame state update."""
     minigame = Minigame.objects.get(id=minigame_id)
 
+    if minigame.status == MinigameStatus.FINISHED:
+        return
+
     assert minigame.status in [
         MinigameStatus.WAITING_TO_START,
         MinigameStatus.IN_PROGRESS,
@@ -122,7 +125,7 @@ def trigger_minigame_player_updates(minigame_id: int) -> None:
 def recompute_minigame_state(minigame_id: int) -> None:
     minigame = Minigame.objects.get(id=minigame_id)
     win_reached = recompute_minigame(minigame)
-    if win_reached and minigame.status != MinigameStatus.FINALISING:
+    if win_reached and minigame.status == MinigameStatus.IN_PROGRESS:
         minigame.end_time = datetime.now(tz=timezone.utc)
         minigame.status = MinigameStatus.FINALISING
         minigame.save(update_fields=["end_time", "status"])
