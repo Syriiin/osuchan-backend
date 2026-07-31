@@ -721,7 +721,7 @@ class LiveOsuApiV2(AbstractOsuApi):
             mods=bitwise_mods,
             mods_json=mods_json,
             is_stable=is_stable,
-            score=score.score.total_score,
+            score=score.total_score,
             best_combo=score.max_combo,
             count_300=count_300,
             count_100=count_100,
