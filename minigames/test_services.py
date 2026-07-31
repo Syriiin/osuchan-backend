@@ -4,12 +4,15 @@ import pytest
 
 from common.osu.enums import BeatmapStatus, Gamemode
 from minigames.enums import MinigameStatus
+from minigames.games.base import MinigameConfigError
 from minigames.models import Minigame, MinigamePlayer, MinigameScore, MinigameStats, MinigameTeam
 from minigames.services import (
+    create_minigame,
     finish_minigame,
     recompute_minigame,
     start_minigame,
     update_minigame_player_scores,
+    update_minigame_settings,
 )
 from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import Beatmap, OsuUser, Score, UserStats
@@ -211,3 +214,47 @@ class TestFinishMinigame:
 
         assert minigame.status == MinigameStatus.FINISHED
         assert minigame.winning_team is None
+
+
+@pytest.mark.django_db
+class TestCreateMinigame:
+    def test_battle_royale_requires_beatmaps(self, osu_user):
+        with pytest.raises(MinigameConfigError):
+            create_minigame(
+                game_type="battle_royale",
+                name="test minigame",
+                gamemode=Gamemode.STANDARD,
+                host=osu_user,
+                settings_data={},
+                teams=["A", "B"],
+            )
+
+    def test_battle_royale_unknown_beatmap_raises(self, osu_user):
+        with pytest.raises(MinigameConfigError):
+            create_minigame(
+                game_type="battle_royale",
+                name="test minigame",
+                gamemode=Gamemode.STANDARD,
+                host=osu_user,
+                settings_data={"beatmaps": [{"beatmap_id": 999}]},
+                teams=["A", "B"],
+            )
+
+    def test_lockout_bingo_does_not_require_beatmaps(self, osu_user):
+        minigame = create_minigame(
+            game_type="lockout_bingo",
+            name="test minigame",
+            gamemode=Gamemode.STANDARD,
+            host=osu_user,
+            settings_data={},
+            teams=["A", "B"],
+        )
+        assert minigame.game_type == "lockout_bingo"
+        assert minigame.status == MinigameStatus.LOBBY
+
+
+@pytest.mark.django_db
+class TestUpdateMinigameSettings:
+    def test_battle_royale_rejects_empty_beatmaps(self, lobby_minigame):
+        with pytest.raises(MinigameConfigError):
+            update_minigame_settings(lobby_minigame, {"beatmaps": []})

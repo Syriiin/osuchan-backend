@@ -3,6 +3,15 @@ from datetime import datetime
 from typing import NamedTuple
 
 
+class MinigameConfigError(Exception):
+    """
+    Raised when minigame config is invalid.
+
+    The message should be a user-friendly error that is safe to return to the
+    frontend, since minigames views convert it into a 400 ParseError response.
+    """
+
+
 class GameScore(NamedTuple):
     id: int
     player_id: int

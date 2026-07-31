@@ -2,7 +2,7 @@ import copy
 import enum
 from datetime import datetime, timedelta
 
-from minigames.games.base import BaseGame, GameScore, Player, Team
+from minigames.games.base import BaseGame, GameScore, MinigameConfigError, Player, Team
 from profiles.models import Beatmap
 
 
@@ -25,7 +25,33 @@ class BattleRoyale(BaseGame):
     def get_settings(self, data: dict) -> dict:
         beatmaps = data.get("beatmaps", [])
         if not isinstance(beatmaps, list) or len(beatmaps) == 0:
-            beatmaps = []
+            raise MinigameConfigError("At least one beatmap is required.")
+
+        beatmap_ids = []
+        for beatmap in beatmaps:
+            try:
+                beatmap_id = int(beatmap["beatmap_id"])
+            except (KeyError, TypeError, ValueError):
+                raise MinigameConfigError("Each beatmap must have a valid beatmap_id.")
+
+            if beatmap_id <= 0:
+                raise MinigameConfigError("Each beatmap must have a valid beatmap_id.")
+
+            beatmap_ids.append(beatmap_id)
+
+        beatmap_lengths = {
+            beatmap.id: beatmap.total_time
+            for beatmap in Beatmap.objects.filter(id__in=beatmap_ids).only(
+                "id", "total_time"
+            )
+        }
+        missing_beatmap_ids = sorted(set(beatmap_ids) - set(beatmap_lengths))
+        if missing_beatmap_ids:
+            raise MinigameConfigError(
+                "Unknown beatmap(s): "
+                + ", ".join(str(beatmap_id) for beatmap_id in missing_beatmap_ids)
+                + "."
+            )
 
         settings = {
             "beatmaps": [
@@ -60,22 +86,19 @@ class BattleRoyale(BaseGame):
             else:
                 settings["elimination_mode"] = EliminationMode.AUTO
 
-        # game length doesnt really matter for battle royale since it moves at a set pace with the maps
-        # this is a guess and only useful in case of bugs not ending games
-        MAX_BEATMAP_LENGTH = 600
+        # derive game length from the actual beatmap lengths so the end time
+        # matches the final round's cutoff time; rounds each take play window +
+        # map length + submission buffer, with an intermission in between
+        rounds_length = sum(
+            settings["play_start_window"]
+            + beatmap_lengths[beatmap_id]
+            + settings["submission_buffer"]
+            for beatmap_id in beatmap_ids
+        )
+        intermissions_length = (len(beatmap_ids) - 1) * settings["intermission"]
+
         settings["game_length"] = min(
-            int(
-                data.get(
-                    "game_length",
-                    len(beatmaps)
-                    * (
-                        settings["play_start_window"]
-                        + MAX_BEATMAP_LENGTH
-                        + settings["submission_buffer"]
-                        + settings["intermission"]
-                    ),
-                )
-            ),
+            int(data.get("game_length", rounds_length + intermissions_length)),
             60 * 60 * 4,
         )
 

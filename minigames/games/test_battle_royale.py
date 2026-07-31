@@ -6,7 +6,7 @@ import pytest
 
 from common.osu.enums import Gamemode
 from minigames.games import BattleRoyale
-from minigames.games.base import Player, Team
+from minigames.games.base import MinigameConfigError, Player, Team
 from minigames.games.battle_royale import EliminationMode
 from minigames.games.test_helpers import _game_score
 from profiles.models import Beatmap
@@ -121,29 +121,77 @@ def _score(id, player_id, team_id, beatmap_id, score_date, score_score=1_000_000
     )
 
 
+@pytest.mark.django_db
 class TestGetSettings:
     def test_beatmap_list_required(self):
-        result = BattleRoyale().get_settings({})
-        assert result["beatmaps"] == []
+        with pytest.raises(MinigameConfigError):
+            BattleRoyale().get_settings({})
 
-    def test_play_start_window_clamped(self):
-        result = BattleRoyale().get_settings({"play_start_window": 5})
+        with pytest.raises(MinigameConfigError):
+            BattleRoyale().get_settings({"beatmaps": []})
+
+    def test_unknown_beatmap_raises(self):
+        with pytest.raises(MinigameConfigError):
+            BattleRoyale().get_settings({"beatmaps": [{"beatmap_id": 1}]})
+
+    def test_invalid_beatmap_id_raises(self):
+        with pytest.raises(MinigameConfigError):
+            BattleRoyale().get_settings({"beatmaps": [{"beatmap_id": "abc"}]})
+
+    def test_valid_beatmaps_accepted(self, br_beatmaps):
+        result = BattleRoyale().get_settings(
+            {"beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}]}
+        )
+        assert result["beatmaps"] == [
+            {"beatmap_id": 100, "allowed_mods": []},
+            {"beatmap_id": 101, "allowed_mods": []},
+        ]
+
+    def test_game_length_matches_round_timings(self, br_beatmaps):
+        result = BattleRoyale().get_settings(
+            {
+                "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
+                "play_start_window": 30,
+                "submission_buffer": 30,
+                "intermission": 60,
+            }
+        )
+        assert result["game_length"] == (30 + 120 + 30) + (30 + 180 + 30) + 60
+
+    def test_game_length_override_respected(self, br_beatmaps):
+        result = BattleRoyale().get_settings(
+            {"beatmaps": [{"beatmap_id": 100}], "game_length": 123}
+        )
+        assert result["game_length"] == 123
+
+    def test_play_start_window_clamped(self, br_beatmaps):
+        result = BattleRoyale().get_settings(
+            {
+                "beatmaps": [{"beatmap_id": 100}],
+                "play_start_window": 5,
+            }
+        )
         assert result["play_start_window"] == 10
-        result = BattleRoyale().get_settings({"play_start_window": 200})
+        result = BattleRoyale().get_settings(
+            {
+                "beatmaps": [{"beatmap_id": 100}],
+                "play_start_window": 200,
+            }
+        )
         assert result["play_start_window"] == 120
 
-    def test_manual_mode_stores_teams_remaining(self):
+    def test_manual_mode_stores_teams_remaining(self, br_beatmaps):
         result = BattleRoyale().get_settings({
-            "beatmaps": [{"beatmap_id": 1}, {"beatmap_id": 2}],
+            "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
             "elimination_mode": EliminationMode.MANUAL,
             "teams_remaining": [3, 1],
         })
         assert result["elimination_mode"] == EliminationMode.MANUAL
         assert result["teams_remaining"] == [3, 1]
 
-    def test_manual_mode_fallback_on_mismatch(self):
+    def test_manual_mode_fallback_on_mismatch(self, br_beatmaps):
         result = BattleRoyale().get_settings({
-            "beatmaps": [{"beatmap_id": 1}, {"beatmap_id": 2}],
+            "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
             "elimination_mode": EliminationMode.MANUAL,
             "teams_remaining": [3],
         })
@@ -236,6 +284,26 @@ class TestGetInitialState:
 
         r2_start = datetime.fromisoformat(state["rounds"][1]["round_start"])
         assert r2_start == r1_cutoff + timedelta(seconds=60)
+
+    @pytest.mark.django_db
+    def test_last_round_cutoff_matches_game_length(self, br_beatmaps):
+        config = BattleRoyale().get_settings(
+            {
+                "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
+                "play_start_window": 30,
+                "submission_buffer": 30,
+                "intermission": 60,
+            }
+        )
+        state = BattleRoyale().get_initial_state(
+            config,
+            [Player(id=1, user_id=1, team_id=1)],
+            [Team(id=1, name="A")],
+            _TEST_TIME,
+        )
+
+        last_cutoff = datetime.fromisoformat(state["rounds"][-1]["cutoff_time"])
+        assert last_cutoff == _TEST_TIME + timedelta(seconds=config["game_length"])
 
 
 class TestProcessScores:
