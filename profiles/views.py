@@ -17,7 +17,7 @@ from profiles.serialisers import (
     UserScoreSerialiser,
     UserStatsSerialiser,
 )
-from profiles.services import fetch_scores, fetch_user
+from profiles.services import fetch_scores, fetch_user, store_beatmap
 from profiles.tasks import update_user, update_user_by_username
 
 
@@ -80,7 +80,9 @@ class BeatmapDetail(APIView):
         try:
             beatmap = Beatmap.objects.get(id=beatmap_id)
         except Beatmap.DoesNotExist:
-            raise NotFound("Beatmap not found.")
+            beatmap = store_beatmap(beatmap_id)
+            if beatmap is None:
+                raise NotFound("Beatmap not found.")
 
         serialiser = BeatmapSerialiser(beatmap)
         return Response(serialiser.data)
