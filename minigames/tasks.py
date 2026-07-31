@@ -105,18 +105,26 @@ def trigger_minigame_player_updates(minigame_id: int) -> None:
             if user_stats.scores.filter(
                 date__gte=datetime.now(tz=timezone.utc) - timedelta(minutes=10)
             ).exists():
-                update_user_recent.delay(
-                    user_id=player.user_id,
-                    gamemode=minigame.gamemode,
-                    cooldown_seconds=30,
+                update_user_recent.apply_async(
+                    kwargs={
+                        "user_id": player.user_id,
+                        "gamemode": minigame.gamemode,
+                        "cooldown_seconds": 30,
+                    },
+                    priority=1,
                 )
                 continue
 
             if user_stats.last_updated < datetime.now(tz=timezone.utc) - timedelta(
                 minutes=5
             ):
-                update_user_recent.delay(
-                    user_id=player.user_id, gamemode=minigame.gamemode
+                update_user_recent.apply_async(
+                    kwargs={
+                        "user_id": player.user_id,
+                        "gamemode": minigame.gamemode,
+                        "cooldown_seconds": 30,
+                    },
+                    priority=1,
                 )
                 continue
 
@@ -131,7 +139,7 @@ def recompute_minigame_state(minigame_id: int) -> None:
         minigame.save(update_fields=["end_time", "status"])
 
 
-@shared_task(priority=8)
+@shared_task(priority=1)
 def update_minigame_players_scores(user_id: int, gamemode=Gamemode.STANDARD):
     """
     Updates all minigame players for a given user and gamemode
