@@ -4,10 +4,15 @@ import pytest
 
 from common.osu.enums import BeatmapStatus, Gamemode
 from minigames.enums import MinigameStatus
-from minigames.models import Minigame, MinigamePlayer, MinigameScore, MinigameTeam
-from minigames.services import update_minigame_player_scores
+from minigames.models import Minigame, MinigamePlayer, MinigameScore, MinigameStats, MinigameTeam
+from minigames.services import (
+    finish_minigame,
+    recompute_minigame,
+    start_minigame,
+    update_minigame_player_scores,
+)
 from profiles.enums import ScoreMutation, ScoreResult
-from profiles.models import Beatmap, Score, UserStats
+from profiles.models import Beatmap, OsuUser, Score, UserStats
 
 
 @pytest.fixture
@@ -118,3 +123,91 @@ class TestUpdateMinigamePlayerScores:
         update_minigame_player_scores(minigame_player)
 
         assert not MinigameScore.objects.filter(score=score).exists()
+
+
+@pytest.fixture
+def lobby_minigame(osu_user):
+    second_user = OsuUser.objects.create(
+        id=2,
+        username="SecondOsuUser",
+        country="au",
+        join_date=datetime(2023, 1, 1, tzinfo=timezone.utc),
+        disabled=False,
+    )
+    minigame = Minigame.objects.create(
+        game_type="battle_royale",
+        name="test minigame",
+        gamemode=Gamemode.STANDARD,
+        status=MinigameStatus.LOBBY,
+        config={
+            "beatmaps": [],
+            "elimination_mode": "auto",
+            "game_length": 3600,
+            "play_start_window": 30,
+            "submission_buffer": 30,
+            "intermission": 60,
+        },
+        initial_state={},
+        state={},
+        is_free_for_all=False,
+        host=osu_user,
+    )
+    team_a = MinigameTeam.objects.create(
+        name="A", points=0, score_count=0, minigame=minigame
+    )
+    team_b = MinigameTeam.objects.create(
+        name="B", points=0, score_count=0, minigame=minigame
+    )
+    MinigamePlayer.objects.create(
+        team=team_a, user=osu_user, points=0, score_count=0
+    )
+    MinigamePlayer.objects.create(
+        team=team_b, user=second_user, points=0, score_count=0
+    )
+    return minigame
+
+
+@pytest.mark.django_db
+class TestRecomputeMinigame:
+    def test_json_round_tripped_team_ids(self, lobby_minigame):
+        minigame = start_minigame(lobby_minigame, countdown=0)
+        minigame.refresh_from_db()
+        assert minigame.status == MinigameStatus.WAITING_TO_START
+
+        win_reached = recompute_minigame(minigame)
+
+        assert win_reached is False
+        teams = list(minigame.teams.all())
+        assert len(teams) == 2
+        assert all(team.points == 0 for team in teams)
+
+
+@pytest.mark.django_db
+class TestFinishMinigame:
+    def test_already_finished_minigame_does_not_double_count_wins(self, lobby_minigame):
+        minigame = lobby_minigame
+        minigame.status = MinigameStatus.FINALISING
+        winning_team = minigame.teams.get(name="A")
+        minigame.winning_team = winning_team
+        minigame.save()
+
+        winning_player = winning_team.players.get()
+        stats = MinigameStats.objects.create(user=winning_player.user, wins=1)
+
+        minigame = finish_minigame(minigame)
+
+        assert minigame.status == MinigameStatus.FINISHED
+        assert minigame.winning_team == winning_team
+        stats.refresh_from_db()
+        assert stats.wins == 1
+
+    def test_finish_minigame_tie_declares_no_winner(self, lobby_minigame):
+        minigame = start_minigame(lobby_minigame, countdown=0)
+        minigame.refresh_from_db()
+        minigame.status = MinigameStatus.FINALISING
+        minigame.save(update_fields=["status"])
+
+        minigame = finish_minigame(minigame)
+
+        assert minigame.status == MinigameStatus.FINISHED
+        assert minigame.winning_team is None

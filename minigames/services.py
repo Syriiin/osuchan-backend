@@ -186,7 +186,7 @@ def update_minigame_status(minigame: Minigame) -> Minigame:
     else:
         minigame.status = MinigameStatus.FINALISING
 
-    minigame.save()
+    minigame.save(update_fields=["status"])
     return minigame
 
 
@@ -446,6 +446,11 @@ def finish_minigame(minigame: Minigame) -> Minigame:
     """
     Finalise a minigame and declare the winner.
     """
+    if minigame.winning_team is not None:
+        minigame.status = MinigameStatus.FINISHED
+        minigame.save(update_fields=["status"])
+        return minigame
+
     players = MinigamePlayer.objects.filter(team__minigame=minigame)
     for player in players:
         update_minigame_player_scores(player)
