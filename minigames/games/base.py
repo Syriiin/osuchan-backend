@@ -71,19 +71,25 @@ class BaseGame(ABC):
     @abstractmethod
     def display_name(self) -> str: ...
 
-    def get_settings(
-        self, data: dict, gamemode: Gamemode | None = None
-    ) -> dict:
+    def get_settings(self, data: dict, gamemode: Gamemode | None = None) -> dict:
         game_length = int(data.get("game_length", 60 * 60))
         return {"game_length": min(game_length, 60 * 60 * 2)}
 
     def get_initial_state(
-        self, config: dict, players: list[Player], teams: list[Team], start_time: datetime
+        self,
+        config: dict,
+        players: list[Player],
+        teams: list[Team],
+        start_time: datetime,
     ) -> dict:
         return {}
 
     def process_scores(
-        self, scores: list[GameScore], config: dict, initial_state: dict, current_time: datetime
+        self,
+        scores: list[GameScore],
+        config: dict,
+        initial_state: dict,
+        current_time: datetime,
     ) -> dict:
         return {
             "state": {},

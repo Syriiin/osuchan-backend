@@ -43,13 +43,17 @@ class Minigame(models.Model):
 
     def get_players_info(self):
         from minigames.games.base import Player
+
         return list(
             Player(id=p["id"], user_id=p["user_id"], team_id=p["team_id"])
-            for p in MinigamePlayer.objects.filter(team__minigame=self).values("id", "user_id", "team_id")
+            for p in MinigamePlayer.objects.filter(team__minigame=self).values(
+                "id", "user_id", "team_id"
+            )
         )
 
     def get_teams_info(self):
         from minigames.games.base import Team
+
         return list(
             Team(id=t["id"], name=t["name"])
             for t in MinigameTeam.objects.filter(minigame=self).values("id", "name")

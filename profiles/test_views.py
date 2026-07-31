@@ -135,7 +135,9 @@ class TestBeatmapDetail:
         response: Response = view(request, **kwargs)
 
         assert response.status_code == HTTPStatus.OK
-        assert response.data["title"] == "Mezameta Asa ni wa Kimi ga Tonari ni (TV Size)"
+        assert (
+            response.data["title"] == "Mezameta Asa ni wa Kimi ga Tonari ni (TV Size)"
+        )
         assert Beatmap.objects.filter(id=362949).exists()
 
     def test_get_unknown_beatmap_not_found(self, arf: APIRequestFactory, view):

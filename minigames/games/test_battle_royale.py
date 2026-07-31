@@ -1,6 +1,6 @@
+import json
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
-import json
 
 import pytest
 
@@ -89,6 +89,7 @@ def br_beatmaps():
         ),
     ]
 
+
 FOUR_TEAMS_CONFIG = {
     "beatmaps": [
         {"beatmap_id": 100, "allowed_mods": []},
@@ -112,7 +113,9 @@ def _round(beatmap_id, target_teams, round_start, cutoff, **kw):
             "beatmap_id": beatmap_id,
             "allowed_mods": [],
             "target_teams": target_teams,
-            "round_start": (round_start if isinstance(round_start, str) else round_start.isoformat()),
+            "round_start": (
+                round_start if isinstance(round_start, str) else round_start.isoformat()
+            ),
             "cutoff_time": (cutoff if isinstance(cutoff, str) else cutoff.isoformat()),
             "player_scores": {},
             "team_scores": {},
@@ -156,7 +159,11 @@ class TestGetSettings:
     def test_no_beatmaps_picks_random_beatmaps(self, br_beatmaps):
         result = BattleRoyale().get_settings({})
         assert len(result["beatmaps"]) == 3
-        assert {beatmap["beatmap_id"] for beatmap in result["beatmaps"]} <= {100, 101, 102}
+        assert {beatmap["beatmap_id"] for beatmap in result["beatmaps"]} <= {
+            100,
+            101,
+            102,
+        }
         assert all(beatmap["allowed_mods"] == [] for beatmap in result["beatmaps"])
 
     def test_random_beatmaps_filtered_by_gamemode(self, br_beatmaps):
@@ -214,20 +221,24 @@ class TestGetSettings:
         assert result["play_start_window"] == 120
 
     def test_manual_mode_stores_teams_remaining(self, br_beatmaps):
-        result = BattleRoyale().get_settings({
-            "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
-            "elimination_mode": EliminationMode.MANUAL,
-            "teams_remaining": [3, 1],
-        })
+        result = BattleRoyale().get_settings(
+            {
+                "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
+                "elimination_mode": EliminationMode.MANUAL,
+                "teams_remaining": [3, 1],
+            }
+        )
         assert result["elimination_mode"] == EliminationMode.MANUAL
         assert result["teams_remaining"] == [3, 1]
 
     def test_manual_mode_fallback_on_mismatch(self, br_beatmaps):
-        result = BattleRoyale().get_settings({
-            "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
-            "elimination_mode": EliminationMode.MANUAL,
-            "teams_remaining": [3],
-        })
+        result = BattleRoyale().get_settings(
+            {
+                "beatmaps": [{"beatmap_id": 100}, {"beatmap_id": 101}],
+                "elimination_mode": EliminationMode.MANUAL,
+                "teams_remaining": [3],
+            }
+        )
         assert result["elimination_mode"] == EliminationMode.AUTO
 
 
@@ -286,7 +297,9 @@ class TestGetInitialState:
         teams = [Team(id=1, name="A"), Team(id=2, name="B")]
         state = BattleRoyale().get_initial_state(
             FOUR_TEAMS_CONFIG,
-            players, teams, _TEST_TIME,
+            players,
+            teams,
+            _TEST_TIME,
         )
         assert state["team_player_map"] == {1: [1, 2], 2: [3]}
 
@@ -296,7 +309,8 @@ class TestGetInitialState:
         state = BattleRoyale().get_initial_state(
             FOUR_TEAMS_CONFIG,
             [Player(id=1, user_id=1, team_id=1)],
-            teams, _TEST_TIME,
+            teams,
+            _TEST_TIME,
         )
         assert state["active_team_ids"] == [1, 2]
 
@@ -347,7 +361,9 @@ class TestProcessScores:
         r1 = _round(100, 2, _TEST_TIME, _TEST_TIME + _SECOND)
         state = _initial_state([r1], [1, 2, 3, 4], {1: [1], 2: [2], 3: [3], 4: [4]})
 
-        result = BattleRoyale().process_scores([], self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            [], self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert result["state"]["active_team_ids"] == [3, 4]
         assert result["state"]["eliminated_team_ids"] == [1, 2]
@@ -357,7 +373,9 @@ class TestProcessScores:
         state = _initial_state([r1], [1, 2, 3, 4], {1: [1], 2: [2], 3: [3], 4: [4]})
         state = json.loads(json.dumps(state))
 
-        result = BattleRoyale().process_scores([], self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            [], self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert result["teams"].keys() == {1, 2, 3, 4}
         assert result["players"].keys() == {1, 2, 3, 4}
@@ -372,7 +390,9 @@ class TestProcessScores:
             _score(3, 3, 3, 100, _TEST_TIME, score_score=500_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert result["state"]["active_team_ids"] == [1, 2]
         assert 3 in result["state"]["eliminated_team_ids"]
@@ -383,12 +403,16 @@ class TestProcessScores:
         state = _initial_state([r1], [1, 2, 3], {1: [1], 2: [2], 3: [3]})
         scores = [
             _score(1, 1, 1, 100, _TEST_TIME + _SECOND, score_score=100_000),
-            _score(2, 1, 1, 100, _TEST_TIME + timedelta(seconds=10), score_score=2_000_000),
+            _score(
+                2, 1, 1, 100, _TEST_TIME + timedelta(seconds=10), score_score=2_000_000
+            ),
             _score(3, 2, 2, 100, _TEST_TIME + _SECOND, score_score=150_000),
             _score(4, 3, 3, 100, _TEST_TIME + _SECOND, score_score=120_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=120))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=120)
+        )
         # Team 1's first score (100k) is used, not the 2M follow-up
         # Team 1 loses despite having a later 2M score
         assert 1 in result["state"]["eliminated_team_ids"]
@@ -403,13 +427,21 @@ class TestProcessScores:
         r1 = _round(100, 2, _TEST_TIME, _TEST_TIME + timedelta(seconds=60))
         state = _initial_state([r1], [1, 2, 3], {1: [1], 2: [2], 3: [3]})
         scores = [
-            _score(1, 1, 1, 100, _TEST_TIME + timedelta(seconds=10), score_score=2_000_000),
-            _score(2, 2, 2, 100, _TEST_TIME + timedelta(seconds=2), score_score=150_000),
-            _score(3, 3, 3, 100, _TEST_TIME + timedelta(seconds=2), score_score=120_000),
+            _score(
+                1, 1, 1, 100, _TEST_TIME + timedelta(seconds=10), score_score=2_000_000
+            ),
+            _score(
+                2, 2, 2, 100, _TEST_TIME + timedelta(seconds=2), score_score=150_000
+            ),
+            _score(
+                3, 3, 3, 100, _TEST_TIME + timedelta(seconds=2), score_score=120_000
+            ),
             _score(4, 1, 1, 100, _TEST_TIME + _SECOND, score_score=100_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=120))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=120)
+        )
         # Team 1's 2M score is listed first, but the earlier 100k is used
         assert 1 in result["state"]["eliminated_team_ids"]
         assert result["state"]["active_team_ids"] == [2, 3]
@@ -421,7 +453,9 @@ class TestProcessScores:
             _score(1, 3, 3, 100, _TEST_TIME + _SECOND, score_score=100_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=30))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=30)
+        )
 
         assert result["state"]["active_team_ids"] == [1, 2, 3]
         assert result["state"]["rounds"][0]["player_scores"] == {3: 1}
@@ -437,7 +471,9 @@ class TestProcessScores:
             _score(3, 3, 3, 100, _TEST_TIME + _SECOND, score_score=500_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=30))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=30)
+        )
 
         assert result["state"]["rounds"][0]["team_scores"] == {
             1: 300_000,
@@ -452,15 +488,24 @@ class TestProcessScores:
 
     def test_multi_round_progressive_elimination(self):
         r1 = _round(100, 3, _TEST_TIME, _TEST_TIME + _SECOND)
-        r2 = _round(101, 1, _TEST_TIME + timedelta(seconds=60), _TEST_TIME + timedelta(seconds=61))
+        r2 = _round(
+            101,
+            1,
+            _TEST_TIME + timedelta(seconds=60),
+            _TEST_TIME + timedelta(seconds=61),
+        )
         state = _initial_state([r1, r2], [1, 2, 3, 4], {1: [1], 2: [2], 3: [3], 4: [4]})
         scores = [
             _score(1, 1, 1, 100, _TEST_TIME, score_score=1_000_000),
             _score(2, 2, 2, 100, _TEST_TIME, score_score=900_000),
             _score(3, 3, 3, 100, _TEST_TIME, score_score=800_000),
             _score(4, 4, 4, 100, _TEST_TIME, score_score=100_000),
-            _score(5, 1, 1, 101, _TEST_TIME + timedelta(seconds=60), score_score=500_000),
-            _score(6, 2, 2, 101, _TEST_TIME + timedelta(seconds=60), score_score=400_000),
+            _score(
+                5, 1, 1, 101, _TEST_TIME + timedelta(seconds=60), score_score=500_000
+            ),
+            _score(
+                6, 2, 2, 101, _TEST_TIME + timedelta(seconds=60), score_score=400_000
+            ),
         ]
 
         result = BattleRoyale().process_scores(
@@ -479,7 +524,9 @@ class TestProcessScores:
             _score(1, 1, 1, 100, _TEST_TIME, score_score=1_000_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert result["win_condition_reached"] is True
         assert result["state"]["active_team_ids"] == [1]
@@ -492,7 +539,9 @@ class TestProcessScores:
             _score(2, 2, 2, 100, _TEST_TIME, score_score=100_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert 1 in result["state"]["eliminated_team_ids"]
         assert result["state"]["active_team_ids"] == [2, 3]
@@ -501,11 +550,15 @@ class TestProcessScores:
         r1 = _round(100, 2, _TEST_TIME, _TEST_TIME + timedelta(seconds=10))
         state = _initial_state([r1], [1, 2, 3], {1: [1], 2: [2], 3: [3]})
         scores = [
-            _score(1, 1, 1, 100, _TEST_TIME + timedelta(seconds=20), score_score=1_000_000),
+            _score(
+                1, 1, 1, 100, _TEST_TIME + timedelta(seconds=20), score_score=1_000_000
+            ),
             _score(2, 2, 2, 100, _TEST_TIME - _SECOND, score_score=1_000_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=30))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=30)
+        )
         # No valid scores: all teams tied at -1 → lowest team_id eliminated
         assert result["state"]["active_team_ids"] == [2, 3]
         assert result["state"]["eliminated_team_ids"] == [1]
@@ -520,7 +573,9 @@ class TestProcessScores:
             _score(4, 4, 3, 100, _TEST_TIME, score_score=100_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
         # Team 1 has 2 players = 500k total
         # Team 2 has 1 player = 400k
         # Team 3 has 1 player = 100k
@@ -529,14 +584,23 @@ class TestProcessScores:
 
     def test_points_one_per_round_survived(self):
         r1 = _round(100, 2, _TEST_TIME, _TEST_TIME + _SECOND)
-        r2 = _round(101, 1, _TEST_TIME + timedelta(seconds=60), _TEST_TIME + timedelta(seconds=61))
+        r2 = _round(
+            101,
+            1,
+            _TEST_TIME + timedelta(seconds=60),
+            _TEST_TIME + timedelta(seconds=61),
+        )
         state = _initial_state([r1, r2], [1, 2, 3], {1: [1], 2: [2], 3: [3]})
         scores = [
             _score(1, 1, 1, 100, _TEST_TIME, score_score=1_000_000),
             _score(2, 2, 2, 100, _TEST_TIME, score_score=900_000),
             _score(3, 3, 3, 100, _TEST_TIME, score_score=800_000),
-            _score(4, 1, 1, 101, _TEST_TIME + timedelta(seconds=60), score_score=500_000),
-            _score(5, 2, 2, 101, _TEST_TIME + timedelta(seconds=60), score_score=400_000),
+            _score(
+                4, 1, 1, 101, _TEST_TIME + timedelta(seconds=60), score_score=500_000
+            ),
+            _score(
+                5, 2, 2, 101, _TEST_TIME + timedelta(seconds=60), score_score=400_000
+            ),
         ]
 
         result = BattleRoyale().process_scores(
@@ -558,7 +622,9 @@ class TestProcessScores:
             _score(2, 2, 2, 100, _TEST_TIME, score_score=50_000),
         ]
 
-        result = BattleRoyale().process_scores(scores, self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            scores, self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert result["win_condition_reached"] is True
         assert result["state"]["active_team_ids"] == [1]
@@ -569,7 +635,9 @@ class TestProcessScores:
         r1 = _round(100, 0, _TEST_TIME, _TEST_TIME + _SECOND)
         state = _initial_state([r1], [1], {1: [1]})
 
-        result = BattleRoyale().process_scores([], self._config(), state, _TEST_TIME + timedelta(seconds=10))
+        result = BattleRoyale().process_scores(
+            [], self._config(), state, _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert result["win_condition_reached"] is True
         assert result["state"]["active_team_ids"] == []
@@ -584,8 +652,12 @@ class TestProcessScores:
             _score(4, 4, 4, 100, _TEST_TIME, score_score=100_000),
         ]
 
-        first = BattleRoyale().process_scores(scores, self._config(), deepcopy(state), _TEST_TIME + timedelta(seconds=10))
-        second = BattleRoyale().process_scores(scores, self._config(), deepcopy(state), _TEST_TIME + timedelta(seconds=10))
+        first = BattleRoyale().process_scores(
+            scores, self._config(), deepcopy(state), _TEST_TIME + timedelta(seconds=10)
+        )
+        second = BattleRoyale().process_scores(
+            scores, self._config(), deepcopy(state), _TEST_TIME + timedelta(seconds=10)
+        )
 
         assert first["state"]["active_team_ids"] == second["state"]["active_team_ids"]
         assert first["win_condition_reached"] == second["win_condition_reached"]
@@ -600,12 +672,18 @@ class TestProcessScores:
         ]
         late_scores = [
             _score(1, 1, 1, 100, _TEST_TIME + _SECOND, score_score=100_000),
-            _score(2, 2, 2, 100, _TEST_TIME + timedelta(seconds=5), score_score=200_000),
+            _score(
+                2, 2, 2, 100, _TEST_TIME + timedelta(seconds=5), score_score=200_000
+            ),
         ]
 
         future = _TEST_TIME + timedelta(seconds=120)
-        early_result = BattleRoyale().process_scores(early_scores, self._config(), deepcopy(state), future)
-        late_result = BattleRoyale().process_scores(late_scores, self._config(), deepcopy(state), future)
+        early_result = BattleRoyale().process_scores(
+            early_scores, self._config(), deepcopy(state), future
+        )
+        late_result = BattleRoyale().process_scores(
+            late_scores, self._config(), deepcopy(state), future
+        )
 
         assert early_result["state"]["active_team_ids"] == [1]
         assert late_result["state"]["active_team_ids"] == [2]

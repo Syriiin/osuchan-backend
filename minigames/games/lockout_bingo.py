@@ -15,9 +15,7 @@ class LockoutBingo(BaseGame):
     def display_name(self) -> str:
         return "Lockout Bingo"
 
-    def get_settings(
-        self, data: dict, gamemode: Gamemode | None = None
-    ) -> dict:
+    def get_settings(self, data: dict, gamemode: Gamemode | None = None) -> dict:
         settings = super().get_settings(data, gamemode)
 
         requested_grid_size = int(data.get("grid_size", 3))
@@ -102,9 +100,7 @@ class LockoutBingo(BaseGame):
                 return False
         return True
 
-    def process_scores(
-        self, scores, config, initial_state, current_time
-    ) -> dict:
+    def process_scores(self, scores, config, initial_state, current_time) -> dict:
         grid_size = config["grid_size"]
 
         tasks = copy.deepcopy(initial_state["tasks"])

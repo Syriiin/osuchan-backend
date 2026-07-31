@@ -10,4 +10,13 @@ game_registry: dict[str, BaseGame] = {
     name: import_string(path)() for name, path in settings.MINIGAMES.items()
 }
 
-__all__ = ["BaseGame", "GameScore", "Player", "Team", "BattleRoyale", "FirstToN", "LockoutBingo", "game_registry"]
+__all__ = [
+    "BaseGame",
+    "GameScore",
+    "Player",
+    "Team",
+    "BattleRoyale",
+    "FirstToN",
+    "LockoutBingo",
+    "game_registry",
+]

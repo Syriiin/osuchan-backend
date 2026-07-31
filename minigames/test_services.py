@@ -5,7 +5,13 @@ import pytest
 from common.osu.enums import BeatmapStatus, Gamemode
 from minigames.enums import MinigameStatus
 from minigames.games.base import MinigameConfigError
-from minigames.models import Minigame, MinigamePlayer, MinigameScore, MinigameStats, MinigameTeam
+from minigames.models import (
+    Minigame,
+    MinigamePlayer,
+    MinigameScore,
+    MinigameStats,
+    MinigameTeam,
+)
 from minigames.services import (
     create_minigame,
     finish_minigame,
@@ -161,9 +167,7 @@ def lobby_minigame(osu_user):
     team_b = MinigameTeam.objects.create(
         name="B", points=0, score_count=0, minigame=minigame
     )
-    MinigamePlayer.objects.create(
-        team=team_a, user=osu_user, points=0, score_count=0
-    )
+    MinigamePlayer.objects.create(team=team_a, user=osu_user, points=0, score_count=0)
     MinigamePlayer.objects.create(
         team=team_b, user=second_user, points=0, score_count=0
     )
@@ -238,9 +242,7 @@ class TestCreateMinigame:
             settings_data={},
             teams=["A", "B"],
         )
-        assert minigame.config["beatmaps"] == [
-            {"beatmap_id": 100, "allowed_mods": []}
-        ]
+        assert minigame.config["beatmaps"] == [{"beatmap_id": 100, "allowed_mods": []}]
 
     def test_battle_royale_unknown_beatmap_raises(self, osu_user):
         with pytest.raises(MinigameConfigError):
@@ -268,8 +270,8 @@ class TestCreateMinigame:
 
 @pytest.mark.django_db
 class TestUpdateMinigameSettings:
-    def test_battle_royale_empty_beatmaps_picks_random(self, lobby_minigame, loved_beatmap):
+    def test_battle_royale_empty_beatmaps_picks_random(
+        self, lobby_minigame, loved_beatmap
+    ):
         minigame = update_minigame_settings(lobby_minigame, {"beatmaps": []})
-        assert minigame.config["beatmaps"] == [
-            {"beatmap_id": 100, "allowed_mods": []}
-        ]
+        assert minigame.config["beatmaps"] == [{"beatmap_id": 100, "allowed_mods": []}]

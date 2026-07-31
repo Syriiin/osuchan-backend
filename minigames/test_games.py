@@ -3,7 +3,6 @@ from datetime import datetime
 from minigames.games import FirstToN
 from minigames.games.test_helpers import _game_score
 
-
 _TEST_TIME = datetime(2026, 1, 1, 12, 0, 0)
 
 

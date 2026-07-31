@@ -32,7 +32,7 @@ class BattleRoyale(BaseGame):
         for beatmap in beatmaps:
             try:
                 beatmap_id = int(beatmap["beatmap_id"])
-            except (KeyError, TypeError, ValueError):
+            except KeyError, TypeError, ValueError:
                 raise MinigameConfigError("Each beatmap must have a valid beatmap_id.")
 
             if beatmap_id <= 0:
@@ -122,8 +122,7 @@ class BattleRoyale(BaseGame):
         if len(beatmap_ids) == 0:
             raise MinigameConfigError("At least one beatmap is required.")
         return [
-            {"beatmap_id": beatmap_id, "allowed_mods": []}
-            for beatmap_id in beatmap_ids
+            {"beatmap_id": beatmap_id, "allowed_mods": []} for beatmap_id in beatmap_ids
         ]
 
     def get_initial_state(
