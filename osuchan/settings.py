@@ -241,6 +241,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "ppraces.tasks.dispatch_update_all_ppraces",
         "schedule": crontab(minute="*"),  # every minute
     },
+    "ingest-recent-scores-every-10s": {
+        "task": "profiles.tasks.ingest_recent_scores",
+        "schedule": timedelta(seconds=10),
+    },
     "update-minigames-every-minute": {
         "task": "minigames.tasks.dispatch_minigame_updates",
         "schedule": crontab(minute="*"),  # every minute

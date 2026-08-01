@@ -24,6 +24,11 @@ class MalformedResponseError(Exception):
     pass
 
 
+class ScoresPage(NamedTuple):
+    scores: list[ScoreData]
+    cursor_string: str | None
+
+
 class BeatmapData(NamedTuple):
     beatmap_id: int
     set_id: int
@@ -296,6 +301,9 @@ class ScoreData(NamedTuple):
     rank: str
     date: datetime
 
+    user_id: int
+    gamemode: Gamemode
+
     def as_json(self):
         return {
             "beatmap_id": self.beatmap_id,
@@ -314,10 +322,12 @@ class ScoreData(NamedTuple):
             "perfect": self.perfect,
             "rank": self.rank,
             "date": self.date.isoformat(),
+            "user_id": self.user_id,
+            "gamemode": self.gamemode.value,
         }
 
     @classmethod
-    def from_json(cls, data: dict) -> "ScoreData":
+    def from_json(cls, data: dict, user_id: int, gamemode: Gamemode) -> "ScoreData":
         return cls(
             beatmap_id=data["beatmap_id"],
             mods=data["mods"],
@@ -335,6 +345,8 @@ class ScoreData(NamedTuple):
             perfect=data["perfect"],
             rank=data["rank"],
             date=datetime.fromisoformat(data["date"]),
+            user_id=user_id,
+            gamemode=gamemode,
         )
 
     @classmethod
@@ -409,6 +421,8 @@ class ScoreData(NamedTuple):
             date=datetime.strptime(data["date"], "%Y-%m-%d %H:%M:%S").replace(
                 tzinfo=timezone.utc
             ),
+            user_id=int(data["user_id"]),
+            gamemode=gamemode,
         )
 
 
@@ -439,6 +453,10 @@ class AbstractOsuApi(ABC):
     def get_user_recent_scores(
         self, user_id: int, gamemode: Gamemode
     ) -> list[ScoreData]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_recent_scores(self, cursor_string: str | None = None) -> ScoresPage:
         raise NotImplementedError()
 
 
@@ -515,6 +533,9 @@ class LiveOsuApiV1(AbstractOsuApi):
                 "get_user_recent", u=user_id, type="id", m=gamemode.value, limit=50
             )
         ]
+
+    def get_recent_scores(self, cursor_string: str | None = None) -> ScoresPage:
+        raise NotImplementedError("v1 api does not support the /scores endpoint")
 
 
 class LiveOsuApiV2(AbstractOsuApi):
@@ -594,8 +615,10 @@ class LiveOsuApiV2(AbstractOsuApi):
 
     @staticmethod
     def __score_data_from_ossapi(
-        score: Score, gamemode: Gamemode, beatmap_id_override: int | None = None
+        score: Score, beatmap_id_override: int | None = None
     ) -> ScoreData:
+        gamemode = Gamemode(score.ruleset_id)
+
         if beatmap_id_override is None:
             if score.beatmap is None:
                 raise MalformedResponseError("Score does not have a beatmap")
@@ -733,6 +756,8 @@ class LiveOsuApiV2(AbstractOsuApi):
             perfect=score.legacy_perfect,
             rank=score.rank.value,
             date=score.ended_at,
+            user_id=score.user_id,
+            gamemode=gamemode,
         )
 
     def get_beatmap(self, beatmap_id: int) -> BeatmapData | None:
@@ -783,10 +808,7 @@ class LiveOsuApiV2(AbstractOsuApi):
         except ValueError:
             return []
 
-        return [
-            self.__score_data_from_ossapi(score, gamemode, beatmap_id)
-            for score in scores
-        ]
+        return [self.__score_data_from_ossapi(score, beatmap_id) for score in scores]
 
     def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
         try:
@@ -802,7 +824,7 @@ class LiveOsuApiV2(AbstractOsuApi):
         except ValueError:
             return []
 
-        return [self.__score_data_from_ossapi(score, gamemode) for score in scores]
+        return [self.__score_data_from_ossapi(score) for score in scores]
 
     def get_user_recent_scores(
         self, user_id: int, gamemode: Gamemode
@@ -820,7 +842,29 @@ class LiveOsuApiV2(AbstractOsuApi):
         except ValueError:
             return []
 
-        return [self.__score_data_from_ossapi(score, gamemode) for score in scores]
+        return [self.__score_data_from_ossapi(score) for score in scores]
+
+    def get_recent_scores(self, cursor_string: str | None = None) -> ScoresPage:
+        try:
+            scores = self.client.scores(cursor_string=cursor_string)
+            osuapi_requests_counter.labels(
+                endpoint="recent_scores", api_version="v2"
+            ).inc()
+        except ValueError:
+            return ScoresPage(scores=[], cursor_string=None)
+
+        score_data_list = []
+        for score in scores.scores:
+            try:
+                score_data_list.append(
+                    self.__score_data_from_ossapi(
+                        score, beatmap_id_override=score.beatmap_id
+                    )
+                )
+            except ValueError:
+                continue
+
+        return ScoresPage(scores=score_data_list, cursor_string=scores.cursor_string)
 
 
 class StubOsuApi(AbstractOsuApi):
@@ -886,7 +930,7 @@ class StubOsuApi(AbstractOsuApi):
     ) -> list[ScoreData]:
         try:
             return [
-                ScoreData.from_json(data)
+                ScoreData.from_json(data, user_id, gamemode)
                 for data in self.__load_stub_data("scores.json")[str(user_id)][
                     str(gamemode.value)
                 ][str(beatmap_id)]
@@ -897,7 +941,7 @@ class StubOsuApi(AbstractOsuApi):
     def get_user_best_scores(self, user_id: int, gamemode: Gamemode) -> list[ScoreData]:
         try:
             return [
-                ScoreData.from_json(data)
+                ScoreData.from_json(data, user_id, gamemode)
                 for data in self.__load_stub_data("user_best.json")[str(user_id)][
                     str(gamemode.value)
                 ]
@@ -910,13 +954,33 @@ class StubOsuApi(AbstractOsuApi):
     ) -> list[ScoreData]:
         try:
             return [
-                ScoreData.from_json(data)
+                ScoreData.from_json(data, user_id, gamemode)
                 for data in self.__load_stub_data("user_recent.json")[str(user_id)][
                     str(gamemode.value)
                 ]
             ]
         except KeyError:
             return []
+
+    def get_recent_scores(self, cursor_string: str | None = None) -> ScoresPage:
+        if cursor_string is not None:
+            return ScoresPage(scores=[], cursor_string=cursor_string)
+
+        raw_scores = self.__load_json_data(
+            os.path.join(
+                os.path.dirname(__file__),
+                "stubdata",
+                "osuapi",
+                "recent_scores.json",
+            )
+        )
+        return ScoresPage(
+            scores=[
+                ScoreData.from_json(data, data["user_id"], Gamemode(data["gamemode"]))
+                for data in raw_scores
+            ],
+            cursor_string="complete",
+        )
 
 
 OsuApi: Type[AbstractOsuApi] = import_string(settings.OSU_API_CLASS)

@@ -1,0 +1,602 @@
+[
+    {
+        "beatmap_id": 362949,
+        "mods": 72,
+        "mods_json": {
+            "HD": {},
+            "DT": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 3502092,
+        "best_combo": 404,
+        "count_300": 278,
+        "count_100": 12,
+        "count_50": 0,
+        "count_miss": 0,
+        "count_katu": 7,
+        "count_geki": 51,
+        "statistics": {
+            "great": 278,
+            "ok": 12
+        },
+        "perfect": true,
+        "rank": "SH",
+        "date": "2017-06-17T11:10:36+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 2,
+        "mods_json": {
+            "EZ": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 1602032,
+        "best_combo": 404,
+        "count_300": 289,
+        "count_100": 1,
+        "count_50": 0,
+        "count_miss": 0,
+        "count_katu": 1,
+        "count_geki": 57,
+        "statistics": {
+            "great": 289,
+            "ok": 1
+        },
+        "perfect": true,
+        "rank": "S",
+        "date": "2017-12-21T13:57:17+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 1386221,
+        "mods": 0,
+        "mods_json": {
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 883194,
+        "best_combo": 268,
+        "count_300": 212,
+        "count_100": 9,
+        "count_50": 1,
+        "count_miss": 4,
+        "count_katu": 36,
+        "count_geki": 458,
+        "statistics": {
+            "perfect": 458,
+            "great": 212,
+            "good": 36,
+            "ok": 9,
+            "meh": 1,
+            "miss": 4
+        },
+        "perfect": false,
+        "rank": "S",
+        "date": "2018-03-12T11:42:52+00:00",
+        "user_id": 5701575,
+        "gamemode": 3
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 1097,
+        "mods_json": {
+            "NF": {},
+            "HD": {},
+            "DT": {},
+            "FL": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 214157,
+        "best_combo": 52,
+        "count_300": 234,
+        "count_100": 23,
+        "count_50": 7,
+        "count_miss": 26,
+        "count_katu": 12,
+        "count_geki": 29,
+        "statistics": {
+            "great": 234,
+            "ok": 23,
+            "meh": 7,
+            "miss": 26
+        },
+        "perfect": false,
+        "rank": "B",
+        "date": "2018-03-28T15:24:17+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 1089,
+        "mods_json": {
+            "NF": {},
+            "DT": {},
+            "FL": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 334024,
+        "best_combo": 103,
+        "count_300": 264,
+        "count_100": 8,
+        "count_50": 6,
+        "count_miss": 12,
+        "count_katu": 4,
+        "count_geki": 41,
+        "statistics": {
+            "great": 264,
+            "ok": 8,
+            "meh": 6,
+            "miss": 12
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2018-03-28T15:26:07+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 1032,
+        "mods_json": {
+            "HD": {},
+            "FL": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 870281,
+        "best_combo": 119,
+        "count_300": 282,
+        "count_100": 4,
+        "count_50": 0,
+        "count_miss": 4,
+        "count_katu": 3,
+        "count_geki": 52,
+        "statistics": {
+            "great": 282,
+            "ok": 4,
+            "miss": 4
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2019-01-30T13:07:44+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 1600,
+        "mods_json": {
+            "NC": {},
+            "FL": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 681752,
+        "best_combo": 128,
+        "count_300": 238,
+        "count_100": 37,
+        "count_50": 4,
+        "count_miss": 11,
+        "count_katu": 16,
+        "count_geki": 34,
+        "statistics": {
+            "great": 238,
+            "ok": 37,
+            "meh": 4,
+            "miss": 11
+        },
+        "perfect": false,
+        "rank": "B",
+        "date": "2019-09-03T11:10:14+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 1026,
+        "mods_json": {
+            "EZ": {},
+            "FL": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 302882,
+        "best_combo": 94,
+        "count_300": 259,
+        "count_100": 4,
+        "count_50": 1,
+        "count_miss": 26,
+        "count_katu": 2,
+        "count_geki": 44,
+        "statistics": {
+            "great": 259,
+            "ok": 4,
+            "meh": 1,
+            "miss": 26
+        },
+        "perfect": false,
+        "rank": "B",
+        "date": "2020-04-03T08:27:31+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 1024,
+        "mods_json": {
+            "FL": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 2475834,
+        "best_combo": 342,
+        "count_300": 283,
+        "count_100": 6,
+        "count_50": 0,
+        "count_miss": 1,
+        "count_katu": 4,
+        "count_geki": 53,
+        "statistics": {
+            "great": 283,
+            "ok": 6,
+            "miss": 1
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2020-04-03T08:50:47+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 1088,
+        "mods_json": {
+            "DT": {},
+            "FL": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 1060393,
+        "best_combo": 180,
+        "count_300": 263,
+        "count_100": 15,
+        "count_50": 3,
+        "count_miss": 9,
+        "count_katu": 8,
+        "count_geki": 43,
+        "statistics": {
+            "great": 263,
+            "ok": 15,
+            "meh": 3,
+            "miss": 9
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2020-04-03T08:54:41+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 307618,
+        "mods": 104,
+        "mods_json": {
+            "HD": {},
+            "SD": {},
+            "DT": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 137805806,
+        "best_combo": 2757,
+        "count_300": 1739,
+        "count_100": 14,
+        "count_50": 0,
+        "count_miss": 0,
+        "count_katu": 7,
+        "count_geki": 360,
+        "statistics": {
+            "great": 1739,
+            "ok": 14
+        },
+        "perfect": false,
+        "rank": "SH",
+        "date": "2020-08-15T14:12:14+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 264364,
+        "mods": 104,
+        "mods_json": {
+            "HD": {},
+            "SD": {},
+            "DT": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 4543964,
+        "best_combo": 448,
+        "count_300": 346,
+        "count_100": 1,
+        "count_50": 0,
+        "count_miss": 0,
+        "count_katu": 1,
+        "count_geki": 73,
+        "statistics": {
+            "great": 346,
+            "ok": 1
+        },
+        "perfect": true,
+        "rank": "SH",
+        "date": "2020-08-15T14:50:41+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 323769,
+        "mods": 104,
+        "mods_json": {
+            "HD": {},
+            "SD": {},
+            "DT": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 10001459,
+        "best_combo": 645,
+        "count_300": 540,
+        "count_100": 0,
+        "count_50": 0,
+        "count_miss": 0,
+        "count_katu": 0,
+        "count_geki": 101,
+        "statistics": {
+            "great": 540
+        },
+        "perfect": true,
+        "rank": "XH",
+        "date": "2021-03-08T14:05:52+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 74,
+        "mods_json": {
+            "EZ": {},
+            "HD": {},
+            "DT": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 1078214,
+        "best_combo": 311,
+        "count_300": 274,
+        "count_100": 2,
+        "count_50": 0,
+        "count_miss": 14,
+        "count_katu": 1,
+        "count_geki": 52,
+        "statistics": {
+            "great": 274,
+            "ok": 2,
+            "miss": 14
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2023-04-18T14:50:34+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 362949,
+        "mods": 66,
+        "mods_json": {
+            "EZ": {},
+            "DT": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 1718512,
+        "best_combo": 404,
+        "count_300": 279,
+        "count_100": 11,
+        "count_50": 0,
+        "count_miss": 0,
+        "count_katu": 6,
+        "count_geki": 52,
+        "statistics": {
+            "great": 279,
+            "ok": 11
+        },
+        "perfect": true,
+        "rank": "S",
+        "date": "2023-04-18T14:59:33+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 638017,
+        "mods": 24,
+        "mods_json": {
+            "HD": {},
+            "HR": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 9393700,
+        "best_combo": 707,
+        "count_300": 537,
+        "count_100": 58,
+        "count_50": 1,
+        "count_miss": 1,
+        "count_katu": 29,
+        "count_geki": 104,
+        "statistics": {
+            "great": 537,
+            "ok": 58,
+            "meh": 1,
+            "miss": 1
+        },
+        "perfect": false,
+        "rank": "B",
+        "date": "2023-05-30T13:24:21+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 1117451,
+        "mods": 8,
+        "mods_json": {
+            "HD": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 2572332,
+        "best_combo": 174,
+        "count_300": 731,
+        "count_100": 33,
+        "count_50": 2,
+        "count_miss": 32,
+        "count_katu": 22,
+        "count_geki": 167,
+        "statistics": {
+            "great": 731,
+            "ok": 33,
+            "meh": 2,
+            "miss": 32
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2023-05-31T11:51:16+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 209276,
+        "mods": 8,
+        "mods_json": {
+            "HD": {},
+            "CL": {}
+        },
+        "is_stable": true,
+        "score": 1881030,
+        "best_combo": 294,
+        "count_300": 337,
+        "count_100": 14,
+        "count_50": 0,
+        "count_miss": 10,
+        "count_katu": 7,
+        "count_geki": 57,
+        "statistics": {
+            "great": 337,
+            "ok": 14,
+            "miss": 10
+        },
+        "perfect": false,
+        "rank": "F",
+        "date": "2023-05-31T12:02:04+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 422328,
+        "mods": 0,
+        "mods_json": {},
+        "is_stable": false,
+        "score": 548961,
+        "best_combo": 127,
+        "count_300": 333,
+        "count_100": 13,
+        "count_50": 0,
+        "count_miss": 14,
+        "count_katu": 0,
+        "count_geki": 0,
+        "statistics": {
+            "ok": 13,
+            "miss": 14,
+            "great": 333,
+            "ignore_hit": 149,
+            "ignore_miss": 8,
+            "large_bonus": 3,
+            "small_bonus": 21,
+            "large_tick_hit": 26,
+            "slider_tail_hit": 149
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2024-11-22T09:43:15+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 386728,
+        "mods": 64,
+        "mods_json": {
+            "DT": {
+                "speed_change": 1.01
+            }
+        },
+        "is_stable": false,
+        "score": 527683,
+        "best_combo": 269,
+        "count_300": 1276,
+        "count_100": 69,
+        "count_50": 0,
+        "count_miss": 20,
+        "count_katu": 0,
+        "count_geki": 0,
+        "statistics": {
+            "ok": 69,
+            "miss": 20,
+            "great": 1276,
+            "ignore_hit": 332,
+            "ignore_miss": 9,
+            "large_tick_hit": 40,
+            "slider_tail_hit": 327
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2024-12-14T11:41:59+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    },
+    {
+        "beatmap_id": 386728,
+        "mods": 0,
+        "mods_json": {
+            "CL": {}
+        },
+        "is_stable": false,
+        "score": 527683,
+        "best_combo": 269,
+        "count_300": 1276,
+        "count_100": 69,
+        "count_50": 0,
+        "count_miss": 20,
+        "count_katu": 0,
+        "count_geki": 0,
+        "statistics": {
+            "ok": 69,
+            "miss": 20,
+            "great": 1276,
+            "ignore_hit": 332,
+            "ignore_miss": 9,
+            "large_tick_hit": 40,
+            "slider_tail_hit": 327
+        },
+        "perfect": false,
+        "rank": "A",
+        "date": "2024-12-14T11:42:00+00:00",
+        "user_id": 5701575,
+        "gamemode": 0
+    }
+]

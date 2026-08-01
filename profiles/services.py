@@ -1,7 +1,9 @@
 import itertools
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
+from django.core.cache import cache
 from django.db import transaction
 from prometheus_client import Counter
 
@@ -19,6 +21,8 @@ from common.osu.enums import BeatmapStatus, BitMods, Gamemode, Mods
 from common.osu.osuapi import OsuApi, ScoreData
 from events.models import Event
 from leaderboards.models import Leaderboard, Membership
+from minigames.enums import MinigameStatus
+from minigames.models import Minigame, MinigamePlayer
 from osuchan.settings import env_settings
 from profiles.enums import ScoreMutation, ScoreResult
 from profiles.models import (
@@ -37,6 +41,11 @@ scores_added_counter = Counter(
     "Total number of real scores (non-mutations) added to the database",
     ["gamemode"],
 )
+
+logger = logging.getLogger(__name__)
+
+OSU_SCORES_CURSOR_CACHE_KEY = "osu_scores_cursor"
+OSU_SCORES_MAX_STREAM_PAGES = 10
 
 
 def fetch_user(user_id=None, username=None, gamemode=Gamemode.STANDARD):
@@ -739,3 +748,104 @@ def calculate_performance_values(
     ]
 
     return values
+
+
+def ingest_scores_from_stream() -> list[Score]:
+    """
+    Poll for latest scores using the stored cursor, and update the cursor.
+    """
+    osu_api = OsuApi()
+    cursor = cache.get(OSU_SCORES_CURSOR_CACHE_KEY)
+
+    streamed_scores = []
+    pages_fetched = 0
+    while True:
+        page = osu_api.get_recent_scores(cursor_string=cursor)
+        if page.cursor_string is None:
+            logger.warning(
+                "Failed to fetch new scores from the osu! /scores stream; keeping cursor"
+            )
+            return []
+        streamed_scores.extend(page.scores)
+        pages_fetched += 1
+        cache.set(OSU_SCORES_CURSOR_CACHE_KEY, page.cursor_string)
+        if cursor is None or page.cursor_string == cursor or len(page.scores) < 1000:
+            break
+        if pages_fetched >= OSU_SCORES_MAX_STREAM_PAGES:
+            logger.warning(
+                "Reached the %d page limit for the /scores stream; dropping backlog and resetting cursor",
+                OSU_SCORES_MAX_STREAM_PAGES,
+            )
+            cache.delete(OSU_SCORES_CURSOR_CACHE_KEY)
+            return []
+        cursor = page.cursor_string
+
+    tracked_user_ids = get_tracked_user_ids()
+
+    scores_by_user: dict[tuple[int, Gamemode], list] = {}
+    for score in streamed_scores:
+        if score.user_id in tracked_user_ids[score.gamemode.value]:
+            scores_by_user.setdefault((score.user_id, score.gamemode), []).append(score)
+
+    created_scores: list[Score] = []
+    for (user_id, gamemode), user_scores in scores_by_user.items():
+        try:
+            with transaction.atomic():
+                user_stats = (
+                    UserStats.objects.select_for_update()
+                    .filter(user_id=user_id, gamemode=gamemode)
+                    .first()
+                )
+                if user_stats is None:
+                    continue
+
+                new_scores = add_scores_from_data(user_stats, user_scores)
+
+                if len(new_scores) > 0:
+                    for (
+                        difficulty_calculator_class
+                    ) in get_difficulty_calculators_for_gamemode(gamemode):
+                        with difficulty_calculator_class() as difficulty_calculator:
+                            update_performance_calculations(
+                                new_scores, difficulty_calculator
+                            )
+                    user_stats.recalculate()
+                    user_stats.save()
+        except Exception:
+            logger.exception(
+                "Failed to ingest %d streamed scores for user %s (gamemode %s)",
+                len(user_scores),
+                user_id,
+                gamemode.value,
+            )
+            continue
+
+        created_scores.extend(new_scores)
+
+    return created_scores
+
+
+def get_tracked_user_ids() -> dict[int, set[int]]:
+    """
+    Returns a mapping of gamemode value -> set of osu user ids whose streamed scores we want to ingest.
+    """
+    tracked_user_ids = {gamemode.value: set() for gamemode in Gamemode}
+
+    now = datetime.now(tz=timezone.utc)
+
+    # Players in active minigames, per the minigame's gamemode
+    active_minigames = Minigame.objects.exclude(status=MinigameStatus.FINISHED)
+    for gamemode, user_id in MinigamePlayer.objects.filter(
+        team__minigame__in=active_minigames
+    ).values_list("team__minigame__gamemode", "user_id"):
+        tracked_user_ids[gamemode].add(user_id)
+
+    # Attendees of active events
+    active_events = Event.objects.filter(start_date__lte=now, end_date__gte=now)
+    event_user_ids = set(active_events.values_list("attendees__id", flat=True))
+    event_user_ids.discard(None)
+    for user_id in event_user_ids:
+        for gamemode in tracked_user_ids:
+            tracked_user_ids[gamemode].add(user_id)
+
+    return tracked_user_ids
