@@ -239,7 +239,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-ppraces-every-minute": {
         "task": "ppraces.tasks.dispatch_update_all_ppraces",
-        "schedule": crontab(minute="*"),  # every minute
+        "schedule": timedelta(seconds=10),
     },
     "ingest-recent-scores-every-10s": {
         "task": "profiles.tasks.ingest_recent_scores",
@@ -247,7 +247,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-minigames-every-minute": {
         "task": "minigames.tasks.dispatch_minigame_updates",
-        "schedule": crontab(minute="*"),  # every minute
+        "schedule": timedelta(seconds=10),
     },
     "update-event-attendees-every-hour": {
         "task": "events.tasks.dispatch_update_all_current_event_attendees",
