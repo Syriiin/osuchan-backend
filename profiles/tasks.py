@@ -174,7 +174,7 @@ def update_loved_beatmaps():
             outdated_scores.delete()
 
 
-@shared_task(priority=8)
+@shared_task(priority=2)
 def ingest_recent_scores():
     """
     Poll for latest scores for all gamemodes, storing those we care about.
