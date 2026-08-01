@@ -5,14 +5,16 @@ from celery import shared_task
 
 from common.osu.beatmap_provider import BeatmapProvider
 from common.osu.enums import BeatmapStatus, Gamemode
+from common.osu.osuapi import OsuApi
 from events.tasks import update_user_event_challenge_scores
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
 from leaderboards.tasks import update_memberships
 from minigames.tasks import update_minigame_players_scores
 from ppraces.tasks import update_pprace_players
-from profiles.models import Beatmap, OsuUser
+from profiles.models import Beatmap, OsuUser, UserStats
 from profiles.services import (
+    ingest_scores_from_stream,
     refresh_beatmaps_from_api,
     refresh_user_from_api,
     refresh_user_recent_from_api,
@@ -170,3 +172,23 @@ def update_loved_beatmaps():
                 f"Deleting {outdated_scores.count()} outdated scores for beatmap {beatmap.id}"
             )
             outdated_scores.delete()
+
+
+@shared_task(priority=8)
+def ingest_recent_scores():
+    """
+    Poll for latest scores for all gamemodes, storing those we care about.
+    """
+    created_scores = ingest_scores_from_stream()
+    if len(created_scores) == 0:
+        return
+
+    updated_users = set(
+        UserStats.objects.filter(
+            id__in=[score.user_stats_id for score in created_scores]
+        ).values_list("user_id", "gamemode")
+    )
+    for user_id, gamemode in updated_users:
+        update_memberships.delay(user_id=user_id, gamemode=gamemode)
+        update_pprace_players.delay(user_id=user_id, gamemode=gamemode)
+        update_minigame_players_scores.delay(user_id=user_id, gamemode=gamemode)

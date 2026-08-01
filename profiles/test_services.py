@@ -1,13 +1,25 @@
+from datetime import datetime, timedelta, timezone
+
 import pytest
+from django.core.cache import cache
 
 from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import BitMods, Gamemode
-from profiles.models import DifficultyCalculation, PerformanceCalculation
+from events.models import Event
+from profiles.models import (
+    DifficultyCalculation,
+    OsuUser,
+    PerformanceCalculation,
+    Score,
+    UserStats,
+)
 from profiles.services import (
+    OSU_SCORES_CURSOR_CACHE_KEY,
     calculate_difficulty_values,
     calculate_performance_values,
     fetch_scores,
     fetch_user,
+    ingest_scores_from_stream,
     refresh_user_from_api,
     update_difficulty_calculations,
     update_performance_calculations,
@@ -221,3 +233,61 @@ class TestDifficultyCalculationServices:
         assert performance_values[0][4].value == 48.926436544789105
         assert performance_values[0][5].name == "total"
         assert performance_values[0][5].value == 764.5177081010385
+
+
+@pytest.mark.django_db
+class TestIngestScoresFromStream:
+    def test_stream_populates_db_and_updates_user_stats(self):
+        cache.delete(OSU_SCORES_CURSOR_CACHE_KEY)
+
+        osu_user = OsuUser.objects.create(
+            id=5701575,
+            username="Syrin",
+            country="au",
+            join_date=datetime(2017, 1, 1, tzinfo=timezone.utc),
+            disabled=False,
+        )
+        user_stats = UserStats.objects.create(
+            user=osu_user,
+            gamemode=Gamemode.STANDARD,
+            playcount=0,
+            playtime=0,
+            level=0,
+            ranked_score=0,
+            total_score=0,
+            rank=0,
+            country_rank=0,
+            pp=0,
+            accuracy=0,
+            count_300=0,
+            count_100=0,
+            count_50=0,
+            count_rank_ss=0,
+            count_rank_ssh=0,
+            count_rank_s=0,
+            count_rank_sh=0,
+            count_rank_a=0,
+            last_updated=datetime.now(tz=timezone.utc),
+        )
+
+        now = datetime.now(tz=timezone.utc)
+        event = Event.objects.create(
+            slug="test-event",
+            name="Test Event",
+            start_date=now - timedelta(days=1),
+            end_date=now + timedelta(days=1),
+            creation_time=now,
+        )
+        event.attendees.add(osu_user)
+
+        ingest_scores_from_stream()
+
+        user_stats.refresh_from_db()
+        assert Score.objects.filter(user_stats=user_stats).count() > 0
+        assert PerformanceCalculation.objects.filter(
+            score__user_stats=user_stats
+        ).exists()
+        assert user_stats.score_style_accuracy != 0
+        assert user_stats.score_style_bpm != 0
+
+        cache.delete(OSU_SCORES_CURSOR_CACHE_KEY)
