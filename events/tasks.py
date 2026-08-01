@@ -4,7 +4,10 @@ from celery import shared_task
 
 from common.osu.enums import Gamemode
 from events.models import Event
-from events.services import update_attendee_challenge_scores
+from events.services import (
+    recalculate_event_stats,
+    update_attendee_challenge_scores,
+)
 from leaderboards.services import update_membership
 from profiles.models import UserStats
 
@@ -23,6 +26,30 @@ def refresh_event_leaderboards(event_id: int) -> None:
             update_membership(
                 event_leaderboard.leaderboard, user_id, skip_notifications=True
             )
+
+
+@shared_task(priority=6)
+def update_event_stats(event_id: int) -> None:
+    """Recalculate stats for a single event."""
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return
+
+    recalculate_event_stats(event)
+
+
+@shared_task(priority=7)
+def dispatch_update_all_current_event_stats():
+    """Dispatch stat recalculation for all currently-running events."""
+    now = datetime.now(tz=timezone.utc)
+    current_events = Event.objects.filter(
+        start_date__lte=now,
+        end_date__gte=now,
+    )
+
+    for event in current_events:
+        update_event_stats.delay(event_id=event.id)
 
 
 @shared_task

@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from events.models import BeatmapChallenge, Event, EventAttendee, EventLeaderboard
+from events.models import (
+    BeatmapChallenge,
+    Event,
+    EventAttendee,
+    EventLeaderboard,
+    EventStats,
+)
 from leaderboards.serialisers import LeaderboardSerialiser
 from profiles.serialisers import (
     BeatmapSerialiser,
@@ -10,8 +16,24 @@ from profiles.serialisers import (
 )
 
 
+class EventStatsSerialiser(serializers.ModelSerializer):
+    class Meta:
+        model = EventStats
+        fields = (
+            "total_scores",
+            "total_regular_hits",
+            "total_play_time",
+            "total_pp",
+            "unique_players",
+            "unique_countries",
+            "unique_maps",
+            "last_updated",
+        )
+
+
 class EventSerialiser(serializers.ModelSerializer):
     organisers = OsuUserSerialiser(many=True)
+    stats = EventStatsSerialiser(read_only=True)
 
     class Meta:
         model = Event
@@ -26,6 +48,7 @@ class EventSerialiser(serializers.ModelSerializer):
             "end_date",
             "creation_time",
             "organisers",
+            "stats",
         )
 
 

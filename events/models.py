@@ -2,6 +2,7 @@ from django.db import models
 
 from events.enums import BeatmapChallengeType
 from leaderboards.models import Leaderboard
+from profiles.enums import ScoreMutation
 from profiles.models import Beatmap, OsuUser, Score
 
 
@@ -28,6 +29,14 @@ class Event(models.Model):
 
     def is_organiser(self, osu_user_id: int) -> bool:
         return self.organisers.filter(id=osu_user_id).exists()
+
+    def get_all_scores(self):
+        return Score.objects.filter(
+            user_stats__user_id__in=self.event_attendees.values_list("user_id"),
+            date__gte=self.start_date,
+            date__lte=self.end_date,
+            mutation=ScoreMutation.NONE,
+        )
 
     def __str__(self):
         return self.name
@@ -84,6 +93,24 @@ class EventAttendee(models.Model):
                 fields=["event", "user"], name="unique_event_attendee"
             )
         ]
+
+
+class EventStats(models.Model):
+    """Aggregated statistics for an event computed from all attendee scores."""
+
+    event = models.OneToOneField(Event, on_delete=models.CASCADE, related_name="stats")
+
+    total_scores = models.IntegerField()
+    total_regular_hits = models.BigIntegerField()
+    total_play_time = models.BigIntegerField()
+    total_pp = models.FloatField()
+    unique_players = models.IntegerField()
+    unique_countries = models.IntegerField()
+    unique_maps = models.IntegerField()
+    last_updated = models.DateTimeField()
+
+    def __str__(self):
+        return f"Stats for {self.event.name}"
 
 
 class EventLeaderboard(models.Model):
