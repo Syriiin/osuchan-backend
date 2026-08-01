@@ -1,6 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from django.db import transaction
+from django.db.models import (
+    Case,
+    Count,
+    F,
+    FilteredRelation,
+    IntegerField,
+    Q,
+    Sum,
+    When,
+)
+from django.db.models.functions import Cast, Coalesce
 
 from common.osu.difficultycalculator import get_default_difficulty_calculator_class
 from common.osu.enums import Gamemode
@@ -11,6 +22,7 @@ from events.models import (
     Event,
     EventAttendee,
     EventLeaderboard,
+    EventStats,
 )
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
@@ -18,6 +30,67 @@ from leaderboards.services import create_membership, delete_membership
 from profiles.enums import ScoreMutation, ScoreSet
 from profiles.models import Beatmap, OsuUser, Score, ScoreFilter
 from profiles.services import refresh_user_from_api, store_beatmap
+
+
+@transaction.atomic
+def recalculate_event_stats(event: Event) -> EventStats:
+    """Recalculate an event's stats from all attendee scores."""
+    scores = event.get_all_scores()
+
+    # Only count "regular" hit judgements per gamemode, excluding slider tails, ticks, and droplets.
+    great = Coalesce(Cast(F("statistics__great"), IntegerField()), 0)
+    good = Coalesce(Cast(F("statistics__good"), IntegerField()), 0)
+    ok = Coalesce(Cast(F("statistics__ok"), IntegerField()), 0)
+    meh = Coalesce(Cast(F("statistics__meh"), IntegerField()), 0)
+    perfect = Coalesce(Cast(F("statistics__perfect"), IntegerField()), 0)
+    regular_hits = Case(
+        When(gamemode=Gamemode.CATCH, then=great),
+        When(gamemode=Gamemode.TAIKO, then=great + ok),
+        When(
+            gamemode=Gamemode.MANIA,
+            then=perfect + great + good + ok + meh,
+        ),
+        default=great + ok + meh,
+    )
+
+    engines = [
+        get_default_difficulty_calculator_class(gamemode).engine()
+        for gamemode in Gamemode
+    ]
+
+    aggregates = scores.annotate(
+        performance_calculation=FilteredRelation(
+            "performance_calculations",
+            condition=Q(performance_calculations__calculator_engine__in=engines),
+        ),
+        performance_value=FilteredRelation(
+            "performance_calculation__performance_values",
+            condition=Q(performance_calculation__performance_values__name="total"),
+        ),
+    ).aggregate(
+        total_scores=Count("id"),
+        total_regular_hits=Coalesce(Sum(regular_hits), 0),
+        total_play_time=Coalesce(Sum("length"), 0.0),
+        total_pp=Coalesce(Sum("performance_value__value"), 0.0),
+        unique_players=Count("user_stats__user_id", distinct=True),
+        unique_countries=Count("user_stats__user__country", distinct=True),
+        unique_maps=Count("beatmap_id", distinct=True),
+    )
+
+    stats, _ = EventStats.objects.update_or_create(
+        event=event,
+        defaults={
+            "total_scores": aggregates["total_scores"],
+            "total_regular_hits": aggregates["total_regular_hits"],
+            "total_play_time": aggregates["total_play_time"],
+            "total_pp": aggregates["total_pp"],
+            "unique_players": aggregates["unique_players"],
+            "unique_countries": aggregates["unique_countries"],
+            "unique_maps": aggregates["unique_maps"],
+            "last_updated": datetime.now(tz=timezone.utc),
+        },
+    )
+    return stats
 
 
 @transaction.atomic

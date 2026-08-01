@@ -257,6 +257,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "events.tasks.dispatch_update_all_current_event_active_attendees",
         "schedule": crontab(minute="*/5"),  # every 5 minutes
     },
+    "update-event-stats-every-10-minutes": {
+        "task": "events.tasks.dispatch_update_all_current_event_stats",
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
+    },
     "send-coe-podium-osu-every-day": {
         "task": "leaderboards.tasks.send_leaderboard_podium_notification",
         "schedule": crontab(minute="0", hour="16"),  # 18:00 netherlands time

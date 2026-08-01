@@ -7,6 +7,7 @@ from events.models import (
     EventAttendee,
     EventLeaderboard,
     EventOrganiser,
+    EventStats,
 )
 
 
@@ -54,6 +55,21 @@ class EventLeaderboardAdmin(admin.ModelAdmin):
     ]
 
 
+class EventStatsAdmin(admin.ModelAdmin):
+    model = EventStats
+    raw_id_fields = ("event",)
+
+    list_display = [
+        "id",
+        "event",
+        "total_scores",
+        "total_play_time",
+        "total_pp",
+        "unique_players",
+        "last_updated",
+    ]
+
+
 class BeatmapChallengeAdmin(admin.ModelAdmin):
     model = BeatmapChallenge
     raw_id_fields = ("event", "beatmap")
@@ -81,5 +97,6 @@ admin.site.register(Event, EventAdmin)
 admin.site.register(EventOrganiser, EventOrganiserAdmin)
 admin.site.register(EventAttendee, EventAttendeeAdmin)
 admin.site.register(EventLeaderboard, EventLeaderboardAdmin)
+admin.site.register(EventStats, EventStatsAdmin)
 admin.site.register(BeatmapChallenge, BeatmapChallengeAdmin)
 admin.site.register(BeatmapChallengeScore, BeatmapChallengeScoreAdmin)
