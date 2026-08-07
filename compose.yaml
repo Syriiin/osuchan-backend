@@ -23,7 +23,7 @@ services:
     shm_size: 128m
 
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.19.1
+    image: prometheuscommunity/postgres-exporter:v0.20.1
     env_file:
       - config/active/postgres-exporter.env
 
@@ -89,13 +89,13 @@ services:
       - broker
 
   prometheus:
-    image: prom/prometheus:v3.12.0
+    image: prom/prometheus:v3.13.2
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus:rw
 
   grafana:
-    image: grafana/grafana:13.0.2
+    image: grafana/grafana:13.1.3
     env_file:
       - ./config/active/grafana.env
     volumes:
