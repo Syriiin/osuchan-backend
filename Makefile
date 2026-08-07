@@ -1,7 +1,8 @@
 ENV ?= dev
 DOCKER_UID = $(shell id -u)
 DOCKER_GID = $(shell id -g)
-COMPOSE_RUN_TOOLING = DOCKER_UID=${DOCKER_UID} DOCKER_GID=${DOCKER_GID} docker compose -f compose.yaml -f compose.override.yaml -f compose.tooling.yaml run --rm tooling
+COMPOSE_TOOLING = docker compose -f compose.yaml -f compose.override.yaml -f compose.tooling.yaml
+COMPOSE_RUN_TOOLING = DOCKER_UID=${DOCKER_UID} DOCKER_GID=${DOCKER_GID} $(COMPOSE_TOOLING) run --rm tooling
 COMPOSE_APP_DEV = docker compose -f compose.yaml -f compose.override.yaml
 
 help:	## Show this help
@@ -61,6 +62,9 @@ test-integration:	## Runs integration test suite
 
 collectstatic:	## Collect static files
 	$(COMPOSE_RUN_TOOLING) python manage.py collectstatic --no-input
+
+build-tooling:	## Builds tooling docker images
+	$(COMPOSE_TOOLING) build
 
 build-dev:	## Builds development docker images
 	$(COMPOSE_APP_DEV) build
