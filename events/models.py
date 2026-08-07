@@ -98,6 +98,7 @@ class EventAttendee(models.Model):
 class EventStats(models.Model):
     """Aggregated statistics for an event computed from all attendee scores."""
 
+    id = models.BigAutoField(primary_key=True)
     event = models.OneToOneField(Event, on_delete=models.CASCADE, related_name="stats")
 
     total_scores = models.IntegerField()
