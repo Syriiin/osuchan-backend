@@ -424,5 +424,3 @@ MINIGAMES = {
     "lockout_bingo": "minigames.games.LockoutBingo",
     "battle_royale": "minigames.games.BattleRoyale",
 }
-
-MINIGAME_BETA_EVENT_ID: int | None = 1
