@@ -1,15 +1,13 @@
-from django.conf import settings
 from rest_framework import permissions
 from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.osu.enums import Gamemode
-from events.models import EventAttendee
 from minigames.enums import MinigameStatus
 from minigames.games import game_registry
 from minigames.games.base import MinigameConfigError
-from minigames.models import Minigame, MinigamePlayer, MinigameScore, MinigameTeam
+from minigames.models import Minigame, MinigamePlayer, MinigameScore
 from minigames.serialisers import (
     MinigamePlayerSerialiser,
     MinigameScoreSerialiser,
@@ -26,18 +24,6 @@ from minigames.services import (
     update_minigame_settings,
 )
 from profiles.models import Score
-
-
-def _has_minigame_beta_access(user) -> bool:
-    if not user.osu_user_id:
-        return False
-    event_id = settings.MINIGAME_BETA_EVENT_ID
-    if event_id is None:
-        return False
-    return EventAttendee.objects.filter(
-        event_id=event_id,
-        user_id=user.osu_user_id,
-    ).exists()
 
 
 class MinigameList(APIView):
@@ -67,9 +53,6 @@ class MinigameList(APIView):
 
         if game_type not in game_registry:
             raise NotFound("Unknown game type.")
-
-        if not _has_minigame_beta_access(request.user):
-            raise PermissionDenied("Minigames are in closed beta.")
 
         name = request.data.get("name")
         if name is None:
@@ -270,9 +253,6 @@ class MinigameJoin(APIView):
     def post(self, request, game_id):
         if request.user.osu_user is None:
             raise PermissionDenied("No osu! account linked.")
-
-        if not _has_minigame_beta_access(request.user):
-            raise PermissionDenied("Minigames are in closed beta.")
 
         try:
             minigame = Minigame.objects.get(id=game_id)
