@@ -34,7 +34,7 @@ dev = [
     "pytest-django>=4.5.2,<5.0.0",
     "freezegun>=1.2.2,<2.0.0",
     "watchdog[watchmedo]>=6.0.0,<7.0.0",
-    "syrupy>=5.0.0,<6.0.0",
+    "syrupy>=6.0.0,<6.1.0",
 ]
 
 [tool.pytest.ini_options]
