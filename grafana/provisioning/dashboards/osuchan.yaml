@@ -1,0 +1,7 @@
+apiVersion: 1
+
+providers:
+  - name: osuchan
+    folder: osuchan
+    options:
+      path: /etc/grafana/dashboards
