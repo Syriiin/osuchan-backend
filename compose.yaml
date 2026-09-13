@@ -34,6 +34,14 @@ services:
       - ./config/active/broker-redis.conf:/usr/local/etc/redis/redis.conf
       - broker-data:/data
 
+  broker-exporter:
+    image: oliver006/redis_exporter:v1.91.1
+    environment:
+      REDIS_ADDR: redis://broker:6379
+      REDIS_EXPORTER_CHECK_SINGLE_KEYS: tasks,tasks:1,tasks:2,tasks:3,tasks:4,tasks:5,tasks:6,tasks:7,tasks:8,tasks:9
+    depends_on:
+      - broker
+
   cache:
     image: redis:8
     volumes:
@@ -100,6 +108,8 @@ services:
       - ./config/active/grafana.env
     volumes:
       - grafana-data:/var/lib/grafana:rw
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
     secrets:
       - grafana_admin_password
 

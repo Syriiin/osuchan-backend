@@ -46,11 +46,11 @@ scrape_configs:
           - worker:9023
           - worker:9024
 
-  - job_name: queue
-    metrics_path: /metrics/per-object
+  - job_name: broker-exporter
+    metrics_path: /metrics
     static_configs:
       - targets:
-          - queue:15692
+          - broker-exporter:9121
 
   - job_name: postgres
     metrics_path: /metrics
