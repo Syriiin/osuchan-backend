@@ -61,13 +61,12 @@
                                                 "disableTextWrap": false,
                                                 "editorMode": "builder",
                                                 "exemplar": true,
-                                                "expr": "sum by(endpoint) (increase(osuapi_requests_total[1m]))",
+                                                "expr": "sum by(endpoint) (rate(osuapi_requests_total[$__rate_interval]) * 60)",
                                                 "format": "time_series",
                                                 "fromExploreMetrics": true,
                                                 "fullMetaSearch": false,
                                                 "includeNullMetadata": true,
-                                                "instant": true,
-                                                "interval": "1m",
+                                                "instant": false,
                                                 "legendFormat": "__auto",
                                                 "range": true,
                                                 "useBackend": false
@@ -90,11 +89,10 @@
                                             "spec": {
                                                 "disableTextWrap": false,
                                                 "editorMode": "builder",
-                                                "expr": "sum(increase(osuapi_requests_total[1m]))",
+                                                "expr": "sum(rate(osuapi_requests_total[$__rate_interval]) * 60)",
                                                 "fullMetaSearch": false,
                                                 "includeNullMetadata": false,
                                                 "instant": false,
-                                                "interval": "1m",
                                                 "legendFormat": "total",
                                                 "range": true,
                                                 "useBackend": false
@@ -134,7 +132,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -281,7 +279,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -398,7 +396,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -518,7 +516,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -541,7 +539,7 @@
                 "kind": "Panel",
                 "spec": {
                     "id": 8,
-                    "title": "Endpoint latency p50",
+                    "title": "Endpoint latency p50 \u2014 slowest 8",
                     "links": [],
                     "data": {
                         "kind": "QueryGroup",
@@ -560,7 +558,7 @@
                                             "spec": {
                                                 "disableTextWrap": false,
                                                 "editorMode": "builder",
-                                                "expr": "histogram_quantile(0.50, sum by (le, view) (rate(django_http_requests_latency_seconds_by_view_method_bucket[5m]))) > 0",
+                                                "expr": "topk(8, view:django_http_requests_latency:p50) > 0",
                                                 "fullMetaSearch": false,
                                                 "includeNullMetadata": true,
                                                 "legendFormat": "{{view}}",
@@ -602,7 +600,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -677,7 +675,7 @@
                                             "spec": {
                                                 "disableTextWrap": false,
                                                 "editorMode": "builder",
-                                                "expr": "sum by (view) (rate(django_http_requests_total_by_view_transport_method_total[5m]))",
+                                                "expr": "view:django_http_requests:rate",
                                                 "fullMetaSearch": false,
                                                 "includeNullMetadata": true,
                                                 "legendFormat": "{{view}}",
@@ -719,7 +717,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -836,7 +834,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -953,7 +951,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -1009,7 +1007,7 @@
                 "kind": "Panel",
                 "spec": {
                     "id": 13,
-                    "title": "Endpoint latency p95",
+                    "title": "Endpoint latency p95 \u2014 slowest 8",
                     "links": [],
                     "data": {
                         "kind": "QueryGroup",
@@ -1028,7 +1026,7 @@
                                             "spec": {
                                                 "disableTextWrap": false,
                                                 "editorMode": "builder",
-                                                "expr": "histogram_quantile(0.95, sum by (le, view) (rate(django_http_requests_latency_seconds_by_view_method_bucket[5m]))) > 0",
+                                                "expr": "topk(8, view:django_http_requests_latency:p95) > 0",
                                                 "fullMetaSearch": false,
                                                 "includeNullMetadata": true,
                                                 "legendFormat": "{{view}}",
@@ -1070,7 +1068,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
@@ -1126,7 +1124,7 @@
                 "kind": "Panel",
                 "spec": {
                     "id": 14,
-                    "title": "Endpoint latency p99",
+                    "title": "Endpoint latency p99 \u2014 slowest 8",
                     "links": [],
                     "data": {
                         "kind": "QueryGroup",
@@ -1145,7 +1143,7 @@
                                             "spec": {
                                                 "disableTextWrap": false,
                                                 "editorMode": "builder",
-                                                "expr": "histogram_quantile(0.99, sum by (le, view) (rate(django_http_requests_latency_seconds_by_view_method_bucket[5m]))) > 0",
+                                                "expr": "topk(8, view:django_http_requests_latency:p99) > 0",
                                                 "fullMetaSearch": false,
                                                 "includeNullMetadata": true,
                                                 "legendFormat": "{{view}}",
@@ -1187,7 +1185,7 @@
                                         "mode": "absolute",
                                         "steps": [
                                             {
-                                                "value": null,
+                                                "value": 0,
                                                 "color": "green"
                                             },
                                             {
