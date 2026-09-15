@@ -579,48 +579,6 @@ class LeaderboardInviteDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class LeaderboardBeatmapScoreList(APIView):
-    """
-    API endpoint for listing Scores on Beatmaps
-    """
-
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def get(self, request, leaderboard_type, gamemode, leaderboard_id, beatmap_id):
-        osu_user_id = (
-            request.user.osu_user_id if request.user.is_authenticated else None
-        )
-
-        if leaderboard_type == "global":
-            leaderboards = Leaderboard.global_leaderboards
-        elif leaderboard_type == "community":
-            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
-
-        try:
-            leaderboard = leaderboards.get(id=leaderboard_id)
-        except Leaderboard.DoesNotExist:
-            raise NotFound("Leaderboard not found.")
-
-        scores = (
-            Score.objects.non_restricted()
-            .distinct()
-            .filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id)
-            .select_related("user_stats", "user_stats__user")
-            .get_score_set(
-                leaderboard.gamemode,
-                score_set=leaderboard.score_set,
-                calculator_engine=leaderboard.calculator_engine,
-                primary_performance_value=leaderboard.primary_performance_value,
-            )
-            .prefetch_related(
-                "performance_calculations__performance_values",
-                "performance_calculations__difficulty_calculation__difficulty_values",
-            )
-        )
-        serialiser = BeatmapScoreSerialiser(scores[:50], many=True)
-        return Response(serialiser.data)
-
-
 class LeaderboardMemberScoreList(APIView):
     """
     API endpoint for listing Scores on Memberships
