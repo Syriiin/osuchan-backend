@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from rest_framework import permissions, status
@@ -591,6 +592,10 @@ class LeaderboardMemberScoreList(APIView):
             request.user.osu_user_id if request.user.is_authenticated else None
         )
 
+        limit = parse_int_or_none(request.query_params.get("limit", 5))
+        if limit > 100:
+            limit = 100
+
         if leaderboard_type == "global":
             leaderboards = Leaderboard.global_leaderboards
         elif leaderboard_type == "community":
@@ -619,7 +624,28 @@ class LeaderboardMemberScoreList(APIView):
                 "performance_calculations__difficulty_calculation__difficulty_values",
             )
         )
-        serialiser = UserScoreSerialiser(scores[:100], many=True)
+
+        if settings.ENABLE_MEMBER_SCORES_JIT and limit > 5:
+            membership = Membership.objects.non_restricted().get(
+                leaderboard_id=leaderboard_id, user_id=user_id
+            )
+            head_scores = list(scores[:5])
+            tail_scores = list(
+                membership.get_scores_from_query()
+                .select_related("beatmap")
+                .prefetch_related(
+                    "performance_calculations__performance_values",
+                    "performance_calculations__difficulty_calculation__difficulty_values",
+                )[5:100]
+            )
+            head_ids = {score.id for score in head_scores}
+            all_scores = head_scores + [
+                score for score in tail_scores if score.id not in head_ids
+            ]
+        else:
+            all_scores = list(scores[:100])
+
+        serialiser = UserScoreSerialiser(all_scores[:limit], many=True)
         return Response(serialiser.data)
 
 
