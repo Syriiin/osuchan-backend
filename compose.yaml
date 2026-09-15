@@ -100,6 +100,7 @@ services:
     image: prom/prometheus:v3.14.0
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.rules.yml:/etc/prometheus/rules.yml
       - prometheus-data:/prometheus:rw
 
   grafana:
