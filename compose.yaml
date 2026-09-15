@@ -104,7 +104,7 @@ services:
       - prometheus-data:/prometheus:rw
 
   grafana:
-    image: grafana/grafana:13.2.0
+    image: grafana/grafana:13.2.2
     env_file:
       - ./config/active/grafana.env
     volumes:
