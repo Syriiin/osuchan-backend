@@ -39,11 +39,6 @@ urlpatterns = [
         name="leaderboard-invite-detail",
     ),
     path(
-        "<lb_type:leaderboard_type>/<gm:gamemode>/<int:leaderboard_id>/beatmaps/<int:beatmap_id>/scores",
-        views.LeaderboardBeatmapScoreList.as_view(),
-        name="leaderboard-beatmap-score-list",
-    ),
-    path(
         "<lb_type:leaderboard_type>/<gm:gamemode>/<int:leaderboard_id>/members/<int:user_id>/scores",
         views.LeaderboardMemberScoreList.as_view(),
         name="leaderboard-member-score-list",

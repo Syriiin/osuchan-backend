@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from rest_framework import permissions, status
@@ -579,48 +580,6 @@ class LeaderboardInviteDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class LeaderboardBeatmapScoreList(APIView):
-    """
-    API endpoint for listing Scores on Beatmaps
-    """
-
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def get(self, request, leaderboard_type, gamemode, leaderboard_id, beatmap_id):
-        osu_user_id = (
-            request.user.osu_user_id if request.user.is_authenticated else None
-        )
-
-        if leaderboard_type == "global":
-            leaderboards = Leaderboard.global_leaderboards
-        elif leaderboard_type == "community":
-            leaderboards = Leaderboard.community_leaderboards.visible_to(osu_user_id)
-
-        try:
-            leaderboard = leaderboards.get(id=leaderboard_id)
-        except Leaderboard.DoesNotExist:
-            raise NotFound("Leaderboard not found.")
-
-        scores = (
-            Score.objects.non_restricted()
-            .distinct()
-            .filter(membership__leaderboard_id=leaderboard_id, beatmap_id=beatmap_id)
-            .select_related("user_stats", "user_stats__user")
-            .get_score_set(
-                leaderboard.gamemode,
-                score_set=leaderboard.score_set,
-                calculator_engine=leaderboard.calculator_engine,
-                primary_performance_value=leaderboard.primary_performance_value,
-            )
-            .prefetch_related(
-                "performance_calculations__performance_values",
-                "performance_calculations__difficulty_calculation__difficulty_values",
-            )
-        )
-        serialiser = BeatmapScoreSerialiser(scores[:50], many=True)
-        return Response(serialiser.data)
-
-
 class LeaderboardMemberScoreList(APIView):
     """
     API endpoint for listing Scores on Memberships
@@ -632,6 +591,10 @@ class LeaderboardMemberScoreList(APIView):
         osu_user_id = (
             request.user.osu_user_id if request.user.is_authenticated else None
         )
+
+        limit = parse_int_or_none(request.query_params.get("limit", 5))
+        if limit > 100:
+            limit = 100
 
         if leaderboard_type == "global":
             leaderboards = Leaderboard.global_leaderboards
@@ -661,7 +624,28 @@ class LeaderboardMemberScoreList(APIView):
                 "performance_calculations__difficulty_calculation__difficulty_values",
             )
         )
-        serialiser = UserScoreSerialiser(scores[:100], many=True)
+
+        if settings.ENABLE_MEMBER_SCORES_JIT and limit > 5:
+            membership = Membership.objects.non_restricted().get(
+                leaderboard_id=leaderboard_id, user_id=user_id
+            )
+            head_scores = list(scores[:5])
+            tail_scores = list(
+                membership.get_scores_from_query()
+                .select_related("beatmap")
+                .prefetch_related(
+                    "performance_calculations__performance_values",
+                    "performance_calculations__difficulty_calculation__difficulty_values",
+                )[5:100]
+            )
+            head_ids = {score.id for score in head_scores}
+            all_scores = head_scores + [
+                score for score in tail_scores if score.id not in head_ids
+            ]
+        else:
+            all_scores = list(scores[:100])
+
+        serialiser = UserScoreSerialiser(all_scores[:limit], many=True)
         return Response(serialiser.data)
 
 

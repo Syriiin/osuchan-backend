@@ -7,7 +7,6 @@ from rest_framework.test import force_authenticate
 from common.osu.enums import Gamemode
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.views import (
-    LeaderboardBeatmapScoreList,
     LeaderboardDetail,
     LeaderboardInviteDetail,
     LeaderboardInviteList,
@@ -296,29 +295,6 @@ class TestLeaderboardInviteDetail:
         response = view(request, **kwargs)
 
         assert response.status_code == HTTPStatus.NO_CONTENT
-
-
-@pytest.mark.django_db
-class TestLeaderboardBeatmapScoreList:
-    @pytest.fixture
-    def view(self):
-        return LeaderboardBeatmapScoreList.as_view()
-
-    def test_get(self, arf, view, leaderboard):
-        # TODO: actually return data
-        kwargs = {
-            "leaderboard_type": "community",
-            "gamemode": Gamemode.STANDARD,
-            "leaderboard_id": leaderboard.id,
-            "beatmap_id": 1,
-        }
-        url = reverse("leaderboard-beatmap-score-list", kwargs=kwargs)
-        request = arf.get(url)
-
-        response = view(request, **kwargs)
-
-        assert response.status_code == HTTPStatus.OK
-        assert len(response.data) == 0
 
 
 @pytest.mark.django_db

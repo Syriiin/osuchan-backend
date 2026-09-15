@@ -194,6 +194,25 @@ class Membership(models.Model):
         CommunityMembershipQuerySet
     )()
 
+    def get_scores_from_query(self) -> models.QuerySet[Score]:
+        scores = Score.objects.filter(
+            user_stats__user_id=self.user_id,
+            user_stats__gamemode=self.leaderboard.gamemode,
+        )
+
+        if not self.leaderboard.allow_past_scores:
+            scores = scores.filter(date__gte=self.join_date)
+
+        if self.leaderboard.score_filter is not None:
+            scores = scores.apply_score_filter(self.leaderboard.score_filter)
+
+        return scores.get_score_set(
+            self.leaderboard.gamemode,
+            score_set=self.leaderboard.score_set,
+            calculator_engine=self.leaderboard.calculator_engine,
+            primary_performance_value=self.leaderboard.primary_performance_value,
+        )
+
     def get_pp_record(self) -> float:
         max_pp = self.scores.aggregate(Max("membership_scores__performance_total"))[
             "membership_scores__performance_total__max"
