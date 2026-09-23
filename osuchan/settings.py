@@ -40,7 +40,6 @@ class EnvSettings(BaseSettings):
     STUB_SUPERUSER_ID: int
     COE_API_KEY: str
     DISABLE_PROFILE_UPDATE_COOLDOWN: bool
-    ENABLE_MEMBER_SCORES_JIT: bool
 
 
 env_settings = EnvSettings()
@@ -419,8 +418,6 @@ else:
     )
 
 COE_API_KEY = env_settings.COE_API_KEY
-
-ENABLE_MEMBER_SCORES_JIT = env_settings.ENABLE_MEMBER_SCORES_JIT
 
 MINIGAMES = {
     # "first_to_n": "minigames.games.FirstToN",

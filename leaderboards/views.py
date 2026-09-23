@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from rest_framework import permissions, status
@@ -625,10 +624,13 @@ class LeaderboardMemberScoreList(APIView):
             )
         )
 
-        if settings.ENABLE_MEMBER_SCORES_JIT and limit > 5:
-            membership = Membership.objects.non_restricted().get(
-                leaderboard_id=leaderboard_id, user_id=user_id
-            )
+        if limit > 5:
+            try:
+                membership = Membership.objects.non_restricted().get(
+                    leaderboard_id=leaderboard_id, user_id=user_id
+                )
+            except Membership.DoesNotExist:
+                raise NotFound("Membership not found.")
             head_scores = list(scores[:5])
             tail_scores = list(
                 membership.get_scores_from_query()
@@ -643,7 +645,7 @@ class LeaderboardMemberScoreList(APIView):
                 score for score in tail_scores if score.id not in head_ids
             ]
         else:
-            all_scores = list(scores[:100])
+            all_scores = list(scores[:limit])
 
         serialiser = UserScoreSerialiser(all_scores[:limit], many=True)
         return Response(serialiser.data)

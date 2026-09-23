@@ -318,3 +318,33 @@ class TestLeaderboardMemberScoreList:
 
         assert response.status_code == HTTPStatus.OK
         assert len(response.data) == 0
+
+    def test_get_show_more(self, arf, view, membership):
+        # limit > 5 exercises the JIT tail path; still empty on fixtures
+        kwargs = {
+            "leaderboard_type": "community",
+            "gamemode": Gamemode.STANDARD,
+            "leaderboard_id": membership.leaderboard_id,
+            "user_id": membership.user_id,
+        }
+        url = reverse("leaderboard-member-score-list", kwargs=kwargs)
+        request = arf.get(url, {"limit": 100})
+
+        response = view(request, **kwargs)
+
+        assert response.status_code == HTTPStatus.OK
+        assert len(response.data) == 0
+
+    def test_get_show_more_without_membership(self, arf, view, leaderboard):
+        kwargs = {
+            "leaderboard_type": "community",
+            "gamemode": Gamemode.STANDARD,
+            "leaderboard_id": leaderboard.id,
+            "user_id": 1,
+        }
+        url = reverse("leaderboard-member-score-list", kwargs=kwargs)
+        request = arf.get(url, {"limit": 100})
+
+        response = view(request, **kwargs)
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
