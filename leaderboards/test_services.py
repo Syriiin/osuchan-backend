@@ -42,6 +42,7 @@ class TestMembershipServices:
                     "top_10_score": False,
                 },
                 score_filter=ScoreFilter.objects.create(),
+                top_scores=list(),
             ),
         )
         membership = leaderboard.memberships.first()

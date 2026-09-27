@@ -178,6 +178,7 @@ def create_event_leaderboard(
             "player_top_score": False,
             "top_10_score": False,
         },
+        top_scores=list(),
     )
     leaderboard.save()
 

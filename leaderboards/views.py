@@ -186,6 +186,7 @@ class LeaderboardList(APIView):
                 lowest_length=score_filter_data.get("lowest_length"),
                 highest_length=score_filter_data.get("highest_length"),
             ),
+            top_scores=list(),
         )
 
         # Hand off to create_leaderboard service to set relations, update owner membership, and save
