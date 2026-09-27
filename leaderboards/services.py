@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import Max
 from rest_framework.exceptions import PermissionDenied
 
 from common.osu.utils import calculate_pp_total
@@ -41,9 +40,74 @@ def delete_membership(membership):
     """
     Delete a membership of a leaderboard and update Leaderboard.member_count
     """
+    leaderboard_id = membership.leaderboard_id
+    user_id = membership.user_id
     membership.delete()
     membership.leaderboard.update_member_count()
+    prune_member_top_scores(leaderboard_id, user_id)
     return True
+
+
+@transaction.atomic
+def update_leaderboard_top_scores(
+    leaderboard: Leaderboard, member_scores: list[Score], user_id: int
+):
+    """
+    Merge a member's scores into the leaderboard's stored top-100 list, removing any missing scores from the member.
+    """
+    # lock leaderboard while top scores are being updated
+    locked_leaderboard = Leaderboard.objects.select_for_update().get(id=leaderboard.id)
+
+    member_scores_data = [
+        {"score_id": score.id, "value": score.performance_total, "user_id": user_id}
+        for score in member_scores
+    ]
+
+    top_member_scores = sorted(
+        member_scores_data,
+        key=lambda score: score.get("value"),
+        reverse=True,
+    )[:100]
+
+    leaderboard_top_scores_without_member = [
+        score for score in locked_leaderboard.top_scores if score["user_id"] != user_id
+    ]
+
+    merged_top_scores = leaderboard_top_scores_without_member + top_member_scores
+
+    new_top_scores = [
+        score
+        for score in sorted(
+            merged_top_scores, key=lambda score: score.get("value"), reverse=True
+        )[:100]
+    ]
+
+    if new_top_scores != locked_leaderboard.top_scores:
+        locked_leaderboard.top_scores = new_top_scores
+        locked_leaderboard.save(update_fields=["top_scores"])
+
+    leaderboard.top_scores = new_top_scores
+
+
+@transaction.atomic
+def prune_member_top_scores(leaderboard_id: int, user_id: int):
+    """
+    Prune a member's scores from the Leaderboard.top_scores list.
+    Necessary when a member is deleted.
+    """
+    # note, this function has the unfortunate side effect that the leaderboard top scores list will be an incomplete top 100 if any scores are actually removed
+    # querying to rebuild the full top score list from scratch is too slow for large leaderboards, but maybe theres a middleground
+    # TODO: consider how we can fix this. perhaps by storing a top performance value per member so we can build the list without without querying all members?
+    locked_leaderboard = Leaderboard.objects.select_for_update().get(id=leaderboard_id)
+    new_top_scores = [
+        top_score
+        for top_score in locked_leaderboard.top_scores
+        if top_score.get("user_id") != user_id
+    ]
+
+    if new_top_scores != locked_leaderboard.top_scores:
+        locked_leaderboard.top_scores = new_top_scores
+        locked_leaderboard.save(update_fields=["top_scores"])
 
 
 @transaction.atomic
@@ -107,6 +171,9 @@ def update_membership(
         primary_performance_value=leaderboard.primary_performance_value,
     )
 
+    # Skip scores missing performance calculation
+    valid_scores = [score for score in scores if score.performance_total is not None]
+
     membership_scores = [
         MembershipScore(
             membership=membership,
@@ -114,9 +181,7 @@ def update_membership(
             score=score,
             performance_total=score.performance_total,
         )
-        for score in scores
-        # Skip scores missing performance calculation
-        if score.performance_total is not None
+        for score in valid_scores
     ]
 
     MembershipScore.objects.bulk_create(
@@ -140,6 +205,8 @@ def update_membership(
     membership.rank = leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
 
     membership.save()
+
+    update_leaderboard_top_scores(leaderboard, valid_scores, user_id)
 
     if not skip_notifications and leaderboard.notification_discord_webhook_url != "":
         notification_settings = leaderboard.notification_settings

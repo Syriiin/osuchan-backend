@@ -57,7 +57,7 @@ class Leaderboard(models.Model):
     is_event = models.BooleanField()
     top_scores = models.JSONField(
         blank=True
-    )  # schema: [{"score_id": int, "value": float}]
+    )  # schema: [{"score_id": int, "value": float, "user_id": int}]
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
