@@ -35,7 +35,7 @@ services:
       - broker-data:/data
 
   broker-exporter:
-    image: oliver006/redis_exporter:v1.91.1
+    image: oliver006/redis_exporter:v1.92.0
     environment:
       REDIS_ADDR: redis://broker:6379
       REDIS_EXPORTER_CHECK_SINGLE_KEYS: tasks,tasks:1,tasks:2,tasks:3,tasks:4,tasks:5,tasks:6,tasks:7,tasks:8,tasks:9
@@ -97,14 +97,14 @@ services:
       - broker
 
   prometheus:
-    image: prom/prometheus:v3.14.0
+    image: prom/prometheus:v3.15.0
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus.rules.yml:/etc/prometheus/rules.yml
       - prometheus-data:/prometheus:rw
 
   grafana:
-    image: grafana/grafana:13.2.0
+    image: grafana/grafana:13.2.2
     env_file:
       - ./config/active/grafana.env
     volumes:
