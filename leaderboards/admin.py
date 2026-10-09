@@ -11,6 +11,7 @@ class LeaderboardAdmin(admin.ModelAdmin):
         "owner",
         "score_filter",
     )
+    readonly_fields = ("top_scores",)
 
     list_display = [
         "__str__",

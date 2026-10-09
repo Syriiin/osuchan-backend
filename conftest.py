@@ -191,6 +191,7 @@ def leaderboard(score_filter: ScoreFilter):
                 "top_10_score": False,
             },
             score_filter=score_filter,
+            top_scores=list(),
         ),
     )
 
