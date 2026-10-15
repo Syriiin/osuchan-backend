@@ -1,4 +1,4 @@
-FROM python:3.14-slim-bookworm AS python-base
+FROM python:3.15-slim-bookworm AS python-base
 
 # Build path env vars
 ENV APPDEPS_PATH="/opt/appdeps"
@@ -29,7 +29,7 @@ RUN apt-get install -y tini
 FROM python-base AS builder
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /uvx /bin/
 
 # Install dependencies
 WORKDIR ${APPDEPS_PATH}
