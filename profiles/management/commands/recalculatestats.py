@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from common.osu.enums import Gamemode
 from leaderboards.models import Membership
-from leaderboards.services import update_membership
+from leaderboards.services import reconcile_member_top_scores, update_membership
 from profiles.models import UserStats
 
 
@@ -77,6 +77,10 @@ class Command(BaseCommand):
                         membership.leaderboard,
                         membership.user_id,
                         skip_notifications=True,
+                        skip_top_scores_update=True,
+                    )
+                    reconcile_member_top_scores(
+                        membership.leaderboard_id, membership.user_id
                     )
                     pbar.update()
                 Membership.objects.bulk_update(page, ["pp"])

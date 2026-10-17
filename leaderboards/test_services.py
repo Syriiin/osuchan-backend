@@ -7,6 +7,7 @@ from leaderboards.services import (
     create_leaderboard,
     create_membership,
     delete_membership,
+    reconcile_member_top_scores,
     update_membership,
 )
 from profiles.enums import ScoreSet
@@ -60,6 +61,10 @@ class TestMembershipServices:
         assert membership.user.username == "Syrin"
         assert membership.score_count == 4
         assert membership.pp == 1246.657138097331
+
+        reconcile_member_top_scores(leaderboard.id, membership.user_id)
+
+        membership.leaderboard.refresh_from_db()
         assert len(membership.leaderboard.top_scores) == membership.score_count
         assert all(
             score["user_id"] == membership.user_id
@@ -73,6 +78,10 @@ class TestMembershipServices:
         membership = update_membership(membership.leaderboard, membership.user_id)
         assert membership.score_count == 5
         assert membership.pp == 1422.8070706380865
+
+        reconcile_member_top_scores(membership.leaderboard_id, membership.user_id)
+
+        membership.leaderboard.refresh_from_db()
         assert len(membership.leaderboard.top_scores) == membership.score_count
         assert all(
             score["user_id"] == membership.user_id
@@ -82,8 +91,17 @@ class TestMembershipServices:
         assert values == sorted(values, reverse=True)
 
     def test_delete_membership(self, leaderboard, membership):
+        reconcile_member_top_scores(leaderboard.id, membership.user_id)
+        leaderboard.refresh_from_db()
+        assert leaderboard.top_scores != []
+
         delete_membership(membership)
 
         assert not leaderboard.memberships.filter(id=membership.id).exists()
+        leaderboard.refresh_from_db()
         assert leaderboard.member_count == 1
+
+        reconcile_member_top_scores(leaderboard.id, membership.user_id)
+
+        leaderboard.refresh_from_db()
         assert leaderboard.top_scores == []
