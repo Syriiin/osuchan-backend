@@ -2,7 +2,6 @@ from datetime import datetime
 
 from celery import shared_task
 from django.conf import settings
-from django.db import transaction
 
 from common.discord_webhook_sender import DiscordWebhookSender
 from common.osu.enums import Gamemode
@@ -12,14 +11,13 @@ from common.osu.utils import (
 )
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard, Membership
-from leaderboards.services import update_membership
+from leaderboards.services import reconcile_member_top_scores, update_membership
 from leaderboards.utils import get_leaderboard_type_string_from_leaderboard_access_type
 from profiles.enums import ScoreResult
 from profiles.models import Score
 
 
 @shared_task(priority=3)
-@transaction.atomic
 def update_memberships(user_id, gamemode=Gamemode.STANDARD):
     """
     Updates all non-archived memberships for a given user and gamemode
@@ -34,6 +32,14 @@ def update_memberships(user_id, gamemode=Gamemode.STANDARD):
         update_membership(membership.leaderboard, user_id)
 
     return memberships
+
+
+@shared_task(priority=3)
+def sync_leaderboard_top_scores(leaderboard_id: int, user_id: int):
+    """
+    Sync a leaderboards top scores with changes from a specific member.
+    """
+    reconcile_member_top_scores(leaderboard_id, user_id)
 
 
 @shared_task(priority=0)

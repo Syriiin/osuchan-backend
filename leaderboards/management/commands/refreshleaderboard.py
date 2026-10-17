@@ -1,10 +1,9 @@
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
 from tqdm import tqdm
 
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
-from leaderboards.services import update_membership
+from leaderboards.services import reconcile_member_top_scores, update_membership
 from profiles.models import OsuUser
 
 
@@ -16,18 +15,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for leaderboard_id in tqdm(options["leaderboard_ids"]):
-            with transaction.atomic():
-                try:
-                    leaderboard = Leaderboard.objects.get(pk=leaderboard_id)
-                except Leaderboard.DoesNotExist:
-                    raise CommandError(f"Leaderboard {leaderboard_id} does not exist")
+            try:
+                leaderboard = Leaderboard.objects.get(pk=leaderboard_id)
+            except Leaderboard.DoesNotExist:
+                raise CommandError(f"Leaderboard {leaderboard_id} does not exist")
 
-                if leaderboard.access_type == LeaderboardAccessType.GLOBAL:
-                    users = OsuUser.objects.all().values("id")
-                else:
-                    users = leaderboard.members.all().values("id")
-                for user_id in tqdm([u["id"] for u in users]):
-                    update_membership(leaderboard, user_id, skip_notifications=True)
+            if leaderboard.access_type == LeaderboardAccessType.GLOBAL:
+                users = OsuUser.objects.all().values("id")
+            else:
+                users = leaderboard.members.all().values("id")
+            for user_id in tqdm([u["id"] for u in users]):
+                update_membership(
+                    leaderboard,
+                    user_id,
+                    skip_notifications=True,
+                    skip_top_scores_update=True,
+                )
+                reconcile_member_top_scores(leaderboard.id, user_id)
 
         self.stdout.write(
             self.style.SUCCESS(
