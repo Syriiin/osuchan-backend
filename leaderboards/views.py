@@ -327,10 +327,7 @@ class LeaderboardScoreList(APIView):
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
-        scores = leaderboard.get_top_scores(limit=limit).prefetch_related(
-            "performance_calculations__performance_values",
-            "performance_calculations__difficulty_calculation__difficulty_values",
-        )
+        scores = leaderboard.get_top_scores(limit=limit)
 
         serialiser = LeaderboardScoreSerialiser(scores, many=True)
         return Response(serialiser.data)
@@ -606,25 +603,6 @@ class LeaderboardMemberScoreList(APIView):
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
-        scores = (
-            Score.objects.non_restricted()
-            .distinct()
-            .filter(
-                membership__leaderboard_id=leaderboard_id, membership__user_id=user_id
-            )
-            .select_related("beatmap")
-            .get_score_set(
-                leaderboard.gamemode,
-                score_set=leaderboard.score_set,
-                calculator_engine=leaderboard.calculator_engine,
-                primary_performance_value=leaderboard.primary_performance_value,
-            )
-            .prefetch_related(
-                "performance_calculations__performance_values",
-                "performance_calculations__difficulty_calculation__difficulty_values",
-            )
-        )
-
         if limit > 5:
             try:
                 membership = Membership.objects.non_restricted().get(
@@ -632,23 +610,36 @@ class LeaderboardMemberScoreList(APIView):
                 )
             except Membership.DoesNotExist:
                 raise NotFound("Membership not found.")
-            head_scores = list(scores[:5])
-            tail_scores = list(
+            scores = list(
                 membership.get_scores_from_query()
                 .select_related("beatmap")
                 .prefetch_related(
                     "performance_calculations__performance_values",
                     "performance_calculations__difficulty_calculation__difficulty_values",
-                )[5:100]
+                )[:100]
             )
-            head_ids = {score.id for score in head_scores}
-            all_scores = head_scores + [
-                score for score in tail_scores if score.id not in head_ids
-            ]
         else:
-            all_scores = list(scores[:limit])
+            scores = list(
+                Score.objects.non_restricted()
+                .distinct()
+                .filter(
+                    membership__leaderboard_id=leaderboard_id,
+                    membership__user_id=user_id,
+                )
+                .select_related("beatmap")
+                .get_score_set(
+                    leaderboard.gamemode,
+                    score_set=leaderboard.score_set,
+                    calculator_engine=leaderboard.calculator_engine,
+                    primary_performance_value=leaderboard.primary_performance_value,
+                )
+                .prefetch_related(
+                    "performance_calculations__performance_values",
+                    "performance_calculations__difficulty_calculation__difficulty_values",
+                )[:limit]
+            )
 
-        serialiser = UserScoreSerialiser(all_scores[:limit], many=True)
+        serialiser = UserScoreSerialiser(scores[:limit], many=True)
         return Response(serialiser.data)
 
 
