@@ -327,10 +327,7 @@ class LeaderboardScoreList(APIView):
         except Leaderboard.DoesNotExist:
             raise NotFound("Leaderboard not found.")
 
-        scores = leaderboard.get_top_scores(limit=limit).prefetch_related(
-            "performance_calculations__performance_values",
-            "performance_calculations__difficulty_calculation__difficulty_values",
-        )
+        scores = leaderboard.get_top_scores(limit=limit)
 
         serialiser = LeaderboardScoreSerialiser(scores, many=True)
         return Response(serialiser.data)

@@ -88,19 +88,25 @@ class Leaderboard(models.Model):
     )()
 
     def get_pp_record(self) -> float:
-        scores = self.get_top_scores()
+        if len(self.top_scores) == 0:
+            return 0
 
-        max_pp = scores.aggregate(Max("membership_scores__performance_total"))[
-            "membership_scores__performance_total__max"
-        ]
-
-        return max_pp if max_pp is not None else 0
+        return self.top_scores[0]["value"]
 
     def get_top_scores(self, limit=5):
-        return (
-            self.scores.non_restricted()
-            .order_by("-membership_scores__performance_total", "date")
-            .select_related("user_stats", "user_stats__user", "beatmap")[:limit]
+        return sorted(
+            list(
+                Score.objects.non_restricted()
+                .filter(id__in=[score["score_id"] for score in self.top_scores[:limit]])
+                .select_related("user_stats", "user_stats__user", "beatmap")
+                .prefetch_related(
+                    "performance_calculations__performance_values",
+                    "performance_calculations__difficulty_calculation__difficulty_values",
+                )
+            ),
+            key=lambda s: self.top_scores.index(
+                next(score for score in self.top_scores if score["score_id"] == s.id)
+            ),
         )
 
     def get_top_membership(self):
