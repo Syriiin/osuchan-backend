@@ -151,6 +151,10 @@ def update_membership(
     # Skip scores missing performance calculation
     valid_scores = [score for score in scores if score.performance_total is not None]
 
+    top_scores = sorted(
+        valid_scores, reverse=True, key=lambda score: score.performance_total
+    )[:5]
+
     membership_scores = [
         MembershipScore(
             membership=membership,
@@ -158,7 +162,7 @@ def update_membership(
             score=score,
             performance_total=score.performance_total,
         )
-        for score in valid_scores
+        for score in top_scores
     ]
 
     MembershipScore.objects.bulk_create(
@@ -170,13 +174,13 @@ def update_membership(
 
     outdated_membershipscores = MembershipScore.objects.filter(
         membership=membership
-    ).exclude(score_id__in=[score.id for score in scores])
+    ).exclude(score_id__in=[score.id for score in top_scores])
     outdated_membershipscores.delete()
 
-    membership.score_count = len(membership_scores)
+    membership.score_count = len(valid_scores)
 
     membership.pp = calculate_pp_total(
-        score.performance_total for score in membership_scores
+        score.performance_total for score in valid_scores
     )
 
     membership.rank = leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
@@ -203,13 +207,13 @@ def update_membership(
         # Check for new top score
         if (
             notification_settings.get("top_score")
-            and len(membership_scores) > 0
-            and membership_scores[0].performance_total > pp_record
+            and len(valid_scores) > 0
+            and top_scores[0].performance_total > pp_record
         ):
             # NOTE: need to use a function with default params here so the closure has the correct variables
             def send_notification(
                 leaderboard_id=leaderboard.id,
-                score_id=membership_scores[0].score_id,
+                score_id=top_scores[0].score_id,
             ):
                 from leaderboards.tasks import send_leaderboard_top_score_notification
 
@@ -258,9 +262,7 @@ def update_membership(
 
             transaction.on_commit(send_notification)
 
-        personal_pp_record_score = (
-            membership_scores[0] if len(membership_scores) > 0 else None
-        )
+        personal_pp_record_score = top_scores[0] if len(top_scores) > 0 else None
         personal_pp_record = (
             personal_pp_record_score.performance_total
             if personal_pp_record_score is not None
@@ -288,7 +290,7 @@ def update_membership(
             transaction.on_commit(send_notification)
 
         # Check for top 10 scores (excluding #1 since it has it's own notification)
-        if notification_settings.get("top_10_score") and len(membership_scores) > 0:
+        if notification_settings.get("top_10_score") and len(valid_scores) > 0:
             leaderboard_top_10_scores = leaderboard.get_top_scores(limit=10)[
                 1:
             ]  # Exclude top score since it has it's own notification
