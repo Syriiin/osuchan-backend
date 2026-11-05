@@ -242,10 +242,11 @@ def update_membership(
             and old_score_count == 0
             and membership.score_count > 0
         ):
+            first_score = min(valid_scores, key=lambda score: score.date)
 
             def send_notification(
                 leaderboard_id=leaderboard.id,
-                score_id=membership.scores.order_by("date").first().id,
+                score_id=first_score.id,
             ):
                 from leaderboards.tasks import (
                     send_leaderboard_player_first_score_notification,
