@@ -71,9 +71,6 @@ class Leaderboard(models.Model):
     members = models.ManyToManyField(
         OsuUser, through="Membership", related_name="leaderboards"
     )
-    scores = models.ManyToManyField(
-        Score, through="MembershipScore", related_name="leaderboards"
-    )
     invitees = models.ManyToManyField(
         OsuUser, through="Invite", related_name="invited_leaderboards"
     )
@@ -215,7 +212,7 @@ class Membership(models.Model):
     user = models.ForeignKey(
         OsuUser, on_delete=models.CASCADE, related_name="memberships"
     )
-    scores = models.ManyToManyField(Score, through="MembershipScore")
+    scores = models.ManyToManyField(Score, through="MembershipScore")  # only top 5
 
     # Dates
     join_date = models.DateTimeField(auto_now_add=True)
