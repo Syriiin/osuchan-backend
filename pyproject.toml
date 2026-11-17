@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 authors = [{ name = "Samuel Cattini-Schultz", email = "syriiin@proton.me" }]
 dependencies = [
-    "celery>=5.2.7,<6.0.0",
+    "celery[redis]>=5.2.7,<6.0.0",
     "Django>=6.0.0,<7.0.0",
     "djangorestframework>=3.12.4,<4.0.0",
     "django-debug-toolbar>=8.0.0,<8.1.0",
@@ -21,9 +21,6 @@ dependencies = [
     "django-redis>=7.0.0,<7.1.0",
     "ossapi>=5.0.0,<6.0.0",
 ]
-
-[project.optional-dependencies]
-redis = ["celery>=5.6.3"]
 
 [dependency-groups]
 dev = [
