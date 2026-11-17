@@ -6,7 +6,7 @@
   "packageRules": [
     {
       "matchManagers": [
-        "uv"
+        "pep621"
       ],
       "matchDepTypes": [
         "dev"
