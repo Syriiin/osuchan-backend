@@ -96,6 +96,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e9/cf/cd7fcb9d8f5a21fa420ddf19ee96969e36820182275a731abdf4260ed86a/celery-5.7.0-py3-none-any.whl", hash = "sha256:18310a9c919f9029e4735367484d93e6a25cdfd30afdc474622cc263d9b35f6e", size = 519594, upload-time = "2026-11-05T15:14:17.649Z" },
 ]
 
+[package.optional-dependencies]
+redis = [
+    { name = "kombu", extra = ["redis"] },
+]
+
 [[package]]
 name = "certifi"
 version = "2026.10.23"
@@ -541,6 +546,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/84/20/f73d8e0bff9708b0f2337220be1b5d7ebd738bc3a89b63cf44d257157014/kombu-5.7.0-py3-none-any.whl", hash = "sha256:dede73bff4c89175be382c4203d2f167cf7017c384396ec75c36a1b5678f1587", size = 266635, upload-time = "2026-11-03T05:58:31.475Z" },
 ]
 
+[package.optional-dependencies]
+redis = [
+    { name = "packaging" },
+    { name = "redis" },
+]
+
 [[package]]
 name = "mypy-extensions"
 version = "1.2.0"
@@ -588,7 +599,7 @@ name = "osuchan-backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "celery" },
+    { name = "celery", extra = ["redis"] },
     { name = "django" },
     { name = "django-debug-toolbar" },
     { name = "django-prometheus" },
@@ -602,11 +613,6 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
     { name = "tqdm" },
-]
-
-[package.optional-dependencies]
-redis = [
-    { name = "celery" },
 ]
 
 [package.dev-dependencies]
@@ -623,8 +629,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "celery", specifier = ">=5.2.7,<6.0.0" },
-    { name = "celery", marker = "extra == 'redis'", specifier = ">=5.6.3" },
+    { name = "celery", extras = ["redis"], specifier = ">=5.2.7,<6.0.0" },
     { name = "django", specifier = ">=6.0.0,<7.0.0" },
     { name = "django-debug-toolbar", specifier = ">=8.0.0,<8.1.0" },
     { name = "django-prometheus", specifier = ">=2.3.1,<3.0.0" },
@@ -639,7 +644,6 @@ requires-dist = [
     { name = "requests", specifier = ">=2.25.1,<3.0.0" },
     { name = "tqdm", specifier = ">=4.64.0,<5.0.0" },
 ]
-provides-extras = ["redis"]
 
 [package.metadata.requires-dev]
 dev = [
