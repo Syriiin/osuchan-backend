@@ -45,6 +45,7 @@ class MembershipSerialiser(serializers.ModelSerializer):
         fields = (
             "id",
             "pp",
+            "pp_record",
             "score_count",
             "rank",
             # relations

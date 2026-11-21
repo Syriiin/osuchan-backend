@@ -161,6 +161,7 @@ def update_membership(
             user_id=user_id,
             leaderboard=leaderboard,
             pp=0,
+            pp_record=0,
             score_count=0,
             rank=leaderboard.member_count + 1,
         )
@@ -223,6 +224,10 @@ def update_membership(
 
     membership.pp = calculate_pp_total(
         score.performance_total for score in valid_scores
+    )
+
+    membership.pp_record = (
+        valid_scores[0].performance_total if len(valid_scores) > 0 else 0
     )
 
     membership.rank = leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1

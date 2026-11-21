@@ -219,6 +219,7 @@ class Membership(models.Model):
     id = models.BigAutoField(primary_key=True)
 
     pp = models.FloatField()
+    pp_record = models.FloatField()
     score_count = models.IntegerField()
     rank = models.IntegerField()
 
