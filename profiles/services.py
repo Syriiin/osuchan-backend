@@ -166,6 +166,7 @@ def refresh_user_from_api(
                     leaderboard_id=leaderboard["id"],
                     user_id=osu_user.id,
                     pp=0,
+                    pp_record=0,
                     rank=0,
                     score_count=0,
                 )
