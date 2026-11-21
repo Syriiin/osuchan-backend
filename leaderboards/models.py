@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.db import models
 from django.db.models import Max, Q
 
@@ -120,7 +122,7 @@ class Leaderboard(models.Model):
         ).first()
 
     def get_merged_top_scores(
-        self, user_id: int, member_scores: list[Score]
+        self, user_id: int, member_scores: Iterable[Score]
     ) -> list[dict]:
         """
         Merge a member's scores into this leaderboard's stored top-100 list, replacing any existing entries for that member.

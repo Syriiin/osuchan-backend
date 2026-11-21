@@ -70,11 +70,9 @@ def reconcile_member_top_scores(leaderboard_id: int, user_id: int):
         # Membership has been deleted, so it no longer contributes any scores
         member_scores = []
     else:
-        member_scores = [
-            score
-            for score in membership.get_scores_from_query()
-            if score.performance_total is not None
-        ]
+        member_scores = membership.get_scores_from_query().filter(
+            performance_total__isnull=False
+        )[:100]
 
     locked_leaderboard = Leaderboard.objects.select_for_update().get(id=leaderboard_id)
     new_top_scores = locked_leaderboard.get_merged_top_scores(user_id, member_scores)
