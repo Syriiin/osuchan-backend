@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.db import models
 from django.db.models import Max, Q
 
@@ -57,7 +59,7 @@ class Leaderboard(models.Model):
     is_event = models.BooleanField()
     top_scores = models.JSONField(
         blank=True
-    )  # schema: [{"score_id": int, "value": float, "user_id": int}]
+    )  # schema: [{"score_id": int, "value": float, "date": str, "user_id": int}]
 
     # Relations
     score_filter = models.OneToOneField(ScoreFilter, on_delete=models.CASCADE)
@@ -119,18 +121,33 @@ class Leaderboard(models.Model):
             .order_by("-pp")
         ).first()
 
+    def get_memberships_by_pp_record(self, limit: int = 100):
+        """
+        Memberships holding at least one score, ordered by their highest stored performance_total descending.
+        """
+        return (
+            self.memberships.filter(score_count__gt=0)
+            .annotate(pp_record_annotation=Max("membership_scores__performance_total"))
+            .filter(pp_record_annotation__isnull=False)  # redundant safety
+            .order_by("-pp_record_annotation", "id")[:limit]
+        )
+
     def get_merged_top_scores(
-        self, user_id: int, member_scores: list[Score]
+        self, user_id: int, member_scores: Iterable[Score]
     ) -> list[dict]:
         """
-        Merge a member's scores into this leaderboard's stored top-100 list, replacing
-        any existing entries for that member.
+        Merge a member's scores into this leaderboard's stored top-100 list, replacing any existing entries for that member.
         """
         # note, this function has the unfortunate side effect that the leaderboard top scores list will be an incomplete top 100 if any scores are actually removed
         # querying to rebuild the full top score list from scratch is too slow for large leaderboards, but maybe theres a middleground
         # TODO: consider how we can fix this. perhaps by storing a top performance value per member so we can build the list without querying all members?
         member_score_data = [
-            {"score_id": score.id, "value": score.performance_total, "user_id": user_id}
+            {
+                "score_id": score.id,
+                "value": score.performance_total,
+                "date": score.date.isoformat(),
+                "user_id": user_id,
+            }
             for score in member_scores
         ]
         other_member_scores = [
@@ -202,6 +219,7 @@ class Membership(models.Model):
     id = models.BigAutoField(primary_key=True)
 
     pp = models.FloatField()
+    pp_record = models.FloatField()
     score_count = models.IntegerField()
     rank = models.IntegerField()
 

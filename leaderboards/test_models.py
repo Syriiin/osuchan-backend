@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import pytest
@@ -17,13 +18,24 @@ class TestLeaderboard:
                 {"score_id": 2, "value": 90.0, "user_id": 2},
             ]
         )
+        date = datetime(2023, 1, 1, tzinfo=timezone.utc)
         member_scores = [
-            SimpleNamespace(id=3, performance_total=110.0),
-            SimpleNamespace(id=4, performance_total=95.0),
+            SimpleNamespace(id=3, performance_total=110.0, date=date),
+            SimpleNamespace(id=4, performance_total=95.0, date=date),
         ]
         assert leaderboard.get_merged_top_scores(1, member_scores) == [
-            {"score_id": 3, "value": 110.0, "user_id": 1},
-            {"score_id": 4, "value": 95.0, "user_id": 1},
+            {
+                "score_id": 3,
+                "value": 110.0,
+                "date": date.isoformat(),
+                "user_id": 1,
+            },
+            {
+                "score_id": 4,
+                "value": 95.0,
+                "date": date.isoformat(),
+                "user_id": 1,
+            },
             {"score_id": 2, "value": 90.0, "user_id": 2},
         ]
 
@@ -44,10 +56,16 @@ class TestLeaderboard:
                 {"score_id": i, "value": float(i), "user_id": 2} for i in range(100)
             ]
         )
-        member_scores = [SimpleNamespace(id=1000, performance_total=1000.0)]
+        date = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        member_scores = [SimpleNamespace(id=1000, performance_total=1000.0, date=date)]
         merged = leaderboard.get_merged_top_scores(1, member_scores)
         assert len(merged) == 100
-        assert merged[0] == {"score_id": 1000, "value": 1000.0, "user_id": 1}
+        assert merged[0] == {
+            "score_id": 1000,
+            "value": 1000.0,
+            "date": date.isoformat(),
+            "user_id": 1,
+        }
         assert max(score["value"] for score in merged[1:]) == 99.0
 
     def test_get_pp_record(self):

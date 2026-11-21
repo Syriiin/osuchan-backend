@@ -70,11 +70,9 @@ def reconcile_member_top_scores(leaderboard_id: int, user_id: int):
         # Membership has been deleted, so it no longer contributes any scores
         member_scores = []
     else:
-        member_scores = [
-            score
-            for score in membership.get_scores_from_query()
-            if score.performance_total is not None
-        ]
+        member_scores = membership.get_scores_from_query().filter(
+            performance_total__isnull=False
+        )[:100]
 
     locked_leaderboard = Leaderboard.objects.select_for_update().get(id=leaderboard_id)
     new_top_scores = locked_leaderboard.get_merged_top_scores(user_id, member_scores)
@@ -82,6 +80,50 @@ def reconcile_member_top_scores(leaderboard_id: int, user_id: int):
     if new_top_scores != locked_leaderboard.top_scores:
         locked_leaderboard.top_scores = new_top_scores
         locked_leaderboard.save(update_fields=["top_scores"])
+
+
+@transaction.atomic
+def rebuild_leaderboard_top_scores(leaderboard_id: int):
+    """
+    Rebuilds the leaderboards top scores by walking down the member list by pp record.
+    """
+    leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+
+    # limit 100 since we need a max of 100 scores
+    top_memberships = leaderboard.get_memberships_by_pp_record(limit=100)
+
+    top_scores = []
+
+    for membership in top_memberships:
+        # break if member pp record wouldn't make top 100
+        if (
+            len(top_scores) == 100
+            and membership.pp_record_annotation < top_scores[-1]["value"]
+        ):
+            break
+
+        member_scores = membership.get_scores_from_query().filter(
+            performance_total__isnull=False
+        )[:100]
+
+        member_score_data = [
+            {
+                "score_id": score.id,
+                "value": score.performance_total,
+                "date": score.date.isoformat(),
+                "user_id": membership.user_id,
+            }
+            for score in member_scores
+        ]
+        top_scores = sorted(
+            top_scores + member_score_data,
+            key=lambda score: (score["value"], score["date"]),
+            reverse=True,
+        )[:100]
+
+    if top_scores != leaderboard.top_scores:
+        leaderboard.top_scores = top_scores
+        leaderboard.save(update_fields=["top_scores"])
 
 
 @transaction.atomic
@@ -119,6 +161,7 @@ def update_membership(
             user_id=user_id,
             leaderboard=leaderboard,
             pp=0,
+            pp_record=0,
             score_count=0,
             rank=leaderboard.member_count + 1,
         )
@@ -181,6 +224,10 @@ def update_membership(
 
     membership.pp = calculate_pp_total(
         score.performance_total for score in valid_scores
+    )
+
+    membership.pp_record = (
+        valid_scores[0].performance_total if len(valid_scores) > 0 else 0
     )
 
     membership.rank = leaderboard.memberships.filter(pp__gt=membership.pp).count() + 1
