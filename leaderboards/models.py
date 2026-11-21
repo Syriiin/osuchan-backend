@@ -138,9 +138,6 @@ class Leaderboard(models.Model):
         """
         Merge a member's scores into this leaderboard's stored top-100 list, replacing any existing entries for that member.
         """
-        # note, this function has the unfortunate side effect that the leaderboard top scores list will be an incomplete top 100 if any scores are actually removed
-        # querying to rebuild the full top score list from scratch is too slow for large leaderboards, but maybe theres a middleground
-        # TODO: consider how we can fix this. perhaps by storing a top performance value per member so we can build the list without querying all members?
         member_score_data = [
             {
                 "score_id": score.id,

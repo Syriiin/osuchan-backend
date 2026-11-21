@@ -60,26 +60,26 @@ def delete_membership(membership):
 @transaction.atomic
 def reconcile_member_top_scores(leaderboard_id: int, user_id: int):
     """
-    Updates the leaderboards top scores for a single member.
+    Refreshes the leaderboards top scores, if there are changes detected for the given member.
     """
     try:
         membership = Membership.objects.select_related(
             "leaderboard", "leaderboard__score_filter"
         ).get(leaderboard_id=leaderboard_id, user_id=user_id)
+        leaderboard = membership.leaderboard
     except Membership.DoesNotExist:
         # Membership has been deleted, so it no longer contributes any scores
         member_scores = []
+        leaderboard = Leaderboard.objects.get(id=leaderboard_id)
     else:
         member_scores = membership.get_scores_from_query().filter(
             performance_total__isnull=False
         )[:100]
 
-    locked_leaderboard = Leaderboard.objects.select_for_update().get(id=leaderboard_id)
-    new_top_scores = locked_leaderboard.get_merged_top_scores(user_id, member_scores)
+    new_top_scores = leaderboard.get_merged_top_scores(user_id, member_scores)
 
-    if new_top_scores != locked_leaderboard.top_scores:
-        locked_leaderboard.top_scores = new_top_scores
-        locked_leaderboard.save(update_fields=["top_scores"])
+    if new_top_scores != leaderboard.top_scores:
+        rebuild_leaderboard_top_scores(leaderboard.id)
 
 
 @transaction.atomic
