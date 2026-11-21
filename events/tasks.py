@@ -8,7 +8,10 @@ from events.services import (
     recalculate_event_stats,
     update_attendee_challenge_scores,
 )
-from leaderboards.services import reconcile_member_top_scores, update_membership
+from leaderboards.services import (
+    rebuild_leaderboard_top_scores,
+    update_membership,
+)
 from profiles.models import UserStats
 
 
@@ -29,9 +32,7 @@ def refresh_event_leaderboards(event_id: int) -> None:
                 skip_notifications=True,
                 skip_top_scores_update=True,
             )
-            # not super ideal that we're calling this for all users, but this should be very rare and not a major impact anyway
-            # TODO: create a better way of doing this, ideally with a single "recalculate leaderboard top scores from all members" query task
-            reconcile_member_top_scores(event_leaderboard.leaderboard_id, user_id)
+        rebuild_leaderboard_top_scores(event_leaderboard.leaderboard_id)
 
 
 @shared_task(priority=6)

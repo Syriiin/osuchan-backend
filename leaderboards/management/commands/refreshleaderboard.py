@@ -3,7 +3,10 @@ from tqdm import tqdm
 
 from leaderboards.enums import LeaderboardAccessType
 from leaderboards.models import Leaderboard
-from leaderboards.services import reconcile_member_top_scores, update_membership
+from leaderboards.services import (
+    rebuild_leaderboard_top_scores,
+    update_membership,
+)
 from profiles.models import OsuUser
 
 
@@ -31,7 +34,7 @@ class Command(BaseCommand):
                     skip_notifications=True,
                     skip_top_scores_update=True,
                 )
-                reconcile_member_top_scores(leaderboard.id, user_id)
+            rebuild_leaderboard_top_scores(leaderboard.id)
 
         self.stdout.write(
             self.style.SUCCESS(
