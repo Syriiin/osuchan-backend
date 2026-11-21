@@ -170,7 +170,7 @@ def update_membership(
         # Get leaderboard records before updating, so we can compare for notifications
         pp_record = leaderboard.get_pp_record()
         leaderboard_top_player = leaderboard.get_top_membership()
-        old_member_pp_record = membership.get_pp_record()
+        old_member_pp_record = membership.pp_record
         old_score_count = membership.score_count
         old_top_10_scores = set(leaderboard.get_top_scores(limit=10))
 

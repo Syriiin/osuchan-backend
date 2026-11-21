@@ -260,13 +260,6 @@ class Membership(models.Model):
             primary_performance_value=self.leaderboard.primary_performance_value,
         )
 
-    def get_pp_record(self) -> float:
-        max_pp = self.scores.aggregate(Max("membership_scores__performance_total"))[
-            "membership_scores__performance_total__max"
-        ]
-
-        return max_pp if max_pp is not None else 0
-
     def __str__(self):
         return f"{self.leaderboard}: {self.user.username}"
 
