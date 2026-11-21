@@ -152,7 +152,7 @@ class Leaderboard(models.Model):
         ]
         return sorted(
             other_member_scores + member_score_data,
-            key=lambda score: score.get("value"),
+            key=lambda score: (score.get("value"), score.get("date")),
             reverse=True,
         )[:100]
 
