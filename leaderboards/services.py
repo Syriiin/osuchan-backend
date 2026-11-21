@@ -83,6 +83,50 @@ def reconcile_member_top_scores(leaderboard_id: int, user_id: int):
 
 
 @transaction.atomic
+def rebuild_leaderboard_top_scores(leaderboard_id: int):
+    """
+    Rebuilds the leaderboards top scores by walking down the member list by pp record.
+    """
+    leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+
+    # limit 100 since we need a max of 100 scores
+    top_memberships = leaderboard.get_memberships_by_pp_record(limit=100)
+
+    top_scores = []
+
+    for membership in top_memberships:
+        # break if member pp record wouldn't make top 100
+        if (
+            len(top_scores) == 100
+            and membership.pp_record_annotation < top_scores[-1]["value"]
+        ):
+            break
+
+        member_scores = membership.get_scores_from_query().filter(
+            performance_total__isnull=False
+        )[:100]
+
+        member_score_data = [
+            {
+                "score_id": score.id,
+                "value": score.performance_total,
+                "date": score.date.isoformat(),
+                "user_id": membership.user_id,
+            }
+            for score in member_scores
+        ]
+        top_scores = sorted(
+            top_scores + member_score_data,
+            key=lambda score: (score["value"], score["date"]),
+            reverse=True,
+        )[:100]
+
+    if top_scores != leaderboard.top_scores:
+        leaderboard.top_scores = top_scores
+        leaderboard.save(update_fields=["top_scores"])
+
+
+@transaction.atomic
 def update_membership(
     leaderboard: Leaderboard,
     user_id: int,

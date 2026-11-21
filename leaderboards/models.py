@@ -121,6 +121,17 @@ class Leaderboard(models.Model):
             .order_by("-pp")
         ).first()
 
+    def get_memberships_by_pp_record(self, limit: int = 100):
+        """
+        Memberships holding at least one score, ordered by their highest stored performance_total descending.
+        """
+        return (
+            self.memberships.filter(score_count__gt=0)
+            .annotate(pp_record_annotation=Max("membership_scores__performance_total"))
+            .filter(pp_record_annotation__isnull=False)  # redundant safety
+            .order_by("-pp_record_annotation", "id")[:limit]
+        )
+
     def get_merged_top_scores(
         self, user_id: int, member_scores: Iterable[Score]
     ) -> list[dict]:
