@@ -23,7 +23,7 @@ services:
     shm_size: 128m
 
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.20.1
+    image: prometheuscommunity/postgres-exporter:v0.21.1
     env_file:
       - config/active/postgres-exporter.env
 
@@ -35,7 +35,7 @@ services:
       - broker-data:/data
 
   broker-exporter:
-    image: oliver006/redis_exporter:v1.97.0
+    image: oliver006/redis_exporter:v1.98.0
     environment:
       REDIS_ADDR: redis://broker:6379
       REDIS_EXPORTER_CHECK_SINGLE_KEYS: tasks,tasks:1,tasks:2,tasks:3,tasks:4,tasks:5,tasks:6,tasks:7,tasks:8,tasks:9
