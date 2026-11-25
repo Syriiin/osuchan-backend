@@ -301,7 +301,7 @@ class DifficultyValue(models.Model):
     Model representing a value of a difficulty calculation of an osu! beatmap
     """
 
-    id = models.BigAutoField(primary_key=True)
+    pk = models.CompositePrimaryKey("calculation_id", "name")
 
     calculation = models.ForeignKey(
         DifficultyCalculation,
@@ -315,19 +315,6 @@ class DifficultyValue(models.Model):
 
     def __str__(self):
         return f"{self.calculation_id}: {self.name} ({self.value})"
-
-    class Meta:
-        constraints = [
-            # Difficulty values are unique on calculation + name
-            # The implicit unique b-tree index on these columns is useful also
-            models.UniqueConstraint(
-                fields=[
-                    "calculation_id",
-                    "name",
-                ],
-                name="unique_difficulty_value",
-            )
-        ]
 
 
 class ScoreQuerySet(models.QuerySet):
@@ -702,7 +689,7 @@ class PerformanceValue(models.Model):
     Model representing a value of a performance calculation of an osu! score
     """
 
-    id = models.BigAutoField(primary_key=True)
+    pk = models.CompositePrimaryKey("calculation_id", "name")
 
     calculation = models.ForeignKey(
         PerformanceCalculation,
@@ -716,19 +703,6 @@ class PerformanceValue(models.Model):
 
     def __str__(self):
         return f"{self.calculation_id}: {self.name} ({self.value})"
-
-    class Meta:
-        constraints = [
-            # Performance values are unique on calculation + name
-            # The implicit unique b-tree index on these columns is useful also
-            models.UniqueConstraint(
-                fields=[
-                    "calculation_id",
-                    "name",
-                ],
-                name="unique_performance_value",
-            )
-        ]
 
 
 # Custom lookups

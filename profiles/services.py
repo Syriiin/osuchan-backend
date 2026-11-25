@@ -553,7 +553,7 @@ def update_difficulty_calculations(
     # Delete outdated values (non-existent in current calculator)
     DifficultyValue.objects.filter(
         calculation_id__in=[c.id for c in calculations]
-    ).exclude(id__in=[v.id for v in values]).delete()
+    ).exclude(pk__in=[v.pk for v in values]).delete()
 
 
 @transaction.atomic
@@ -602,7 +602,7 @@ def update_performance_calculations(
     # Delete outdated values (non-existent in current calculator)
     DifficultyValue.objects.filter(
         calculation_id__in=[c.id for c in difficulty_calculations]
-    ).exclude(id__in=[v.id for v in difficulty_values]).delete()
+    ).exclude(pk__in=[v.pk for v in difficulty_values]).delete()
 
     # Create or update performance calculations
     performance_calculations = []
@@ -649,7 +649,7 @@ def update_performance_calculations(
     # Delete outdated values (non-existent in current calculator)
     PerformanceValue.objects.filter(
         calculation_id__in=[c.id for c in performance_calculations]
-    ).exclude(id__in=[v.id for v in performance_values]).delete()
+    ).exclude(pk__in=[v.pk for v in performance_values]).delete()
 
 
 def calculate_difficulty_values(

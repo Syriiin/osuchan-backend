@@ -95,7 +95,6 @@ class DifficultyValueAdmin(admin.ModelAdmin):
     raw_id_fields = ("calculation",)
 
     list_display = [
-        "id",
         "beatmap_display",
         "mods_display",
         "calculator_engine_display",
@@ -191,7 +190,6 @@ class PerformanceValueAdmin(admin.ModelAdmin):
     raw_id_fields = ("calculation",)
 
     list_display = [
-        "id",
         "score_id_display",
         "calculator_engine_display",
         "calculator_version_display",
@@ -217,8 +215,10 @@ admin.site.register(OsuUser, OsuUserAdmin)
 admin.site.register(UserStats, UserStatsAdmin)
 admin.site.register(Beatmap, BeatmapAdmin)
 admin.site.register(DifficultyCalculation, DifficultyCalculationAdmin)
-admin.site.register(DifficultyValue, DifficultyValueAdmin)
+# TODO: bring back when django supports admin for composite primary key models
+# admin.site.register(DifficultyValue, DifficultyValueAdmin)
 admin.site.register(Score, ScoreAdmin)
 admin.site.register(PerformanceCalculation, PerformanceCalculationAdmin)
-admin.site.register(PerformanceValue, PerformanceValueAdmin)
+# TODO: bring back when django supports admin for composite primary key models
+# admin.site.register(PerformanceValue, PerformanceValueAdmin)
 admin.site.register(ScoreFilter)
