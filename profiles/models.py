@@ -307,6 +307,7 @@ class DifficultyValue(models.Model):
         DifficultyCalculation,
         on_delete=models.CASCADE,
         related_name="difficulty_values",
+        db_index=False,
     )
 
     name = models.CharField()
@@ -327,8 +328,6 @@ class DifficultyValue(models.Model):
                 name="unique_difficulty_value",
             )
         ]
-
-        indexes = [models.Index(fields=["value"])]
 
 
 class ScoreQuerySet(models.QuerySet):
