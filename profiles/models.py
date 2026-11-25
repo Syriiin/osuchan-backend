@@ -709,6 +709,7 @@ class PerformanceValue(models.Model):
         PerformanceCalculation,
         on_delete=models.CASCADE,
         related_name="performance_values",
+        db_index=False,
     )
 
     name = models.CharField()
@@ -729,8 +730,6 @@ class PerformanceValue(models.Model):
                 name="unique_performance_value",
             )
         ]
-
-        indexes = [models.Index(fields=["value"])]
 
 
 # Custom lookups
