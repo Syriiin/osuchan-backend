@@ -330,10 +330,15 @@ class ScoreQuerySet(models.QuerySet):
         # Mods
         scores = self.all()
         if score_filter.required_mods_json != []:
-            scores = scores.filter(mods_json__has_keys=score_filter.required_mods_json)
+            for required_mod in score_filter.required_mods_json:
+                scores = scores.filter(
+                    mods_json__has_any_keys=utils.expand_mod_variants([required_mod])
+                )
         if score_filter.disqualified_mods_json != []:
             scores = scores.exclude(
-                mods_json__has_any_keys=score_filter.disqualified_mods_json
+                mods_json__has_any_keys=utils.expand_mod_variants(
+                    score_filter.disqualified_mods_json
+                )
             )
 
         # Beatmap Status
