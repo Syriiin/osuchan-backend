@@ -244,6 +244,25 @@ def get_gamemode_string_from_gamemode(gamemode: Gamemode):
         raise ValueError(f"{gamemode} is not a valid gamemode")
 
 
+mod_variants = {
+    "SD": ["PF"],
+    "DT": ["NC"],
+    "HT": ["DC"],
+}
+
+
+def expand_mod_variants(acronyms: list[str]) -> list[str]:
+    """
+    Expands a list of mod acronyms to include their variants.
+    """
+    expanded = []
+    for acronym in acronyms:
+        expanded.append(acronym)
+        if acronym in mod_variants:
+            expanded.extend(mod_variants[acronym])
+    return expanded
+
+
 mod_acronyms = {
     BitMods.NONE: "NONE",
     BitMods.NOFAIL: "NF",

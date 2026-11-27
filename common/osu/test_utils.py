@@ -1,6 +1,7 @@
 from common.osu.enums import BitMods, Gamemode, Mods
 from common.osu.utils import (
     calculate_pp_total,
+    expand_mod_variants,
     get_ar,
     get_bitwise_mods,
     get_bpm,
@@ -218,6 +219,16 @@ def test_get_mods_string():
         get_mods_string(BitMods.SUDDEN_DEATH + BitMods.DOUBLETIME + BitMods.HIDDEN)
         == "HD,SD,DT"
     )
+
+
+def test_expand_mod_aliases():
+    assert expand_mod_variants([]) == []
+    assert expand_mod_variants(["HD"]) == ["HD"]
+    assert expand_mod_variants(["SD"]) == ["SD", "PF"]
+    assert expand_mod_variants(["DT"]) == ["DT", "NC"]
+    assert expand_mod_variants(["HT"]) == ["HT", "DC"]
+    assert expand_mod_variants(["PF"]) == ["PF"]
+    assert expand_mod_variants(["SD", "DT"]) == ["SD", "PF", "DT", "NC"]
 
 
 def test_get_mods_string_from_json_mods():
